@@ -3,6 +3,10 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.hardware.TalonFX;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -63,5 +67,26 @@ public class Constants {
     public static LinearVelocity k_disabledVelocity = MetersPerSecond.of(0.2);
     public static Distance k_ledSpacing = Meters.of(1 / 120.0);
     
+  }
+
+  public static class IntakeConstants {
+    public static final int k_inRPM = 5000;
+    public static final int k_outRPM = -4000;
+
+    public static final Slot0Configs k_intakeRollerConfigs = new Slot0Configs();
+    static {
+        k_intakeRollerConfigs.kS = 0.1; // Add 0.1 V output to overcome static friction
+        k_intakeRollerConfigs.kV = 0.12; // A velocity target of 1 rps results in 0.12 V output
+        k_intakeRollerConfigs.kP = 0.11; // An error of 1 rps results in 0.11 V output
+        k_intakeRollerConfigs.kI = 0; // no output for integrated error
+        k_intakeRollerConfigs.kD = 0; // no output for error derivative
+    }
+    
+  }
+
+  public static class Globals {
+    public static void setRPM(TalonFX motor, VelocityVoltage request, double RPM){
+        motor.setControl(request.withFeedForward(RPM));
+    }
   }
 }
