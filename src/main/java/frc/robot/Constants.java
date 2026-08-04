@@ -1,9 +1,14 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 
@@ -16,13 +21,14 @@ public class Constants {
         public static final int fr_drive = 3;
         public static final int fr_steer = 4;
         public static final int bl_drive = 5;
-        public static final int bl_steer= 6;
+        public static final int bl_steer = 6;
         public static final int br_drive = 7;
         public static final int br_steer = 8;
         public static final int fl_encoder = 9;
         public static final int fr_encoder = 10;
         public static final int bl_encoder = 11;
         public static final int br_encoder = 12;
+
     }    
 
     public static class Subsystems {
@@ -41,4 +47,13 @@ public class Constants {
         public static final Rotation3d sideRightRotation = new Rotation3d();
 
     }
+
+    public static class LightConstants {
+    public static final int k_lightPort = 0; // may be different on actual robot
+    public static final int k_lightAmount = 100;
+
+    public static LinearVelocity k_disabledVelocity = MetersPerSecond.of(0.2);
+    public static Distance k_ledSpacing = Meters.of(1 / 120.0);
+    
+  }
 }
