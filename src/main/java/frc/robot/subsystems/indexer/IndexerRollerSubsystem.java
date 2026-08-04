@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.IndexerConstants;
+import frc.robot.Constants.IntakeConstants.IndexerConstants;
 
 public class IndexerRollerSubsystem extends SubsystemBase {
     private final TalonFX m_intakeRollerMotor = new TalonFX(CANIDConstants.indexerRoller);
@@ -24,7 +24,7 @@ public class IndexerRollerSubsystem extends SubsystemBase {
     }
     public Command run(boolean in) {
         return Commands.run(() -> {               
-            m_intakeRollerMotor.setControl(m_request.withFeedForward(in ? IndexerConstants.k_inRPM : IndexerConstants.k_outRPM));
+            m_intakeRollerMotor.setControl(m_request.withFeedForward(in ? IndexerConstants.k_rollerInRPM : IndexerConstants.k_rollerOutRPM));
         }, this); }
         
 }

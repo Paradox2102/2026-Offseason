@@ -90,6 +90,28 @@ public class Constants {
         k_intakeExtensionConfigs.kI = 0;
         k_intakeExtensionConfigs.kD = 0;
     }
+
+    public static class IndexerConstants {
+        public static final int k_rollerInRPM = 3000;
+        public static final int k_rollerOutRPM = -2750;
+
+        public static final Slot0Configs k_indexerRollerConfigs = new Slot0Configs();
+        public static final Slot0Configs k_indexerConveyorConfigs = new Slot0Configs();
+
+        static {
+            k_indexerRollerConfigs.kS = 0.1;
+            k_indexerRollerConfigs.kV = 0.12;
+            k_indexerRollerConfigs.kP = 0.11;
+            k_indexerRollerConfigs.kI = 0;
+            k_indexerRollerConfigs.kD = 0;
+
+            k_indexerConveyorConfigs.kS = 0.1;
+            k_indexerConveyorConfigs.kV = 0.12;
+            k_indexerConveyorConfigs.kP = 0.11;
+            k_indexerConveyorConfigs.kI = 0;
+            k_indexerConveyorConfigs.kD = 0;
+        }
+    }
     
   }
 
