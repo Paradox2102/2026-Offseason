@@ -1,0 +1,44 @@
+package frc.robot;
+
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
+import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.drive.SwerveSubsystem;
+
+public class Constants {
+    public static class CANIDConstants {
+        public static final int gyro = 0;
+
+        public static final int fl_drive = 1;
+        public static final int fl_steer = 2;
+        public static final int fr_drive = 3;
+        public static final int fr_steer = 4;
+        public static final int bl_drive = 5;
+        public static final int bl_steer= 6;
+        public static final int br_drive = 7;
+        public static final int br_steer = 8;
+        public static final int fl_encoder = 9;
+        public static final int fr_encoder = 10;
+        public static final int bl_encoder = 11;
+        public static final int br_encoder = 12;
+    }    
+
+    public static class Subsystems {
+        public static final SwerveSubsystem m_swerveSubsystem = TunerConstants.createDrivetrain();
+    }
+
+    public static class VisionConstants {
+
+        public static final Translation3d frontLeftPosition = new Translation3d();
+        public static final Rotation3d frontLeftRotation = new Rotation3d();
+        public static final Translation3d frontRightPosition = new Translation3d();
+        public static final Rotation3d frontRightRotation = new Rotation3d();
+        public static final Translation3d sideLeftPosition = new Translation3d();
+        public static final Rotation3d sideLeftRotation = new Rotation3d();
+        public static final Translation3d sideRightPosition = new Translation3d();
+        public static final Rotation3d sideRightRotation = new Rotation3d();
+
+    }
+}

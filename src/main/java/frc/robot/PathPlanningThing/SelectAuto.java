@@ -1,0 +1,108 @@
+package frc.robot.PathPlanningThing;
+
+import java.io.File;
+import java.nio.file.Paths;
+import java.util.Map;
+
+import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SelectCommand;
+import frc.robot.RobotContainer;
+import frc.robot.subsystems.drive.SwerveSubsystem;
+
+public class SelectAuto {
+    
+    public static SendableChooser<Command> m_autoSelection = new SendableChooser<>();
+    // private static String m_previousAutoSelection = m_autoSelection.getSelected();
+
+    /**
+     * This is the auto that has been selected through Smart Dashboard.
+     * Make sure that you call checkSelectedAuto() in Disabled Periodic. 
+     */
+    public static Command selectedAuto = new DrivePath();
+
+    private static final File autoDirectory = Paths.get("./src/main/java/frc/robot/PathPlanningThing/Autos/").toAbsolutePath().toFile();
+
+
+    // function in disabled periodic that checks if the auto has been changed in order to set selected auto to a new drive path
+    SelectAuto() {
+        
+    }
+
+    /**
+     * This function needs to be called in disabled periodic in the Robot Java Class
+     * 
+     * @param swerveSubsystem make sure that your swerve subsystem in robot container is static so you can pass it into this function
+     */
+    // public static void checkSelectedAuto(SwerveSubsystem swerveSubsystem){
+    //     if (m_previousAutoSelection != m_autoSelection.getSelected()){
+    //         selectedAuto = new DrivePath(m_autoSelection.getSelected(), swerveSubsystem);
+    //     }
+
+    //     m_previousAutoSelection = m_autoSelection.getSelected();
+    // }
+
+        /**
+     * If you want to test autos in simulation then you should call this in autonomousInit() in Robot.
+     * If you don't then you'll have to change the selected auto in disabled so that it parses it before running the auto.
+     * 
+     * @param swerveSubsystem make sure that your swerve subsystem in robot container is static so you can pass it into this function
+     */
+    // public static void forceSelectedAuto(SwerveSubsystem swerveSubsystem){
+    //     selectedAuto = new DrivePath(m_autoSelection.getSelected(), swerveSubsystem);
+        
+    //     m_previousAutoSelection = m_autoSelection.getSelected();
+    // }
+
+
+    //  SmartDashboard.putData(Commands.runOnce(() -> {
+    //     m_isOn = !m_isOn;
+    //   })
+    //   .withName("Toggle Lights")
+    //   .ignoringDisable(true));
+
+    //   SmartDashboard.putData(Commands.runOnce(() -> {
+    //     m_isScrolling = !m_isScrolling;
+    //     LedPatterns.m_disabledPattern = LEDPattern.steps(Map.of(0, Color.kRed, 0.16, Color.kBlue, 0.33, new Color(1.0f, 0.35f, 0.0f),0.49, Color.kRed, 0.66, Color.kBlue, 0.83, new Color(1.0f, 0.35f, 0.0f))).scrollAtAbsoluteSpeed(m_isScrolling ? LightConstants.k_disabledVelocity : MetersPerSecond.of(0), LightConstants.k_ledSpacing);
+    //   })
+    //   .withName("Toggle Disable Scrolling")
+    //   .ignoringDisable(true));
+    public static void addCommand(String auto_name, Command command){
+        m_autoSelection.addOption(auto_name, command);
+    }
+
+    public static Command getSelectedAuto(){
+        return m_autoSelection.getSelected();
+    }
+
+    /**
+     * Call this function in the Robot Container constructer!
+     * Make sure that it is before configure Bindings
+     */
+
+    // public static void addAutos() {
+        
+    //     for (final File fileEntry : autoDirectory.listFiles()) {
+    //         if (fileEntry.isDirectory()){
+    //             addAutos(fileEntry);
+    //         } else {
+    //             m_autoSelection.addOption(fileEntry.getName(), fileEntry.getName());
+    //         }
+    //     }
+
+    //     SmartDashboard.putData("Auto Selection", m_autoSelection);
+    // }
+//     private static void addAutos(final File folder) {
+        
+//         for (final File fileEntry : folder.listFiles()) {
+//             if (fileEntry.isDirectory()){
+//                 addAutos(fileEntry);
+//             } else {
+//                 m_autoSelection.addOption(fileEntry.getName(), fileEntry.getName());
+//             }
+//         }
+//     }
+}
