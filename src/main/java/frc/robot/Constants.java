@@ -29,6 +29,14 @@ public class Constants {
         public static final int bl_encoder = 11;
         public static final int br_encoder = 12;
 
+        public static final int intakeRoller = 20;
+        public static final int intakeExtensionLeader = 21;
+        public static final int intakeExtensionFollower = 22;
+
+        public static final int indexerRoller = 20;
+        public static final int indexerConveyorLeader = 21;
+        public static final int indexerConveyorFollower = 22;
+
     }    
 
     public static class Subsystems {
