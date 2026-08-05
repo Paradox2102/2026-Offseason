@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
@@ -395,6 +396,12 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     public Optional<Pose2d> samplePoseAt(double timestampSeconds) {
         return super.samplePoseAt(Utils.fpgaToCurrentTime(timestampSeconds));
     }
+
+    public double distanceToHub() {
+        return getPose().getTranslation().getDistance(isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
+    }
+
+    
 
     public Pose2d getPose() {
         return getState().Pose;
