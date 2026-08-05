@@ -85,6 +85,20 @@ public class Constants {
     public static final Slot0Configs k_hoodConfig = new Slot0Configs();
     public static final Slot0Configs k_shooterConfigs = new Slot0Configs();
     public static final Slot0Configs k_turretConfig = new Slot0Configs();
+
+    public static final double k_hoodG = 0;
+    public static final double k_hoodS = 0;
+    public static final double k_hoodP = 0;
+    public static final double k_hoodD = 0;
+
+    public static final double k_shooterP = 0;
+    public static final double k_shooterS = 0;
+    public static final double k_shooterV = 0;
+
+    public static final double k_turretS = 0;
+    public static final double k_turretP = 0;
+    public static final double k_turretD = 0;
+
     public static final double[][] m_hoodAngle = {
         {0, 0}
     };
@@ -92,6 +106,21 @@ public class Constants {
     public static final double[][] m_shotSpeeds = {
         {0, 0}
     };
+
+    static {
+        k_shooterConfigs.kP = k_shooterP;
+        k_shooterConfigs.kS = k_shooterS;
+        k_shooterConfigs.kV = k_shooterV;
+
+        k_turretConfig.kS = k_turretS;
+        k_turretConfig.kP = k_turretP;
+        k_turretConfig.kD = k_turretD;
+
+        k_hoodConfig.kG = k_hoodG;
+        k_hoodConfig.kS = k_hoodS;
+        k_hoodConfig.kP = k_hoodP;
+        k_hoodConfig.kD = k_hoodD;
+    }
   }
 
   public static class FieldConstants {
@@ -109,18 +138,24 @@ public class Constants {
 
     public static final Slot0Configs k_intakeRollerConfigs = new Slot0Configs();
     public static final Slot0Configs k_intakeExtensionConfigs = new Slot0Configs();
-    static {
-        k_intakeRollerConfigs.kS = 0.1; // Add 0.1 V output to overcome static friction
-        k_intakeRollerConfigs.kV = 0.12; // A velocity target of 1 rps results in 0.12 V output
-        k_intakeRollerConfigs.kP = 0.11; // An error of 1 rps results in 0.11 V output
-        k_intakeRollerConfigs.kI = 0; // no output for integrated error
-        k_intakeRollerConfigs.kD = 0; // no output for error derivative
 
-        k_intakeExtensionConfigs.kS = 0.1;
-        k_intakeExtensionConfigs.kV = 0.12;
-        k_intakeExtensionConfigs.kP = 0.11;
-        k_intakeExtensionConfigs.kI = 0;
-        k_intakeExtensionConfigs.kD = 0;
+        public static final double k_rollerP = 0;
+        public static final double k_rollerS = 0;
+        public static final double k_rollerV = 0;
+
+    public static final double k_intakeExtensionG = 0;
+    public static final double k_intakeExtensionP = 0;
+    public static final double k_intakeExtensionV = 0;
+    public static final double k_intakeExtensionD = 0;
+    static {
+        k_intakeRollerConfigs.kP = k_rollerP;
+        k_intakeRollerConfigs.kS = k_rollerS;
+        k_intakeRollerConfigs.kV = k_rollerV;
+
+        k_intakeExtensionConfigs.kG = k_intakeExtensionG;
+        k_intakeExtensionConfigs.kP = k_intakeExtensionP;
+        k_intakeExtensionConfigs.kV = k_intakeExtensionV;
+        k_intakeExtensionConfigs.kD = k_intakeExtensionD;
     }
 
     public static class IndexerConstants {
@@ -134,18 +169,23 @@ public class Constants {
         public static final Slot0Configs k_indexerRollerConfigs = new Slot0Configs();
         public static final Slot0Configs k_indexerConveyorConfigs = new Slot0Configs();
 
-        static {
-            k_indexerRollerConfigs.kS = 0.1;
-            k_indexerRollerConfigs.kV = 0.12;
-            k_indexerRollerConfigs.kP = 0.11;
-            k_indexerRollerConfigs.kI = 0;
-            k_indexerRollerConfigs.kD = 0;
+        public static final double k_rollerP = 0;
+        public static final double k_rollerS = 0;
+        public static final double k_rollerV = 0;
 
-            k_indexerConveyorConfigs.kS = 0.1;
-            k_indexerConveyorConfigs.kV = 0.12;
-            k_indexerConveyorConfigs.kP = 0.11;
-            k_indexerConveyorConfigs.kI = 0;
-            k_indexerConveyorConfigs.kD = 0;
+        public static final double k_conveyorP = 0;
+        public static final double k_conveyorS = 0;
+        public static final double k_conveyorV = 0;
+
+        static {
+            k_indexerRollerConfigs.kP = k_rollerP;
+            k_indexerRollerConfigs.kS = k_rollerS;
+            k_indexerRollerConfigs.kV = k_rollerV;
+
+            k_indexerConveyorConfigs.kP = k_conveyorP;
+            k_indexerConveyorConfigs.kS = k_conveyorS;
+            k_indexerConveyorConfigs.kV = k_conveyorV;
+            
         }
     }
     
