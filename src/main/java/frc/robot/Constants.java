@@ -87,6 +87,9 @@ public class Constants {
         {0, 0}
     };
 
+    public static final double[][] m_shotSpeeds = {
+        {0, 0}
+    };
   }
 
   public static class FieldConstants {
