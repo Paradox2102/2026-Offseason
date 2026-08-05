@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
@@ -81,6 +82,8 @@ public class Constants {
     public static final int k_inRPM = 5000;
     public static final int k_outRPM = -4000;
 
+    public static final int k_outPosition = 90;
+
     public static final Slot0Configs k_intakeRollerConfigs = new Slot0Configs();
     public static final Slot0Configs k_intakeExtensionConfigs = new Slot0Configs();
     static {
@@ -136,15 +139,37 @@ public class Constants {
         motor.setControl(request.withFeedForward(RPM));
     }
     /**
+     * Sets the RPM of a specified motor
+     * @param motor The motor to set the RPM of
+     * @param request This is a PositionVoltage. Should be created once in your class then said every time you set RPM
+     * @param position This is the position the motor will go spiin
+     */
+    public static void setPosition(TalonFX motor, PositionVoltage request, double position){
+        motor.setControl(request.withPosition(position));
+    }
+    /**
      * Sets the RPM of a lead and follower motor
      * @param leadMotor The lead motor to have the RPM set for
      * @param followMotor The follower motor to have the RPM of the lead motor
      * @param request This is a VelocityVoltage. Should be created once in your class then said every time you set RPM
      * @param RPM Motor go spiin at rpm
-     * @param alignmentValue "I don't know!" -Gir
+     * @param alignmentValue Whether the motors are aligned or opposed (ugh, I think I mispelled that)
      */
     public static void setFollowerRPM(TalonFX leadMotor, TalonFX followMotor, VelocityVoltage request, double RPM, MotorAlignmentValue alignmentValue){
         setRPM(leadMotor, request, RPM);
+        followMotor.setControl(new Follower(leadMotor.getDeviceID(), alignmentValue));
+    }
+
+    /**
+     * Sets the Position of a lead and follower motor
+     * @param leadMotor The lead motor to have the RPM set for
+     * @param followMotor The follower motor to have the RPM of the lead motor
+     * @param request This is a VelocityVoltage. Should be created once in your class then said every time you set RPM
+     * @param position Motor go spiin to position
+     * @param alignmentValue Whether the motors are aligned or opposed (ugh, I think I mispelled that)
+     */
+    public static void setFollowerPosition(TalonFX leadMotor, TalonFX followMotor, PositionVoltage request, double position, MotorAlignmentValue alignmentValue){
+        setPosition(leadMotor, request, position);
         followMotor.setControl(new Follower(leadMotor.getDeviceID(), alignmentValue));
     }
   }
