@@ -95,6 +95,10 @@ public class Constants {
         public static final int k_rollerInRPM = 3000;
         public static final int k_rollerOutRPM = -2750;
 
+        public static final int k_conveyorInRPM = 3000;
+        public static final int k_conveyorOutRPM = -2750;
+
+
         public static final Slot0Configs k_indexerRollerConfigs = new Slot0Configs();
         public static final Slot0Configs k_indexerConveyorConfigs = new Slot0Configs();
 
