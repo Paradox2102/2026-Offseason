@@ -81,6 +81,8 @@ public class Constants {
     public static final int k_kickInRPM = 5000;
     public static final int k_kickOutRPM = 1000;
 
+    public static final Slot0Configs k_hoodConfig = new Slot0Configs();
+    public static final Slot0Configs k_shooterConfigs = new Slot0Configs();
     public static final double[][] m_hoodAngle = {
         {0, 0}
     };
@@ -91,6 +93,8 @@ public class Constants {
     public static final Translation2d k_blueHub = new Translation2d(4.62, 4.03);
     public static final Translation2d k_redHub = new Translation2d(11.92, 4.03);
   }
+
+  
 
   public static class IntakeConstants {
     public static final int k_inRPM = 5000;

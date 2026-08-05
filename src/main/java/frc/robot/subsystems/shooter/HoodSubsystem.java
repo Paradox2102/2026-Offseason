@@ -7,11 +7,11 @@ import frc.robot.Constants.CANIDConstants;
 
 public class HoodSubsystem extends SubsystemBase{
 
-    // private final TalonFX m_hoodMotor = new TalonFX(CANIDConstants.)
+    private final TalonFX m_hoodMotor = new TalonFX(CANIDConstants.hood);
 
-    // public HoodSubsystem() {
+    public HoodSubsystem() {
 
-    // }
+    }
 
     
 }
