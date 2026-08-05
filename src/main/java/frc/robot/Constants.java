@@ -39,9 +39,11 @@ public class Constants {
         public static final int intakeExtensionLeader = 21;
         public static final int intakeExtensionFollower = 22;
 
-        public static final int indexerRoller = 20;
-        public static final int indexerConveyorLeader = 21;
-        public static final int indexerConveyorFollower = 22;
+        public static final int indexerRoller = 30;
+        public static final int indexerConveyorLeader = 31;
+        public static final int indexerConveyorFollower = 32;
+
+        public static final int kicker = 40;
 
     }    
 
@@ -70,7 +72,11 @@ public class Constants {
     public static Distance k_ledSpacing = Meters.of(1 / 120.0);
     
   }
+  public static class ShooterConstants {
+    public static final int k_kickInRPM = 5000;
+    public static final int k_kickOutRPM = 1000;
 
+  }
   public static class IntakeConstants {
     public static final int k_inRPM = 5000;
     public static final int k_outRPM = -4000;
