@@ -138,6 +138,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         )
     );
 
+    private Pose2d cachedPose;
+
     /* The SysId routine to test */
     private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
     
@@ -331,6 +333,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
 
         vision.updatePoseEstimation(this);
 
+        cachedPose = getState().Pose;
+
     }
 
     private void setupPhotonVision() {
@@ -404,7 +408,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     
 
     public Pose2d getPose() {
-        return getState().Pose;
+        return cachedPose;
     }
 
     /**

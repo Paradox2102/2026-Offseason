@@ -48,6 +48,7 @@ public class Constants {
         public static final int hood = 41;
         public static final int shooterLeader = 42;
         public static final int shooterFollower = 43;
+        public static final int shooterAzimuth = 44;
 
 
     }    
@@ -83,6 +84,7 @@ public class Constants {
 
     public static final Slot0Configs k_hoodConfig = new Slot0Configs();
     public static final Slot0Configs k_shooterConfigs = new Slot0Configs();
+    public static final Slot0Configs k_turretConfig = new Slot0Configs();
     public static final double[][] m_hoodAngle = {
         {0, 0}
     };
