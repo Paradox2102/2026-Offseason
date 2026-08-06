@@ -13,6 +13,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -26,12 +27,9 @@ public class IntakeRollerSubsystem extends SubsystemBase {
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
     
     private final double k_gearRatio = 0.5;
-    private final DCMotorSim m_motorSimModel = new DCMotorSim(
-   LinearSystemId.createDCMotorSystem(
-      DCMotor.getKrakenX60Foc(1), 7.8368899188, k_gearRatio
-   ),
-   DCMotor.getKrakenX60Foc(1)
-);
+
+    private final FlywheelSim m_motorSimModel = new FlywheelSim(
+        LinearSystemId.createFlywheelSystem(DCMotor.getKrakenX60(1), IntakeConstants.k_intakeRollerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
     public IntakeRollerSubsystem() {
         m_intakeRollerMotor.getConfigurator().apply(IntakeConstants.k_intakeRollerConfigs);
         
@@ -67,7 +65,6 @@ public class IntakeRollerSubsystem extends SubsystemBase {
    // apply the new rotor position and velocity to the TalonFX;
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
-   talonFXSim.setRawRotorPosition(m_motorSimModel.getAngularPosition().times(k_gearRatio));
    talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity().times(k_gearRatio));
     }
 }

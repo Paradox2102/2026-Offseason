@@ -108,6 +108,10 @@ public class Constants {
         {0, 0}
     };
 
+    public static final double k_hoodMOI = 0.0254713554;
+    public static final double k_hoodArmLength = 0.0254713554;
+    public static final double k_hoodMaxAngle = 90;
+
     static {
         k_shooterConfigs.kP = k_shooterP;
         k_shooterConfigs.kS = k_shooterS;
@@ -148,6 +152,8 @@ public class Constants {
     public static final double k_intakeExtensionP = 0;
     public static final double k_intakeExtensionV = 0;
     public static final double k_intakeExtensionD = 0;
+
+    public static final double k_intakeRollerMOI = 7.8368899188;
     static {
         k_intakeRollerConfigs.kP = k_rollerP;
         k_intakeRollerConfigs.kS = k_rollerS;
