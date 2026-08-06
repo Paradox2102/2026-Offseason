@@ -49,8 +49,7 @@ public class Constants {
         public static final int shooterLeader = 42;
         public static final int shooterFollower = 43;
         public static final int shooterAzimuth = 44;
-
-
+        public static final int goUp = 45;
     }    
 
     public static class Subsystems {
@@ -81,6 +80,8 @@ public class Constants {
   public static class ShooterConstants {
     public static final int k_kickInRPM = 5000;
     public static final int k_kickOutRPM = 1000;
+
+    public static final int k_preShootRPM = 5000;
 
     public static final Slot0Configs k_hoodConfig = new Slot0Configs();
     public static final Slot0Configs k_shooterConfigs = new Slot0Configs();
