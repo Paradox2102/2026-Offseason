@@ -16,23 +16,23 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CANIDConstants;
+import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.IndexerConstants;
 
 public class IndexerRollerSubsystem extends SubsystemBase {
     private final TalonFX m_indexerRollerModer = new TalonFX(CANIDConstants.indexerRoller);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
 
-private final double k_gearRatio = 0.31;
-    private final DCMotorSim m_motorSimModel = new DCMotorSim(
-   LinearSystemId.createDCMotorSystem(
-      DCMotor.getKrakenX60Foc(1), 4.2552029673, k_gearRatio
-   ),
-   DCMotor.getKrakenX60Foc(1)
-);
+    private final double k_gearRatio = 0.31;
+
+    private final FlywheelSim m_motorSimModel = new FlywheelSim(
+        LinearSystemId.createFlywheelSystem(DCMotor.getKrakenX60(1), IndexerConstants.k_indexerRollerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
+
 
     public IndexerRollerSubsystem() {
         m_indexerRollerModer.getConfigurator().apply(new MotorOutputConfigs());
@@ -48,7 +48,7 @@ private final double k_gearRatio = 0.31;
             m_indexerRollerModer.setControl(m_request.withFeedForward(in ? IndexerConstants.k_rollerInRPM : IndexerConstants.k_rollerOutRPM));
         }, this); }
     
-        @Override
+    @Override
     public void simulationPeriodic() {
     var talonFXSim = m_indexerRollerModer.getSimState();
 
@@ -66,7 +66,6 @@ private final double k_gearRatio = 0.31;
    // apply the new rotor position and velocity to the TalonFX;
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
-   talonFXSim.setRawRotorPosition(m_motorSimModel.getAngularPosition().times(k_gearRatio));
    talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity().times(k_gearRatio));
     }
 }

@@ -175,6 +175,9 @@ public class Constants {
         public static final Slot0Configs k_indexerRollerConfigs = new Slot0Configs();
         public static final Slot0Configs k_indexerConveyorConfigs = new Slot0Configs();
 
+        public static final double k_indexerRollerMOI = 4.2552029673;
+        public static final double k_indexerConveyorMOI = 0.0848654995;
+
         public static final double k_rollerP = 0;
         public static final double k_rollerS = 0;
         public static final double k_rollerV = 0;
