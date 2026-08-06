@@ -10,6 +10,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
@@ -27,14 +28,24 @@ public class HoodSubsystem extends SubsystemBase{
 
     private final InterpolatingDoubleTreeMap m_hoodLerpTable = new InterpolatingDoubleTreeMap();
 
+    private final DigitalInput m_limitSwitch = new DigitalInput(0);
+
     private final double k_gearRatio = 5;
     private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(DCMotor.getKrakenX44(1),
     k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, 0, ShooterConstants.k_hoodMaxAngle, true, 0);
-//    LinearSystemId.createDCMotorSystem(
+
+    //    LinearSystemId.createDCMotorSystem(
 //       DCMotor.getKrakenX44Foc(1), 0.0254713554, k_gearRatio
 //    ),
 //    DCMotor.getKrakenX44Foc(1)
 // );
+
+    @Override
+    public void periodic() {
+        if (m_limitSwitch.get()){
+            m_hoodMotor.setPosition(0);
+        }
+    }
     public HoodSubsystem() {
         for (double[] shotAngle : ShooterConstants.m_hoodAngle){
             m_hoodLerpTable.put(shotAngle[0], shotAngle[1]);
