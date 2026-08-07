@@ -18,6 +18,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
+import frc.robot.utils.DoubleNumber;
 
 public class Constants {
     public static class CANIDConstants {
@@ -83,6 +84,10 @@ public class Constants {
 
     public static final int k_preShootRPM = 5000;
 
+    public static final double k_upKickerMOI = 0.0851405808;
+    public static final double k_kickerMOI = 0.5379389901;
+    public static final double k_shooterMOI = 4.7850241331;
+
     public static final Slot0Configs k_hoodConfig = new Slot0Configs();
     public static final Slot0Configs k_shooterConfigs = new Slot0Configs();
     public static final Slot0Configs k_turretConfig = new Slot0Configs();
@@ -100,11 +105,16 @@ public class Constants {
     public static final double k_turretP = 0;
     public static final double k_turretD = 0;
 
-    public static final double[][] m_hoodAngle = {
+    public static final DoubleNumber k_turretBounds = new DoubleNumber(-500, 500);
+    public static final double[][] k_hoodAngle = {
         {0, 0}
     };
 
-    public static final double[][] m_shotSpeeds = {
+    public static final double[][] k_shotSpeeds = {
+        {0, 0}
+    };
+
+        public static final double[][] k_shotTimes = {
         {0, 0}
     };
 

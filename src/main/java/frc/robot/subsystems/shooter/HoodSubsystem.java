@@ -1,5 +1,7 @@
 package frc.robot.subsystems.shooter;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -47,7 +49,7 @@ public class HoodSubsystem extends SubsystemBase{
         }
     }
     public HoodSubsystem() {
-        for (double[] shotAngle : ShooterConstants.m_hoodAngle){
+        for (double[] shotAngle : ShooterConstants.k_hoodAngle){
             m_hoodLerpTable.put(shotAngle[0], shotAngle[1]);
         }
         m_hoodMotor.getConfigurator().apply(ShooterConstants.k_hoodConfig);
@@ -59,9 +61,9 @@ public class HoodSubsystem extends SubsystemBase{
         }
     }
 
-    public Command pitchHood(double distanceToHub) {
+    public Command pitchHood(DoubleSupplier distanceToHub) {
         return Commands.run(() -> {
-            Globals.setPosition(m_hoodMotor, m_request, m_hoodLerpTable.get(distanceToHub));
+            Globals.setPosition(m_hoodMotor, m_request, m_hoodLerpTable.get(distanceToHub.getAsDouble()));
         }, this);
     }
 

@@ -27,10 +27,10 @@ public class AfterKickerUpSubsystem extends SubsystemBase {
     private final TalonFX m_goUpMotor = new TalonFX(CANIDConstants.goUp);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
 
-    private final double k_gearRatio = 0.31;
+    private final double k_gearRatio = 1;
 
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
-        LinearSystemId.createFlywheelSystem(DCMotor.getKrakenX60(1), IndexerConstants.k_indexerRollerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
+        LinearSystemId.createFlywheelSystem(DCMotor.getKrakenX60(1), ShooterConstants.k_upKickerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
 
     public AfterKickerUpSubsystem() {
         m_goUpMotor.getConfigurator().apply(new MotorOutputConfigs());
