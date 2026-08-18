@@ -20,9 +20,9 @@ import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.IntakeConstants.IndexerConstants;
+import frc.robot.utils.Constants.CANIDConstants;
+import frc.robot.utils.Constants.IntakeConstants;
+import frc.robot.utils.Constants.IntakeConstants.IndexerConstants;
 
 public class IndexerRollerSubsystem extends SubsystemBase {
     private final TalonFX m_indexerRollerModer = new TalonFX(CANIDConstants.indexerRoller);

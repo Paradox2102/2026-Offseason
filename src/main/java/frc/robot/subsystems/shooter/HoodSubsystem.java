@@ -19,9 +19,11 @@ import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.Globals;
-import frc.robot.Constants.ShooterConstants;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.utils.Constants.CANIDConstants;
+import frc.robot.utils.Constants.Globals;
+import frc.robot.utils.Constants.ShooterConstants;
+import frc.robot.utils.Constants.Subsystems;
 
 public class HoodSubsystem extends SubsystemBase{
 
@@ -35,6 +37,8 @@ public class HoodSubsystem extends SubsystemBase{
     private final double k_gearRatio = 5;
     private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(DCMotor.getKrakenX44(1),
     k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, 0, ShooterConstants.k_hoodMaxAngle, true, 0);
+    
+    public final Trigger m_isAimed = new Trigger(() -> (Math.abs(m_request.Position - m_hoodLerpTable.get(Subsystems.m_swerveSubsystem.distanceToTarget())) < 0.5));
 
     //    LinearSystemId.createDCMotorSystem(
 //       DCMotor.getKrakenX44Foc(1), 0.0254713554, k_gearRatio
@@ -49,7 +53,7 @@ public class HoodSubsystem extends SubsystemBase{
         }
     }
     public HoodSubsystem() {
-        for (double[] shotAngle : ShooterConstants.k_hoodAngle){
+        for (double[] shotAngle : ShooterConstants.k_scoreHoodAngle){
             m_hoodLerpTable.put(shotAngle[0], shotAngle[1]);
         }
         m_hoodMotor.getConfigurator().apply(ShooterConstants.k_hoodConfig);
@@ -61,10 +65,20 @@ public class HoodSubsystem extends SubsystemBase{
         }
     }
 
-    public Command pitchHood(DoubleSupplier distanceToHub) {
+    public Command pitchHood(DoubleSupplier distanceToTarget) {
         return Commands.run(() -> {
-            Globals.setPosition(m_hoodMotor, m_request, m_hoodLerpTable.get(distanceToHub.getAsDouble()));
+            Globals.setPosition(m_hoodMotor, m_request, m_hoodLerpTable.get(distanceToTarget.getAsDouble()));
         }, this);
+    }
+
+    public Command returnHood(){
+        return Commands.runOnce(
+            () -> Globals.setPosition(m_hoodMotor, m_request, 0), this);
+    }
+
+    public Command staticShoot(){
+        return Commands.run(
+            () -> Globals.setPosition(m_hoodMotor, m_request, ShooterConstants.k_staticShotAngle), this);
     }
 
     @Override

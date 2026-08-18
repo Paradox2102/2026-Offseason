@@ -23,7 +23,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.robot.Robot;
-import frc.robot.Constants.VisionConstants;
+import frc.robot.utils.Constants.VisionConstants;
 
 import java.awt.Desktop;
 import java.io.IOException;

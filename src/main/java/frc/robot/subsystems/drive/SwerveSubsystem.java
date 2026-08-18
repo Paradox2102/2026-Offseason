@@ -2,14 +2,11 @@ package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.*;
 
-import java.lang.Thread.State;
-import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveRequest.FieldCentric;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
@@ -22,26 +19,23 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants.FieldConstants;
-import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.utils.Constants.FieldConstants;
+import frc.robot.utils.Constants.ShooterConstants;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
@@ -150,7 +144,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     private Vision vision;
     
     private InterpolatingDoubleTreeMap m_shotTimeInt = new InterpolatingDoubleTreeMap();
-        private Pose2d m_sotmHubPos = new Pose2d();
+        private Pose2d m_sotmPose = new Pose2d();
     
         /**
          * Constructs a CTRE SwerveDrivetrain using the specified constants.
@@ -171,7 +165,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 startSimThread();
             }
             setupPhotonVision();
-            for(double[] values : ShooterConstants.k_shotTimes){
+            for(double[] values : ShooterConstants.k_scoreShotTimes){
                 m_shotTimeInt.put(values[0], values[1]);
             }
         }
@@ -199,7 +193,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 startSimThread();
             }
             setupPhotonVision();
-            for(double[] values : ShooterConstants.k_shotTimes){
+            for(double[] values : ShooterConstants.k_scoreShotTimes){
                 m_shotTimeInt.put(values[0], values[1]);
             }
         }
@@ -235,7 +229,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 startSimThread();
             }
             setupPhotonVision();
-            for(double[] values : ShooterConstants.k_shotTimes){
+            for(double[] values : ShooterConstants.k_scoreShotTimes){
                 m_shotTimeInt.put(values[0], values[1]);
             }
         }
@@ -350,7 +344,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
             vision.updatePoseEstimation(this);
     
             cachedPose = getState().Pose;
-            m_sotmHubPos = sotmLookAhead(5, isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
+            m_sotmPose = sotmLookAhead(5, isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
     }
 
     private void setupPhotonVision() {
@@ -417,17 +411,42 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         return super.samplePoseAt(Utils.fpgaToCurrentTime(timestampSeconds));
     }
 
-    public double distanceToHub() {
-        return m_sotmHubPos.getTranslation().getDistance(isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
+    public double distanceToTarget() {
+        return m_sotmPose.getTranslation().getDistance(isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
+    }
+
+    public Translation2d targetTranslation() {
+        if (inTeamAlliance())
+            return isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub;
+        else
+            if (isRedAlliance())
+                return (cachedPose.getY() > FieldConstants.k_yCenterline ? FieldConstants.k_redDepot : FieldConstants.k_redOutpost);
+            else
+                return (cachedPose.getY() > FieldConstants.k_yCenterline ? FieldConstants.k_blueDepot : FieldConstants.k_blueOutpost);
     }
 
     
+
+    public Optional<Alliance> inAllianceZone(){
+        if (getPose().getX() < FieldConstants.k_blueZoneTransition){
+            return Optional.of(Alliance.Blue);
+        }else if(getPose().getX() < FieldConstants.k_redZoneTransition){
+            return Optional.empty();
+        }else{
+            return Optional.of(Alliance.Red);
+        }
+    }
+
+    public boolean inTeamAlliance(){
+        return DriverStation.getAlliance() == inAllianceZone();
+
+    }
 
     public Pose2d getPose() {
         return cachedPose;
     }
     public Pose2d getSotmHubPos(){
-        return getSotmHubPos();
+        return m_sotmPose;
     }
     public Pose2d getFuturePos(double lookAhead) {
         double xDist = cachedPose.getX() + (getState().Speeds.vxMetersPerSecond * lookAhead);
@@ -437,7 +456,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
 
     //iteratively look forward in time to find aiming pose for shoot on the move
     public Pose2d sotmLookAhead(int iterations, Translation2d targetTranslation){
-        Pose2d futurePos = getFuturePos(m_shotTimeInt.get(distanceToHub()));
+        Pose2d futurePos = getFuturePos(m_shotTimeInt.get(distanceToTarget()));
         for(int i = 0; i < iterations; i++){
             double futureShotTime = m_shotTimeInt.get(targetTranslation.getDistance(futurePos.getTranslation()));
             futurePos = getFuturePos(futureShotTime);

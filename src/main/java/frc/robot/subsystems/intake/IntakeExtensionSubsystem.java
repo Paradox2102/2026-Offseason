@@ -17,9 +17,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.Globals;
-import frc.robot.Constants.IntakeConstants;
+import frc.robot.utils.Constants.CANIDConstants;
+import frc.robot.utils.Constants.Globals;
+import frc.robot.utils.Constants.IntakeConstants;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
     private final TalonFX m_intakeExtensionLeader = new TalonFX(CANIDConstants.intakeExtensionLeader);

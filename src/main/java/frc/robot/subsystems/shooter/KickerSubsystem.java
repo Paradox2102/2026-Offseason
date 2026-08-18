@@ -19,10 +19,11 @@ import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.ShooterConstants;
-import frc.robot.Constants.IntakeConstants.IndexerConstants;
+import frc.robot.utils.Constants.CANIDConstants;
+import frc.robot.utils.Constants.Globals;
+import frc.robot.utils.Constants.IntakeConstants;
+import frc.robot.utils.Constants.ShooterConstants;
+import frc.robot.utils.Constants.IntakeConstants.IndexerConstants;
 
 public class KickerSubsystem extends SubsystemBase {
     private final TalonFX m_kickerMotor = new TalonFX(CANIDConstants.kicker);
@@ -44,7 +45,7 @@ public class KickerSubsystem extends SubsystemBase {
     }
     public Command run(boolean in) {
         return Commands.run(() -> {               
-            m_kickerMotor.setControl(m_request.withFeedForward(in ? ShooterConstants.k_kickInRPM : ShooterConstants.k_kickOutRPM));
+            Globals.setRPS(m_kickerMotor, m_request, in ? ShooterConstants.k_kickInRPM : ShooterConstants.k_kickOutRPM);
         }, this); }
 @Override
     public void simulationPeriodic() {

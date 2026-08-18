@@ -14,10 +14,10 @@ import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.Globals;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.IntakeConstants.IndexerConstants;
+import frc.robot.utils.Constants.CANIDConstants;
+import frc.robot.utils.Constants.Globals;
+import frc.robot.utils.Constants.IntakeConstants;
+import frc.robot.utils.Constants.IntakeConstants.IndexerConstants;
 
 public class IndexerConveyorSubsystem extends SubsystemBase {
     private final TalonFX m_indexerConveyorLeader = new TalonFX(CANIDConstants.indexerConveyorLeader);
@@ -41,7 +41,7 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
     }
     public Command run(boolean in) {
         return Commands.run(() -> {
-            Globals.setFollowerRPM(m_indexerConveyorLeader, m_indexerConveyorFollower, m_request,
+            Globals.setFollowerRPS(m_indexerConveyorLeader, m_indexerConveyorFollower, m_request,
              in ? IndexerConstants.k_conveyorInRPM : IndexerConstants.k_conveyorOutRPM, MotorAlignmentValue.Opposed);   
         }, this); }
     
