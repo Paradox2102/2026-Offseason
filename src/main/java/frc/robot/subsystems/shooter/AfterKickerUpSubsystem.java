@@ -1,9 +1,10 @@
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static org.wpilib.units.Units.RPM;
+import static org.wpilib.units.Units.Rotations;
+import static org.wpilib.units.Units.RotationsPerSecond;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -11,26 +12,28 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.simulation.FlywheelSim;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.wpilib.math.controller.PIDController;
+import org.wpilib.math.system.DCMotor;
+// TODO - cannot find the equivalent of this - import org.wpilib.math.system.plant.LinearSystemId;
+import org.wpilib.system.RobotController;
+import org.wpilib.simulation.FlywheelSim;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.SubsystemBase;
 import frc.robot.utils.Constants.CANIDConstants;
 import frc.robot.utils.Constants.ShooterConstants;
 import frc.robot.utils.Constants.IntakeConstants.IndexerConstants;
 
 public class AfterKickerUpSubsystem extends SubsystemBase {
-    private final TalonFX m_goUpMotor = new TalonFX(CANIDConstants.goUp);
+    private final TalonFX m_goUpMotor = new TalonFX(CANIDConstants.goUp, new CANBus("1"));  // TODO - need to assign the canbus numbers
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
 
     private final double k_gearRatio = 1;
 
+/* TODO - LinearSystemId has changed for 2027 - need to figure this out
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
         LinearSystemId.createFlywheelSystem(DCMotor.getKrakenX60(1), ShooterConstants.k_upKickerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
+*/
 
     public AfterKickerUpSubsystem() {
         m_goUpMotor.getConfigurator().apply(new MotorOutputConfigs());
@@ -58,6 +61,7 @@ public class AfterKickerUpSubsystem extends SubsystemBase {
 
    // use the motor voltage to calculate new position and velocity
    // using WPILib's DCMotorSim class for physics simulation
+/* TODO - see above declaration of m_motorSimModel   
    m_motorSimModel.setInputVoltage(m_goUpMotor.getMotorVoltage().getValueAsDouble());
    m_motorSimModel.update(0.020); // assume 20 ms loop time
 
@@ -65,5 +69,6 @@ public class AfterKickerUpSubsystem extends SubsystemBase {
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
    talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity().times(k_gearRatio));
+*/     
     }
 }

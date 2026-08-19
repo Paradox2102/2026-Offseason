@@ -4,24 +4,27 @@
 
 package frc.robot.subsystems.lights;
 
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Seconds;
+import static org.wpilib.units.Units.MetersPerSecond;
+import static org.wpilib.units.Units.Seconds;
 
 import java.util.Map;
+import java.util.Optional;
 
-import edu.wpi.first.units.measure.Time;
-import edu.wpi.first.wpilibj.AddressableLED;
-import edu.wpi.first.wpilibj.AddressableLEDBuffer;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.LEDPattern;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import org.wpilib.units.measure.Time;
+import org.wpilib.hardware.led.AddressableLED;
+import org.wpilib.hardware.led.AddressableLEDBuffer;
+import org.wpilib.driverstation.DriverStation;
+import org.wpilib.driverstation.MatchState;
+import org.wpilib.driverstation.RobotState;
+import org.wpilib.hardware.led.LEDPattern;
+import org.wpilib.system.Timer;
+import org.wpilib.driverstation.Alliance;
+import org.wpilib.smartdashboard.SmartDashboard;
+import org.wpilib.util.Color;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.command2.button.Trigger;
 import frc.robot.utils.Constants.LightConstants;
 
 public class LightSubsystem extends SubsystemBase {
@@ -42,15 +45,15 @@ public class LightSubsystem extends SubsystemBase {
   private boolean m_overrideWon = false;
 
   private int m_shift = 0;
-  private String gameData;
+  private Optional<String> gameData;
   private static final Time k_blinkMagnitude = Seconds.of(0.4);
 
   private boolean m_isOn = true;
   private boolean m_isScrolling = true;
   public final class LedPatterns {
-      public static LEDPattern m_disabledPattern = LEDPattern.steps(Map.of(0, Color.kRed, 0.16, Color.kBlue, 0.33, new Color(1.0f, 0.35f, 0.0f),0.49, Color.kRed, 0.66, Color.kBlue, 0.83, new Color(1.0f, 0.35f, 0.0f))).scrollAtAbsoluteSpeed(LightConstants.k_disabledVelocity, LightConstants.k_ledSpacing);
+      public static LEDPattern m_disabledPattern = LEDPattern.steps(Map.of(0, Color.RED, 0.16, Color.BLUE, 0.33, new Color(1.0f, 0.35f, 0.0f),0.49, Color.RED, 0.66, Color.BLUE, 0.83, new Color(1.0f, 0.35f, 0.0f))).scrollAtAbsoluteVelocity(LightConstants.k_disabledVelocity, LightConstants.k_ledSpacing);
 
-      public static LEDPattern m_prideFlag = LEDPattern.steps(Map.of(0, new Color(0.357f, 0.808f, 0.980f), 0.1, new Color(0.961f, 0.663f, 0.722f), 0.2, Color.kWhite, 0.3, new Color(0.961f, 0.663f, 0.722f), 0.4, new Color(0.357f, 0.808f, 0.980f), 0.6, new Color(0.961f, 0.663f, 0.722f), 0.7, Color.kWhite, 0.8, new Color(0.961f, 0.663f, 0.722f), 0.9, new Color(0.357f, 0.808f, 0.980f)));
+      public static LEDPattern m_prideFlag = LEDPattern.steps(Map.of(0, new Color(0.357f, 0.808f, 0.980f), 0.1, new Color(0.961f, 0.663f, 0.722f), 0.2, Color.WHITE, 0.3, new Color(0.961f, 0.663f, 0.722f), 0.4, new Color(0.357f, 0.808f, 0.980f), 0.6, new Color(0.961f, 0.663f, 0.722f), 0.7, Color.WHITE, 0.8, new Color(0.961f, 0.663f, 0.722f), 0.9, new Color(0.357f, 0.808f, 0.980f)));
     }  
 
   private final class ShiftCommand extends Command {
@@ -58,7 +61,7 @@ public class LightSubsystem extends SubsystemBase {
     private final int m_commandShift;
     private final boolean m_odd;
     private final double m_endTime;
-    private Color m_color = Color.kBlack;
+    private Color m_color = Color.BLACK;
     
     public ShiftCommand(boolean odd, double endTime, int shift) {
       m_commandShift = shift;
@@ -66,7 +69,7 @@ public class LightSubsystem extends SubsystemBase {
       m_endTime = endTime;
       System.out.println(String.format("ShiftCommand (%b, %f, %d)", odd, endTime, shift));
       if (shift != 5){
-        new Trigger(() -> m_timer.get() > m_endTime - 3.0).onTrue(new SetPattern(Color.kBlue, true));
+        new Trigger(() -> m_timer.get() > m_endTime - 3.0).onTrue(new SetPattern(Color.BLUE, true));
       }
     }
     
@@ -78,7 +81,7 @@ public class LightSubsystem extends SubsystemBase {
       }
       m_timer.start();
       m_color = getColor();
-      // if(getColor() == Color.kPurple){
+      // if(getColor() == Color.PURPLE){
       //   m_pattern = LedPatterns.m_prideFlag;
       // } else {
         applyPattern(m_color, false);
@@ -89,14 +92,14 @@ public class LightSubsystem extends SubsystemBase {
       Color color;
       if ((m_commandShift != 0 && m_commandShift != 5) && gameData != null){
         if (m_odd) {
-          color = getWonAuto() ? Color.kRed : Color.kGreen;
+          color = getWonAuto() ? Color.RED : Color.GREEN;
         }
         else {
-          color = getWonAuto() ? Color.kGreen : Color.kRed;
+          color = getWonAuto() ? Color.GREEN : Color.RED;
         }
       }
       else{
-        color = Color.kPurple;
+        color = Color.PURPLE;
       }
       return color;
     }
@@ -175,15 +178,15 @@ public class LightSubsystem extends SubsystemBase {
 
       SmartDashboard.putData(Commands.runOnce(() -> {
         m_isScrolling = !m_isScrolling;
-        LedPatterns.m_disabledPattern = LEDPattern.steps(Map.of(0, Color.kRed, 0.16, Color.kBlue, 0.33, new Color(1.0f, 0.35f, 0.0f),0.49, Color.kRed, 0.66, Color.kBlue, 0.83, new Color(1.0f, 0.35f, 0.0f))).scrollAtAbsoluteSpeed(m_isScrolling ? LightConstants.k_disabledVelocity : MetersPerSecond.of(0), LightConstants.k_ledSpacing);
+        LedPatterns.m_disabledPattern = LEDPattern.steps(Map.of(0, Color.RED, 0.16, Color.BLUE, 0.33, new Color(1.0f, 0.35f, 0.0f),0.49, Color.RED, 0.66, Color.BLUE, 0.83, new Color(1.0f, 0.35f, 0.0f))).scrollAtAbsoluteVelocity(m_isScrolling ? LightConstants.k_disabledVelocity : MetersPerSecond.of(0), LightConstants.k_ledSpacing);
       })
       .withName("Toggle Disable Scrolling")
       .ignoringDisable(true));
     m_led.setLength(LightConstants.k_lightAmount);
     m_led.setData(m_ledBuffer);
-    m_led.start();
+// TODO - looks like this is not needed - should verify    m_led.start();
     // new Trigger(() -> DriverStation.isEnabled()).onTrue();
-    new Trigger(() -> DriverStation.isTeleop() && !DriverStation.isDisabled()).onTrue(new ShiftCommand(false, k_shift1Time, 0));
+    new Trigger(() -> RobotState.isTeleop() && !RobotState.isDisabled()).onTrue(new ShiftCommand(false, k_shift1Time, 0));
     new Trigger(() -> m_timer.get() > k_shift1Time).onTrue(new ShiftCommand(true, k_shift2Time, 1));
     new Trigger(() -> m_timer.get() > k_shift2Time).onTrue(new ShiftCommand(false, k_shift3Time, 2));
     new Trigger(() -> m_timer.get() > k_shift3Time).onTrue(new ShiftCommand(true, k_shift4Time, 3));
@@ -194,15 +197,15 @@ public class LightSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     if (m_isOn){
-      gameData = DriverStation.getGameSpecificMessage();
-      if (DriverStation.isDisabled()){
+      gameData = MatchState.getGameData();
+      if (RobotState.isDisabled()){
         m_pattern = LedPatterns.m_disabledPattern;
       }
       if (m_pattern != null){
         m_pattern.applyTo(m_ledBuffer);
       }
     }else{
-      m_pattern = LEDPattern.solid(Color.kBlack);
+      m_pattern = LEDPattern.solid(Color.BLACK);
       m_pattern.applyTo(m_ledBuffer);
     }
     
@@ -241,17 +244,17 @@ public class LightSubsystem extends SubsystemBase {
     if (m_autoWinOverride){
       return m_overrideWon;
     }
-    if (gameData.length() > 0) {
-      switch (gameData.charAt(0)) {
+    if (gameData.isPresent()) {
+      switch (gameData.get().charAt(0)) {
         case 'B':
-          if (DriverStation.getAlliance().get() == Alliance.Blue) {
+          if (MatchState.getAlliance().get() == Alliance.BLUE) {
             return true;
           }
           else {
             return false;
           }
         case 'R':
-          if (DriverStation.getAlliance().get() == Alliance.Red) {
+          if (MatchState.getAlliance().get() == Alliance.RED) {
             return true;
           }
           else {

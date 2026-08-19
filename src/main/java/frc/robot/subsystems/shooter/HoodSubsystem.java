@@ -2,6 +2,7 @@ package frc.robot.subsystems.shooter;
 
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -9,17 +10,18 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
+import org.wpilib.math.system.DCMotor;
+// TODO - need to figure out how this is handled in 2027 - import org.wpilib.math.system.plant.LinearSystemId;
+import org.wpilib.hardware.discrete.DigitalInput;
+import org.wpilib.system.RobotController;
+import org.wpilib.simulation.DCMotorSim;
+import org.wpilib.simulation.SingleJointedArmSim;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.command2.button.Trigger;
+
 import frc.robot.utils.Constants.CANIDConstants;
 import frc.robot.utils.Constants.Globals;
 import frc.robot.utils.Constants.ShooterConstants;
@@ -27,7 +29,7 @@ import frc.robot.utils.Constants.Subsystems;
 
 public class HoodSubsystem extends SubsystemBase{
 
-    private final TalonFX m_hoodMotor = new TalonFX(CANIDConstants.hood);
+    private final TalonFX m_hoodMotor = new TalonFX(CANIDConstants.hood, new CANBus("1"));  // TODO - need to assign canbus numbers
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
 
     private final InterpolatingDoubleTreeMap m_hoodLerpTable = new InterpolatingDoubleTreeMap();
@@ -99,7 +101,9 @@ public class HoodSubsystem extends SubsystemBase{
    // apply the new rotor position and velocity to the TalonFX;
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
+/* TODO - need to figure out how this has changed for 2027   
    talonFXSim.setRawRotorPosition(m_motorSimModel.getAngleRads() * k_gearRatio);
    talonFXSim.setRotorVelocity(m_motorSimModel.getVelocityRadPerSec() * k_gearRatio);
+*/   
     }
 }

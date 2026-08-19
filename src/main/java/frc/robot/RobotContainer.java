@@ -4,24 +4,26 @@
 
 package frc.robot;
 
+import static org.wpilib.units.Units.*;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import choreo.auto.AutoChooser;
-import choreo.auto.AutoFactory;
-
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Subsystem;
-import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.smartdashboard.SmartDashboard;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.button.CommandGamepad;
+import org.wpilib.command2.button.CommandJoystick;
+import org.wpilib.command2.button.RobotModeTriggers;
+import org.wpilib.command2.sysid.SysIdRoutine.Direction;
+import frc.robot.utils.Constants.Subsystems;
+import frc.robot.PathPlanningThing.DrivePath;
 import frc.robot.PathPlanningThing.SelectAuto;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.utils.Constants.Controls;
-import frc.robot.utils.Constants.Subsystems;
-
 public class RobotContainer {
     
 
@@ -34,28 +36,30 @@ public class RobotContainer {
 
     private final Telemetry logger = new Telemetry(SwerveSubsystem.MaxSpeed);
 
-    public static final CommandXboxController m_controller = new CommandXboxController(0);
+    public static final CommandGamepad m_controller = new CommandGamepad(0);
     private final CommandJoystick m_joystick = new CommandJoystick(1);
 
     public final SwerveSubsystem m_swerveSubsystem = Subsystems.m_swerveSubsystem;
 
     /* Path follower */
-    private final AutoFactory autoFactory;
+    // TODO - choreo needed
+    // private final AutoFactory autoFactory;
     // private final AutoRoutines autoRoutines;
-    private final AutoChooser autoChooser = new AutoChooser();
+    // private final AutoChooser autoChooser = new AutoChooser();
 
     public RobotContainer() {
-        autoFactory = m_swerveSubsystem.createAutoFactory();
+// TODO - choreo needed        autoFactory = m_swerveSubsystem.createAutoFactory();
+        // autoFactory = null;
         // autoRoutines = new AutoRoutines(autoFactory);
 
         // autoChooser.addRoutine("SimplePath", autoRoutines::simplePathAuto);
-        SmartDashboard.putData("Auto Chooser", autoChooser);
+// TODO - choreo        SmartDashboard.putData("Auto Chooser", autoChooser);
         configureDefaults();
         configureBindings();
         configureAutos();
 
         // Warmup Choreo to avoid Java pauses
-        CommandScheduler.getInstance().schedule(autoFactory.warmupCmd());
+// TODO - choreo        CommandScheduler.getInstance().schedule(autoFactory.warmupCmd());
     }
 
     private void configureBindings() {
