@@ -1,14 +1,15 @@
 package frc.robot.subsystems.shooter;
 
 
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.command2.button.Trigger;
+import org.wpilib.math.geometry.Translation2d;
+
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.utils.DoubleNumber;
 import frc.robot.utils.Constants.CANIDConstants;
@@ -18,7 +19,7 @@ import frc.robot.utils.Constants.ShooterConstants;
 import frc.robot.utils.Constants.Subsystems;
 
 public class TurretAimSubsystem extends SubsystemBase{
-    private final TalonFX m_shooterAzimuth = new TalonFX(CANIDConstants.shooterAzimuth);
+    private final TalonFX m_shooterAzimuth = new TalonFX(CANIDConstants.shooterAzimuth, null);
     
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
 
