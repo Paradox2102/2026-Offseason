@@ -1,6 +1,6 @@
 package frc.robot.subsystems.drive;
 
-import static edu.wpi.first.units.Units.*;
+import static org.wpilib.units.Units.*;
 
 import java.lang.Thread.State;
 import java.lang.reflect.Field;
@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveRequest.FieldCentric;
+// TODO - not sure if this is needed - import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveRequest.FieldCentric;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
@@ -18,26 +18,29 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import choreo.Choreo.TrajectoryLogger;
 import choreo.auto.AutoFactory;
 import choreo.trajectory.SwerveSample;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.Notifier;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Subsystem;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import org.wpilib.math.linalg.Matrix;
+import org.wpilib.math.controller.PIDController;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Transform2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.numbers.N1;
+import org.wpilib.math.numbers.N3;
+import org.wpilib.math.util.Units;
+import org.wpilib.driverstation.Alliance;
+import org.wpilib.driverstation.DriverStation;
+import org.wpilib.driverstation.MatchState;
+import org.wpilib.driverstation.RobotState;
+// import org.wpilib.driverstation.DriverStation.Alliance;
+import org.wpilib.smartdashboard.Field2d;
+import org.wpilib.smartdashboard.SmartDashboard;
+import org.wpilib.system.Notifier;
+import org.wpilib.system.RobotController;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Subsystem;
+import org.wpilib.command2.sysid.SysIdRoutine;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.TunerConstants;
@@ -63,7 +66,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     private boolean m_hasAppliedOperatorPerspective = false;
 
     /** Swerve request to apply during field-centric path following */
-    private final SwerveRequest.ApplyFieldSpeeds m_pathApplyFieldSpeeds = new SwerveRequest.ApplyFieldSpeeds();
+    private final SwerveRequest.ApplyFieldVelocity m_pathApplyFieldSpeeds = new SwerveRequest.ApplyFieldVelocity();
     public final PIDController m_xPID = new PIDController(10, 0, 0);
     public final PIDController m_yPID = new PIDController(10, 0, 0);
     public final PIDController m_orientPID = new PIDController(3, 0, 0);
@@ -81,7 +84,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
     
-    private final SwerveRequest.ApplyFieldSpeeds m_velocityDrive = new SwerveRequest.ApplyFieldSpeeds()
+    private final SwerveRequest.ApplyFieldVelocity m_velocityDrive = new SwerveRequest.ApplyFieldVelocity()
     .withDriveRequestType(DriveRequestType.Velocity);
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -245,10 +248,11 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
          *
          * @return AutoFactory for this drivetrain
          */
+/* TODO - need to fix this when we have a working Choreo library        
         public AutoFactory createAutoFactory() {
             return createAutoFactory((sample, isStart) -> {});
         }
-    
+*/    
         /**
          * Creates a new auto factory for this drivetrain with the given
          * trajectory logger.
@@ -256,6 +260,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
          * @param trajLogger Logger for the trajectory
          * @return AutoFactory for this drivetrain
          */
+/* TODO - Need to fix this when we have a working Choreo library        
         public AutoFactory createAutoFactory(TrajectoryLogger<SwerveSample> trajLogger) {
             return new AutoFactory(
                 () -> getState().Pose,
@@ -266,6 +271,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 trajLogger
             );
         }
+*/            
     
         /**
          * Returns a command that applies the specified control request to this swerve drivetrain.
@@ -282,6 +288,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
          *
          * @param sample Sample along the path to follow
          */
+/* TODO - need to fix when we have a working Choreo library        
         public void followPath(SwerveSample sample) {
             m_orientPID.enableContinuousInput(-Math.PI, Math.PI);
     
@@ -304,6 +311,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                     .withWheelForceFeedforwardsY(sample.moduleForcesY())
             );
         }
+*/            
     
         /**
          * Runs the SysId Quasistatic test in the given direction for the routine
@@ -336,10 +344,10 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
              * Otherwise, only check and apply the operator perspective if the DS is disabled.
              * This ensures driving behavior doesn't change until an explicit disable event occurs during testing.
              */
-            if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
-                DriverStation.getAlliance().ifPresent(allianceColor -> {
+            if (!m_hasAppliedOperatorPerspective || RobotState.isDisabled()) {
+                MatchState.getAlliance().ifPresent(allianceColor -> {
                     setOperatorPerspectiveForward(
-                        allianceColor == Alliance.Red
+                        allianceColor == Alliance.RED
                             ? kRedAlliancePerspectiveRotation
                             : kBlueAlliancePerspectiveRotation
                     );
@@ -381,7 +389,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
      */
     @Override
     public void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds) {
-        super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds));
+//        super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds));
+        super.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds);    // TODO - pretty sure this conversion is no longer nedded. Should verify.
     }
 
     /**
@@ -403,7 +412,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         double timestampSeconds,
         Matrix<N3, N1> visionMeasurementStdDevs
     ) {
-        super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
+// ?        super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
+        super.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);  // TODO - pretty sure the conversion is no longer needed. Should verify.
     }
 
     /**
@@ -414,7 +424,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
      */
     @Override
     public Optional<Pose2d> samplePoseAt(double timestampSeconds) {
-        return super.samplePoseAt(Utils.fpgaToCurrentTime(timestampSeconds));
+        // return super.samplePoseAt(Utils.fpgaToCurrentTime(timestampSeconds));
+        return super.samplePoseAt(timestampSeconds);    // TODO - Pretty sure the conversion is no longer needed. Should verify.
     }
 
     public double distanceToHub() {
@@ -430,8 +441,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         return getSotmHubPos();
     }
     public Pose2d getFuturePos(double lookAhead) {
-        double xDist = cachedPose.getX() + (getState().Speeds.vxMetersPerSecond * lookAhead);
-        double yDist = cachedPose.getY() + (getState().Speeds.vyMetersPerSecond * lookAhead);
+        double xDist = cachedPose.getX() + (getState().Velocity.vx * lookAhead);    // TODO - pretty sure this is correct. Verify
+        double yDist = cachedPose.getY() + (getState().Velocity.vy * lookAhead);    // TODO - pretty sure this is correct. Verify
         return new Pose2d(xDist, yDist, cachedPose.getRotation());
     }
 
@@ -449,8 +460,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
      * 
      * @param velocity This is the field oriented velocity!
      */
-    public void drive(ChassisSpeeds velocity) {
-        m_velocityDrive.withSpeeds(velocity);
+    public void drive(ChassisVelocities velocity) {
+        m_velocityDrive.withVelocity(velocity);
     }
     /**
      * Drives the Robot!
@@ -459,8 +470,10 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
      * @param fieldRelative This one is kinda self explanitory, use your brain.
      */
     public void drive(Translation2d translation, double rotation, boolean fieldRelative) {
-        var velocity = fieldRelative ? new ChassisSpeeds(translation.getX(), translation.getY(), rotation) : ChassisSpeeds.fromRobotRelativeSpeeds(new ChassisSpeeds(translation.getX(), translation.getY(), rotation), getPose().getRotation());
-        setControl(m_velocityDrive.withSpeeds(velocity));
+        ChassisVelocities velocity = fieldRelative ? new ChassisVelocities(translation.getX(), translation.getY(), rotation) : 
+        // ChassisVelocities.fromRobotRelativeSpeeds(new ChassisVelocities(translation.getX(), translation.getY(), rotation), getPose().getRotation());
+        (new ChassisVelocities(translation.getX(), translation.getY(), rotation)).toRobotRelative(getPose().getRotation());
+        setControl(m_velocityDrive.withVelocity(velocity)); // TODO - I believe this is how you do this now but should verify
         
     } 
 
@@ -471,8 +484,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
      * @param chassisSpeeds Chassis Speeds to set.
      * 
      */
-    public void setChassisSpeeds(ChassisSpeeds chassisSpeeds) {
-        this.getState().Speeds = chassisSpeeds;
+    public void setChassisSpeeds(ChassisVelocities chassisSpeeds) {
+        this.getState().Velocity = chassisSpeeds;
     }
 
     public SwerveRequest.FieldCentric getDrive() {
@@ -480,10 +493,10 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     }
 
     public static boolean isRedAlliance() {
-        return DriverStation.getAlliance() == Optional.of(Alliance.Red) ? true : false;
+        return MatchState.getAlliance() == Optional.of(Alliance.RED) ? true : false;
     }
 
-    public ChassisSpeeds getChassisSpeeds() {
-        return getState().Speeds;
+    public ChassisVelocities getChassisSpeeds() {
+        return getState().Velocity;
     }
 }

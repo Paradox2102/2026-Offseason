@@ -1,13 +1,14 @@
 package frc.robot.subsystems.shooter;
 
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.SubsystemBase;
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.Globals;
@@ -17,7 +18,7 @@ import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.utils.DoubleNumber;
 
 public class TurretSpinnySubsystem extends SubsystemBase{
-    private final TalonFX m_shooterAzimuth = new TalonFX(CANIDConstants.shooterAzimuth);
+    private final TalonFX m_shooterAzimuth = new TalonFX(CANIDConstants.shooterAzimuth, new CANBus("1"));   // TODO - need to assign canbus numbers
     
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
 

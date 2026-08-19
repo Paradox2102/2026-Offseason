@@ -1,5 +1,6 @@
 package frc.robot.subsystems.intake;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -9,33 +10,35 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import org.wpilib.math.system.DCMotor;
+// TODO - cannot find the equivalent of this - import org.wpilib.math.system.plant.LinearSystemId;
+import org.wpilib.system.RobotController;
+import org.wpilib.simulation.DCMotorSim;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.command2.button.Trigger;
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.Globals;
 import frc.robot.Constants.IntakeConstants;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
-    private final TalonFX m_intakeExtensionLeader = new TalonFX(CANIDConstants.intakeExtensionLeader);
-    private final TalonFX m_intakeExtensionFollower = new TalonFX(CANIDConstants.intakeExtensionFollower);
+    private final TalonFX m_intakeExtensionLeader = new TalonFX(CANIDConstants.intakeExtensionLeader, new CANBus("2")); // TODO - need to assign canbus numbers
+    private final TalonFX m_intakeExtensionFollower = new TalonFX(CANIDConstants.intakeExtensionFollower, new CANBus("2"));  // TODO - should we be creating a second instance here or using the first?
 
     public Trigger m_intakeRetracted = new Trigger(() -> (m_intakeExtensionLeader.getPosition().getValueAsDouble() < 0));
 
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
 
     private final double k_gearRatio = 2.8;
+/* TODO - Need to figure this out for 2027    
     private final DCMotorSim m_motorSimModel = new DCMotorSim(
    LinearSystemId.createDCMotorSystem(
       DCMotor.getKrakenX60Foc(2), 0.4214011009, k_gearRatio
    ),
    DCMotor.getKrakenX60Foc(2)
 );
+*/
 
     public IntakeExtensionSubsystem() {
         m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.k_intakeRollerConfigs);
@@ -68,6 +71,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
    // get the motor voltage of the TalonFX
    var motorVoltage = talonFXSim.getMotorVoltageMeasure();
 
+/* TODO - need to figure this out for 2027
    // use the motor voltage to calculate new position and velocity
    // using WPILib's DCMotorSim class for physics simulation
    m_motorSimModel.setInputVoltage(m_intakeExtensionLeader.getMotorVoltage().getValueAsDouble());
@@ -78,5 +82,6 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
    talonFXSim.setRawRotorPosition(m_motorSimModel.getAngularPosition().times(k_gearRatio));
    talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity().times(k_gearRatio));
+*/   
     }
 }

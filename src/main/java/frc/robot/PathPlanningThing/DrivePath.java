@@ -19,21 +19,23 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.interpolation.Interpolatable;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
+import org.wpilib.vision.apriltag.AprilTagFieldLayout;
+import org.wpilib.vision.apriltag.AprilTagFields;
+import org.wpilib.math.util.MathUtil;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.interpolation.Interpolatable;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.util.Units;
+import org.wpilib.util.sendable.Sendable;
+import org.wpilib.driverstation.Alliance;
+import org.wpilib.driverstation.DriverStation;
+import org.wpilib.driverstation.MatchState;
+import org.wpilib.smartdashboard.Field2d;
+import org.wpilib.smartdashboard.SendableChooser;
+import org.wpilib.smartdashboard.SmartDashboard;
+import org.wpilib.command2.Command;
 import frc.robot.RobotContainer;
 import frc.robot.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
@@ -272,13 +274,13 @@ public class DrivePath extends Command{
         double y;
         
         if (m_pose[m_point].rotation != -1000){
-            x = MathUtil.clamp(m_swerveSubsystem.m_xPID.calculate(robotPose.getX(), Math.abs(targetPose.getX() - (isRedAlliance() ? field.getFieldLength() : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
-            y = MathUtil.clamp(m_swerveSubsystem.m_yPID.calculate(robotPose.getY(), Math.abs(targetPose.getY() - (isRedAlliance() ? field.getFieldWidth() : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
+            x = Math.clamp(m_swerveSubsystem.m_xPID.calculate(robotPose.getX(), Math.abs(targetPose.getX() - (isRedAlliance() ? field.getFieldLength() : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
+            y = Math.clamp(m_swerveSubsystem.m_yPID.calculate(robotPose.getY(), Math.abs(targetPose.getY() - (isRedAlliance() ? field.getFieldWidth() : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
             SmartDashboard.putNumber("x pose", Math.abs(targetPose.getX() - (isRedAlliance() ? field.getFieldLength() : 0)));
             SmartDashboard.putNumber("y pose", Math.abs(targetPose.getY() - (isRedAlliance() ? field.getFieldWidth() : 0)));
         }else{
-            x = MathUtil.clamp(m_swerveSubsystem.m_xPID.calculate(robotPose.getX(), Math.abs(targetTranslation2d.getX() - (isRedAlliance() ? field.getFieldLength() : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
-            y = MathUtil.clamp(m_swerveSubsystem.m_yPID.calculate(robotPose.getY(), Math.abs(targetTranslation2d.getY() - (isRedAlliance() ? field.getFieldWidth() : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
+            x = Math.clamp(m_swerveSubsystem.m_xPID.calculate(robotPose.getX(), Math.abs(targetTranslation2d.getX() - (isRedAlliance() ? field.getFieldLength() : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
+            y = Math.clamp(m_swerveSubsystem.m_yPID.calculate(robotPose.getY(), Math.abs(targetTranslation2d.getY() - (isRedAlliance() ? field.getFieldWidth() : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
             SmartDashboard.putNumber("x pose", Math.abs(targetTranslation2d.getX() - (isRedAlliance() ? field.getFieldLength() : 0)));
             SmartDashboard.putNumber("y pose", Math.abs(targetTranslation2d.getY() - (isRedAlliance() ? field.getFieldWidth() : 0)));
         }
@@ -331,18 +333,18 @@ public class DrivePath extends Command{
         double setPointDegrees = targetRotation.getAsDouble();
         double heading = m_swerveSubsystem.getPose().getRotation().getDegrees();
 
-        double rotation = MathUtil.clamp(m_swerveSubsystem.m_orientPID.calculate(heading, setPointDegrees), -m_pose[m_point].m_maxAngularVelocity, m_pose[m_point].m_maxAngularVelocity);
+        double rotation = Math.clamp(m_swerveSubsystem.m_orientPID.calculate(heading, setPointDegrees), -m_pose[m_point].m_maxAngularVelocity, m_pose[m_point].m_maxAngularVelocity);
         return () -> Rotation2d.fromDegrees(rotation);
     }
 
     private boolean isRedAlliance() {
-        var alliance = DriverStation.getAlliance();
-        return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : true;
+        var alliance = MatchState.getAlliance();
+        return alliance.isPresent() ? alliance.get() == Alliance.RED : true;
     }
 
     @Override
     public void end(boolean interrupted) {
-        m_swerveSubsystem.setChassisSpeeds(new ChassisSpeeds(0, 0, 0));
+        m_swerveSubsystem.setChassisSpeeds(new ChassisVelocities(0, 0, 0));
     }
 
     @Override
