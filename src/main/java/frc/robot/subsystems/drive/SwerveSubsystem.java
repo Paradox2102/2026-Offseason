@@ -2,8 +2,6 @@ package frc.robot.subsystems.drive;
 
 import static org.wpilib.units.Units.*;
 
-import java.lang.Thread.State;
-import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -41,8 +39,8 @@ import org.wpilib.system.RobotController;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.sysid.SysIdRoutine;
-import frc.robot.Constants.FieldConstants;
-import frc.robot.Constants.ShooterConstants;
+import frc.robot.utils.Constants.FieldConstants;
+import frc.robot.utils.Constants.ShooterConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
@@ -153,7 +151,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     private Vision vision;
     
     private InterpolatingDoubleTreeMap m_shotTimeInt = new InterpolatingDoubleTreeMap();
-        private Pose2d m_sotmHubPos = new Pose2d();
+        private Pose2d m_sotmPose = new Pose2d();
     
         /**
          * Constructs a CTRE SwerveDrivetrain using the specified constants.
@@ -174,7 +172,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 startSimThread();
             }
             setupPhotonVision();
-            for(double[] values : ShooterConstants.k_shotTimes){
+            for(double[] values : ShooterConstants.k_scoreShotTimes){
                 m_shotTimeInt.put(values[0], values[1]);
             }
         }
@@ -202,7 +200,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 startSimThread();
             }
             setupPhotonVision();
-            for(double[] values : ShooterConstants.k_shotTimes){
+            for(double[] values : ShooterConstants.k_scoreShotTimes){
                 m_shotTimeInt.put(values[0], values[1]);
             }
         }
@@ -238,7 +236,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 startSimThread();
             }
             setupPhotonVision();
-            for(double[] values : ShooterConstants.k_shotTimes){
+            for(double[] values : ShooterConstants.k_scoreShotTimes){
                 m_shotTimeInt.put(values[0], values[1]);
             }
         }
@@ -358,7 +356,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
             vision.updatePoseEstimation(this);
     
             cachedPose = getState().Pose;
-            m_sotmHubPos = sotmLookAhead(5, isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
+            m_sotmPose = sotmLookAhead(5, isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
     }
 
     private void setupPhotonVision() {
@@ -428,17 +426,42 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         return super.samplePoseAt(timestampSeconds);    // TODO - Pretty sure the conversion is no longer needed. Should verify.
     }
 
-    public double distanceToHub() {
-        return m_sotmHubPos.getTranslation().getDistance(isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
+    public double distanceToTarget() {
+        return m_sotmPose.getTranslation().getDistance(isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
+    }
+
+    public Translation2d targetTranslation() {
+        if (inTeamAlliance())
+            return isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub;
+        else
+            if (isRedAlliance())
+                return (cachedPose.getY() > FieldConstants.k_yCenterline ? FieldConstants.k_redDepot : FieldConstants.k_redOutpost);
+            else
+                return (cachedPose.getY() > FieldConstants.k_yCenterline ? FieldConstants.k_blueDepot : FieldConstants.k_blueOutpost);
     }
 
     
+
+    public Optional<Alliance> inAllianceZone(){
+        if (getPose().getX() < FieldConstants.k_blueZoneTransition){
+            return Optional.of(Alliance.BLUE);
+        }else if(getPose().getX() < FieldConstants.k_redZoneTransition){
+            return Optional.empty();
+        }else{
+            return Optional.of(Alliance.RED);
+        }
+    }
+
+    public boolean inTeamAlliance(){
+        return MatchState.getAlliance() == inAllianceZone();
+
+    }
 
     public Pose2d getPose() {
         return cachedPose;
     }
     public Pose2d getSotmHubPos(){
-        return getSotmHubPos();
+        return m_sotmPose;
     }
     public Pose2d getFuturePos(double lookAhead) {
         double xDist = cachedPose.getX() + (getState().Velocity.vx * lookAhead);    // TODO - pretty sure this is correct. Verify
@@ -448,7 +471,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
 
     //iteratively look forward in time to find aiming pose for shoot on the move
     public Pose2d sotmLookAhead(int iterations, Translation2d targetTranslation){
-        Pose2d futurePos = getFuturePos(m_shotTimeInt.get(distanceToHub()));
+        Pose2d futurePos = getFuturePos(m_shotTimeInt.get(distanceToTarget()));
         for(int i = 0; i < iterations; i++){
             double futureShotTime = m_shotTimeInt.get(targetTranslation.getDistance(futurePos.getTranslation()));
             futurePos = getFuturePos(futureShotTime);

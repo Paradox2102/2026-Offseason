@@ -1,0 +1,27 @@
+[
+	{
+		"m_deadzone": 0.5,
+		"m_isImportant": true,
+		"m_maxAngularVelocity": 10.0,
+		"m_maxVelocity": 5.614,
+		"rotation": -1000,
+		"xPosition": 2.54,
+		"yPosition": 5.940
+	},
+	{
+		"m_deadzone": 0.5,
+		"m_maxAngularVelocity": 10.0,
+		"m_maxVelocity": 3.0,
+		"rotation": 180.0,
+		"xPosition": 0.536,
+		"yPosition": 4.87
+	},
+	{
+		"m_deadzone": 0.5,
+		"m_maxAngularVelocity": 10.0,
+		"m_maxVelocity": 3.0,
+		"rotation": 180.0,
+		"xPosition": 0.536,
+		"yPosition": 2.54
+	}
+]

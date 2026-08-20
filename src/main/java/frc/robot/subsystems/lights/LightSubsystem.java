@@ -25,7 +25,7 @@ import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.Trigger;
-import frc.robot.Constants.LightConstants;
+import frc.robot.utils.Constants.LightConstants;
 
 public class LightSubsystem extends SubsystemBase {
   /** Creates a new LightSubsystem. */

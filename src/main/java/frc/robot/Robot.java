@@ -13,7 +13,7 @@ import org.wpilib.networktables.StructPublisher;
 import org.wpilib.framework.TimedRobot;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
-import frc.robot.Constants.Subsystems;
+import frc.robot.utils.Constants.Subsystems;
 
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;

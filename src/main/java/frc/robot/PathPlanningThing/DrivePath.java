@@ -1,20 +1,14 @@
 package frc.robot.PathPlanningThing;
 
-import java.io.File;
 import java.io.IOException;
-import java.math.MathContext;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,8 +31,9 @@ import org.wpilib.smartdashboard.SendableChooser;
 import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.Command;
 import frc.robot.RobotContainer;
-import frc.robot.Constants.Subsystems;
+import frc.robot.utils.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
+import frc.robot.utils.Constants.Subsystems;
 
 /* I think this is done! I'll need to put it through it's paces a little bit more when I get the jason working
  * so... handling rotation.

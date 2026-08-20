@@ -18,9 +18,9 @@ import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.Globals;
-import frc.robot.Constants.IntakeConstants;
+import frc.robot.utils.Constants.CANIDConstants;
+import frc.robot.utils.Constants.Globals;
+import frc.robot.utils.Constants.IntakeConstants;
 
 public class IntakeRollerSubsystem extends SubsystemBase {
 
@@ -45,8 +45,12 @@ public class IntakeRollerSubsystem extends SubsystemBase {
 
     public Command run(boolean in){
         return Commands.run(() -> {
-            Globals.setRPM(m_intakeRollerMotor, m_request, in ? IntakeConstants.k_inRPM : IntakeConstants.k_outRPM);
+            Globals.setRPS(m_intakeRollerMotor, m_request, in ? IntakeConstants.k_inRPM : IntakeConstants.k_outRPM);
         }, this);
+    }
+
+    public Command stop(){
+        return Commands.runOnce(() -> m_intakeRollerMotor.setVoltage(0), this);
     }
     
     

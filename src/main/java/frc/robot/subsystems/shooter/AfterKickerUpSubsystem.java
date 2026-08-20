@@ -20,9 +20,9 @@ import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.ShooterConstants;
-import frc.robot.Constants.IntakeConstants.IndexerConstants;
+import frc.robot.utils.Constants.CANIDConstants;
+import frc.robot.utils.Constants.ShooterConstants;
+import frc.robot.utils.Constants.IntakeConstants.IndexerConstants;
 
 public class AfterKickerUpSubsystem extends SubsystemBase {
     private final TalonFX m_goUpMotor = new TalonFX(CANIDConstants.goUp, new CANBus("1"));  // TODO - need to assign the canbus numbers

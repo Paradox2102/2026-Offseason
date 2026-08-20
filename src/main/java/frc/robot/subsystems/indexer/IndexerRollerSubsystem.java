@@ -21,9 +21,9 @@ import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.IntakeConstants.IndexerConstants;
+import frc.robot.utils.Constants.CANIDConstants;
+import frc.robot.utils.Constants.IntakeConstants;
+import frc.robot.utils.Constants.IntakeConstants.IndexerConstants;
 
 public class IndexerRollerSubsystem extends SubsystemBase {
     private final TalonFX m_indexerRollerModer = new TalonFX(CANIDConstants.indexerRoller, new CANBus("3")); // TODO - Need to assign canbus numbers

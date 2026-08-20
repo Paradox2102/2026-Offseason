@@ -18,9 +18,9 @@ import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.Trigger;
-import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.Globals;
-import frc.robot.Constants.IntakeConstants;
+import frc.robot.utils.Constants.CANIDConstants;
+import frc.robot.utils.Constants.Globals;
+import frc.robot.utils.Constants.IntakeConstants;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
     private final TalonFX m_intakeExtensionLeader = new TalonFX(CANIDConstants.intakeExtensionLeader, new CANBus("2")); // TODO - need to assign canbus numbers

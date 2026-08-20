@@ -1,7 +1,11 @@
-package frc.robot;
+package frc.robot.utils;
 
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
+
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.button.Trigger;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.Follower;
@@ -16,9 +20,19 @@ import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearVelocity;
+
+import frc.robot.PathPlanningThing.DrivePath;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
-import frc.robot.utils.DoubleNumber;
+import frc.robot.subsystems.indexer.IndexerConveyorSubsystem;
+import frc.robot.subsystems.indexer.IndexerRollerSubsystem;
+import frc.robot.subsystems.intake.IntakeExtensionSubsystem;
+import frc.robot.subsystems.intake.IntakeRollerSubsystem;
+import frc.robot.subsystems.shooter.AfterKickerUpSubsystem;
+import frc.robot.subsystems.shooter.HoodSubsystem;
+import frc.robot.subsystems.shooter.KickerSubsystem;
+import frc.robot.subsystems.shooter.ShooterSubsystem;
+import frc.robot.subsystems.shooter.TurretAimSubsystem;
 
 public class Constants {
     public static class CANIDConstants {
@@ -55,6 +69,15 @@ public class Constants {
 
     public static class Subsystems {
         public static final SwerveSubsystem m_swerveSubsystem = TunerConstants.createDrivetrain();
+        public static final IntakeExtensionSubsystem m_intakeExtension = new IntakeExtensionSubsystem();
+        public static final IntakeRollerSubsystem m_intakeRoller = new IntakeRollerSubsystem();
+        public static final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+        public static final HoodSubsystem m_hoodSubsystem = new HoodSubsystem();
+        public static final TurretAimSubsystem m_turretAimSubsystem = new TurretAimSubsystem();
+        public static final KickerSubsystem m_kickerSubsystem = new KickerSubsystem();
+        public static final AfterKickerUpSubsystem m_afterKickerUpSubsystem = new AfterKickerUpSubsystem();
+        public static final IndexerConveyorSubsystem m_indexerConveyor = new IndexerConveyorSubsystem();
+        public static final IndexerRollerSubsystem m_indexerRollerSubsystem = new IndexerRollerSubsystem();
     }
 
     public static class VisionConstants {
@@ -106,18 +129,31 @@ public class Constants {
     public static final double k_turretD = 0;
 
     public static final DoubleNumber k_turretBounds = new DoubleNumber(-500, 500);
-    public static final double[][] k_hoodAngle = {
+    public static final double[][] k_scoreHoodAngle = {
         {0, 0}
     };
 
-    public static final double[][] k_shotSpeeds = {
+    public static final double[][] k_scoreShotSpeeds = {
         {0, 0}
     };
 
-        public static final double[][] k_shotTimes = {
+    public static final double[][] k_scoreShotTimes = {
+        {0, 0}
+    };
+    public static final double[][] k_passHoodAngle = {
         {0, 0}
     };
 
+    public static final double[][] k_passShotSpeeds = {
+        {0, 0}
+    };
+
+    public static final double[][] k_passShotTimes = {
+        {0, 0}
+    };
+
+    public static final double k_staticShotSpeed = 4000;
+    public static final double k_staticShotAngle = 0;
     public static final double k_hoodMOI = 0.0254713554;
     public static final double k_hoodArmLength = 0.0254713554;
     public static final double k_hoodMaxAngle = 90;
@@ -141,6 +177,25 @@ public class Constants {
   public static class FieldConstants {
     public static final Translation2d k_blueHub = new Translation2d(4.62, 4.03);
     public static final Translation2d k_redHub = new Translation2d(11.92, 4.03);
+
+    public static Translation2d k_blueOutpost = new Translation2d(1, 1);
+    public static Translation2d k_blueDepot = new Translation2d(1, 7);
+
+    public static Translation2d k_redOutpost = new Translation2d(15.6, 1);
+    public static Translation2d k_redDepot = new Translation2d(15.6, 7);
+
+    public static Translation2d k_fullPassRedDepot = new Translation2d(11.3, 5.5); // Need to implement this
+    public static Translation2d k_fullPassRedOutpost = new Translation2d(11.3, 2.5);
+    public static Translation2d k_fullPassBlueDepot = new Translation2d(5.3, 5.5);
+    public static Translation2d k_fullPassBlueOutpost = new Translation2d(5.3, 2.5);
+
+    public static final double k_redZoneTransition = 11.925;
+    public static final double k_blueZoneTransition = 4.625;
+    public static final double k_yCenterline = 4.0;
+    public static final double k_depotIntermediatePoint = 5.940;
+    public static final double k_outpostIntermediatePoint = 1.0;
+
+    
   }
 
   
@@ -213,40 +268,40 @@ public class Constants {
 
   public static class Globals {
     /**
-     * Sets the RPM of a specified motor
-     * @param motor The motor to set the RPM of
-     * @param request This is a VelocityVoltage. Should be created once in your class then sed every time you set RPM
-     * @param RPM This is the RPM the motor will go spiin
+     * Sets the RPS of a specified motor
+     * @param motor The motor to set the RPS of
+     * @param request This is a VelocityVoltage. Should be created once in your class then sed every time you set RPS
+     * @param RPS This is the RPS the motor will go spiin
      */
-    public static void setRPM(TalonFX motor, VelocityVoltage request, double RPM){
-        motor.setControl(request.withFeedForward(RPM));
+    public static void setRPS(TalonFX motor, VelocityVoltage request, double RPS){
+        motor.setControl(request.withVelocity(RPS));
     }
     /**
-     * Sets the RPM of a specified motor
-     * @param motor The motor to set the RPM of
-     * @param request This is a PositionVoltage. Should be created once in your class then said every time you set RPM
+     * Sets the RPS of a specified motor
+     * @param motor The motor to set the RPS of
+     * @param request This is a PositionVoltage. Should be created once in your class then said every time you set RPS
      * @param position This is the position the motor will go spiin
      */
     public static void setPosition(TalonFX motor, PositionVoltage request, double position){
         motor.setControl(request.withPosition(position));
     }
     /**
-     * Sets the RPM of a lead and follower motor
-     * @param leadMotor The lead motor to have the RPM set for
-     * @param followMotor The follower motor to have the RPM of the lead motor
-     * @param request This is a VelocityVoltage. Should be created once in your class then said every time you set RPM
-     * @param RPM Motor go spiin at rpm
+     * Sets the RPS of a lead and follower motor
+     * @param leadMotor The lead motor to have the RPS set for
+     * @param followMotor The follower motor to have the RPS of the lead motor
+     * @param request This is a VelocityVoltage. Should be created once in your class then said every time you set RPS
+     * @param RPS Motor go spiin at rps
      * @param alignmentValue Whether the motors are aligned or opposed (ugh, I think I mispelled that)
      */
-    public static void setFollowerRPM(TalonFX leadMotor, TalonFX followMotor, VelocityVoltage request, double RPM, MotorAlignmentValue alignmentValue){
-        setRPM(leadMotor, request, RPM);
+    public static void setFollowerRPS(TalonFX leadMotor, TalonFX followMotor, VelocityVoltage request, double RPS, MotorAlignmentValue alignmentValue){
+        setRPS(leadMotor, request, RPS);
         followMotor.setControl(new Follower(leadMotor.getDeviceID(), alignmentValue));
     }
 
     /**
      * Sets the Position of a lead and follower motor
-     * @param leadMotor The lead motor to have the RPM set for
-     * @param followMotor The follower motor to have the RPM of the lead motor
+     * @param leadMotor The lead motor to have the RPS set for
+     * @param followMotor The follower motor to have the RPS of the lead motor
      * @param request This is a VelocityVoltage. Should be created once in your class then said every time you set RPM
      * @param position Motor go spiin to position
      * @param alignmentValue Whether the motors are aligned or opposed (ugh, I think I mispelled that)
@@ -254,6 +309,65 @@ public class Constants {
     public static void setFollowerPosition(TalonFX leadMotor, TalonFX followMotor, PositionVoltage request, double position, MotorAlignmentValue alignmentValue){
         setPosition(leadMotor, request, position);
         followMotor.setControl(new Follower(leadMotor.getDeviceID(), alignmentValue));
+    }
+  }
+
+  public static class Controls {
+    public static final Trigger isReadyToShoot = new Trigger(Subsystems.m_hoodSubsystem.m_isAimed.and(Subsystems.m_shooterSubsystem.m_isAtSpeed.and(Subsystems.m_turretAimSubsystem.m_isOnTarget)));
+    public static final Command extendIntake() {
+        return Commands.sequence(
+            Subsystems.m_intakeExtension.extendIntake(),
+            Subsystems.m_intakeRoller.run(true));
+    }
+
+    public static Command shoot(){
+        return Commands.either(launch(), aim(), Controls.isReadyToShoot);
+    }
+
+    public static Command aim(){
+        return Commands.parallel(
+            Subsystems.m_hoodSubsystem.pitchHood(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
+            Subsystems.m_shooterSubsystem.shoot(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
+            Subsystems.m_turretAimSubsystem.rotateToTarget()
+        );
+
+    }
+
+    public static Command launch() {
+        return Commands.parallel(
+            aim(),
+            Subsystems.m_indexerConveyor.run(true),
+            Subsystems.m_indexerRollerSubsystem.run(true),
+            Subsystems.m_afterKickerUpSubsystem.run(),
+            Subsystems.m_kickerSubsystem.run(true)
+            );
+    }
+
+    public static Command staticLaunch() {
+        return Commands.parallel(
+            staticAim(),
+            Subsystems.m_indexerConveyor.run(true),
+            Subsystems.m_indexerRollerSubsystem.run(true),
+            Subsystems.m_afterKickerUpSubsystem.run(),
+            Subsystems.m_kickerSubsystem.run(true)
+            );
+    }
+    public static Command staticAim(){
+        return Commands.parallel(
+            Subsystems.m_hoodSubsystem.staticShoot(),
+            Subsystems.m_shooterSubsystem.staticShoot(),
+            Subsystems.m_turretAimSubsystem.staticAim()
+        );
+
+    }
+
+    public static Command towerSweep() {
+        if (!Subsystems.m_swerveSubsystem.inTeamAlliance()) return Commands.none();
+
+        if (Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_yCenterline)
+            return Commands.either(new DrivePath("DepotOutpostTowerSweep.json"), new DrivePath("DepotOutpostTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_depotIntermediatePoint);
+        else
+            return Commands.either(new DrivePath("OutpostDepotTowerSweep.json"), new DrivePath("OutpostDepotTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() < FieldConstants.k_outpostIntermediatePoint);
     }
   }
 }

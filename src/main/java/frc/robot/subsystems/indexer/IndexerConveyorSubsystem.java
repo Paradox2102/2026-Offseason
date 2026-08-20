@@ -8,6 +8,10 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import frc.robot.utils.Constants.CANIDConstants;
+import frc.robot.utils.Constants.Globals;
+import frc.robot.utils.Constants.IntakeConstants.IndexerConstants;
+
 import org.wpilib.math.system.DCMotor;
 // TODO - cannot find the equivalent of this - import org.wpilib.math.system.plant.LinearSystemId;
 import org.wpilib.system.RobotController;
@@ -15,10 +19,6 @@ import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.Globals;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.IntakeConstants.IndexerConstants;
 
 public class IndexerConveyorSubsystem extends SubsystemBase {
     private final TalonFX m_indexerConveyorLeader = new TalonFX(CANIDConstants.indexerConveyorLeader, new CANBus("3")); // TODO - need to assing canbus numbers
@@ -44,7 +44,7 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
     }
     public Command run(boolean in) {
         return Commands.run(() -> {
-            Globals.setFollowerRPM(m_indexerConveyorLeader, m_indexerConveyorFollower, m_request,
+            Globals.setFollowerRPS(m_indexerConveyorLeader, m_indexerConveyorFollower, m_request,
              in ? IndexerConstants.k_conveyorInRPM : IndexerConstants.k_conveyorOutRPM, MotorAlignmentValue.Opposed);   
         }, this); }
     
