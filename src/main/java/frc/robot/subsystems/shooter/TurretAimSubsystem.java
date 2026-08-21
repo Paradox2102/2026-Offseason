@@ -43,7 +43,7 @@ public class TurretAimSubsystem extends SubsystemBase{
     }
 
     private double getTargetRotation(){
-        Pose3d hubPose = new Pose3d();Subsystems.m_swerveSubsystem.getSotmHubPos();
+        Pose3d hubPose = Subsystems.m_swerveSubsystem.getSotmHubPos();
         var rotationTriangle = new Translation2d(hubPose.getX() - (SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub.getX() : FieldConstants.k_blueHub.getX()), (hubPose.getY() - (SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub.getY() : FieldConstants.k_blueHub.getY())));
         var targetRotation = Math.atan2(rotationTriangle.getY(), rotationTriangle.getX());
         double bestRotation = targetRotation;
