@@ -15,7 +15,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
 import org.wpilib.math.system.DCMotor;
-// TODO - need to figure out how this is handled in 2027 - import org.wpilib.math.system.plant.LinearSystemId;
+import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.command2.Command;
@@ -39,10 +39,9 @@ public class ShooterSubsystem extends SubsystemBase{
 
     private final double k_gearRatio = 1;
 
-/* TODO - need to figure this out for 2027
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
-        LinearSystemId.createFlywheelSystem(DCMotor.getKrakenX60(1), ShooterConstants.k_shooterMOI, k_gearRatio), DCMotor.getKrakenX60(1));
-*/
+        Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), ShooterConstants.k_shooterMOI, k_gearRatio), DCMotor.getKrakenX60(1));
+
 
     public final Trigger m_isAtSpeed = new Trigger(() -> (Math.abs((m_request.Velocity + m_shooterFollower.getVelocity().getValueAsDouble()) / 2) - m_shooterLerpTable.get(Subsystems.m_swerveSubsystem.distanceToTarget())) < 100);
     public ShooterSubsystem() {
@@ -81,7 +80,6 @@ public class ShooterSubsystem extends SubsystemBase{
    // get the motor voltage of the TalonFX
    var motorVoltage = talonFXSim.getMotorVoltageMeasure();
 
-/* TODO - need to figure this out for 2027
    // use the motor voltage to calculate new position and velocity
    // using WPILib's DCMotorSim class for physics simulation
    m_motorSimModel.setInputVoltage(m_shooterLeader.getMotorVoltage().getValueAsDouble());
@@ -90,7 +88,7 @@ public class ShooterSubsystem extends SubsystemBase{
    // apply the new rotor position and velocity to the TalonFX;
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
-   talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity().times(k_gearRatio));
-*/   
+   talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity() * k_gearRatio);
+
     }
 }

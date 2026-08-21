@@ -13,6 +13,7 @@ import frc.robot.utils.Constants.Globals;
 import frc.robot.utils.Constants.IntakeConstants.IndexerConstants;
 
 import org.wpilib.math.system.DCMotor;
+import org.wpilib.math.system.Models;
 // TODO - cannot find the equivalent of this - import org.wpilib.math.system.plant.LinearSystemId;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.FlywheelSim;
@@ -27,10 +28,10 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
 
     private final double k_gearRatio = 1;
 
-/* TODO - Need to figure this out for 2027
+// /* TODO - Need to figure this out for 2027
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
-        LinearSystemId.createFlywheelSystem(DCMotor.getKrakenX60(1), IndexerConstants.k_indexerConveyorMOI, k_gearRatio), DCMotor.getKrakenX60(1));
-*/
+        Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), IndexerConstants.k_indexerConveyorMOI, k_gearRatio), DCMotor.getKrakenX60(1));
+// */
 
     public IndexerConveyorSubsystem() {
         m_indexerConveyorFollower.getConfigurator().apply(IndexerConstants.k_indexerConveyorConfigs);
@@ -58,7 +59,7 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
    // get the motor voltage of the TalonFX
    var motorVoltage = talonFXSim.getMotorVoltageMeasure();
 
-/* Need to figure this out for 2027
+// /* Need to figure this out for 2027
    // use the motor voltage to calculate new position and velocity
    // using WPILib's DCMotorSim class for physics simulation
    m_motorSimModel.setInputVoltage(m_indexerConveyorFollower.getMotorVoltage().getValueAsDouble());
@@ -67,7 +68,7 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
    // apply the new rotor position and velocity to the TalonFX;
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
-   talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity().times(k_gearRatio));
-*/   
+   talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity() * k_gearRatio);
+// */   
     }
 }

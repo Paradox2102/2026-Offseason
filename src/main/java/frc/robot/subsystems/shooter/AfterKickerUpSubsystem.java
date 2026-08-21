@@ -14,7 +14,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import org.wpilib.math.controller.PIDController;
 import org.wpilib.math.system.DCMotor;
-// TODO - cannot find the equivalent of this - import org.wpilib.math.system.plant.LinearSystemId;
+import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.command2.Command;
@@ -30,10 +30,8 @@ public class AfterKickerUpSubsystem extends SubsystemBase {
 
     private final double k_gearRatio = 1;
 
-/* TODO - LinearSystemId has changed for 2027 - need to figure this out
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
-        LinearSystemId.createFlywheelSystem(DCMotor.getKrakenX60(1), ShooterConstants.k_upKickerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
-*/
+        Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), ShooterConstants.k_upKickerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
 
     public AfterKickerUpSubsystem() {
         m_goUpMotor.getConfigurator().apply(new MotorOutputConfigs());
@@ -61,14 +59,12 @@ public class AfterKickerUpSubsystem extends SubsystemBase {
 
    // use the motor voltage to calculate new position and velocity
    // using WPILib's DCMotorSim class for physics simulation
-/* TODO - see above declaration of m_motorSimModel   
    m_motorSimModel.setInputVoltage(m_goUpMotor.getMotorVoltage().getValueAsDouble());
    m_motorSimModel.update(0.020); // assume 20 ms loop time
 
    // apply the new rotor position and velocity to the TalonFX;
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
-   talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity().times(k_gearRatio));
-*/     
+   talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity() * k_gearRatio);
     }
 }

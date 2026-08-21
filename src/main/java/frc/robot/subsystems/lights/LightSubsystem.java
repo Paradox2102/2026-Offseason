@@ -184,8 +184,8 @@ public class LightSubsystem extends SubsystemBase {
       .ignoringDisable(true));
     m_led.setLength(LightConstants.k_lightAmount);
     m_led.setData(m_ledBuffer);
-// TODO - looks like this is not needed - should verify    m_led.start();
-    // new Trigger(() -> DriverStation.isEnabled()).onTrue();
+
+    m_led.setStart(LightConstants.k_lightAmount);
     new Trigger(() -> RobotState.isTeleop() && !RobotState.isDisabled()).onTrue(new ShiftCommand(false, k_shift1Time, 0));
     new Trigger(() -> m_timer.get() > k_shift1Time).onTrue(new ShiftCommand(true, k_shift2Time, 1));
     new Trigger(() -> m_timer.get() > k_shift2Time).onTrue(new ShiftCommand(false, k_shift3Time, 2));

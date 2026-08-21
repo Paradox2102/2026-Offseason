@@ -10,8 +10,8 @@ import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import org.wpilib.math.system.LinearSystem;
+import org.wpilib.math.system.Models;
 import org.wpilib.math.system.DCMotor;
-// TODO - cannot find the equivalent of this - import org.wpilib.math.system.plant.LinearSystemId;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.DCMotorSim;
 import org.wpilib.simulation.FlywheelSim;
@@ -29,10 +29,8 @@ public class IntakeRollerSubsystem extends SubsystemBase {
     
     private final double k_gearRatio = 0.5;
 
-/* TODO - need to figure this out for 2027
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
-        LinearSystemId.createFlywheelSystem(DCMotor.getKrakenX60(1), IntakeConstants.k_intakeRollerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
-*/        
+        Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), IntakeConstants.k_intakeRollerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
     public IntakeRollerSubsystem() {
         m_intakeRollerMotor.getConfigurator().apply(IntakeConstants.k_intakeRollerConfigs);
         
@@ -64,7 +62,6 @@ public class IntakeRollerSubsystem extends SubsystemBase {
    // get the motor voltage of the TalonFX
    var motorVoltage = talonFXSim.getMotorVoltageMeasure();
 
-/* TODO - need to figure this out for 2027
    // use the motor voltage to calculate new position and velocity
    // using WPILib's DCMotorSim class for physics simulation
    m_motorSimModel.setInputVoltage(m_intakeRollerMotor.getMotorVoltage().getValueAsDouble());
@@ -73,7 +70,6 @@ public class IntakeRollerSubsystem extends SubsystemBase {
    // apply the new rotor position and velocity to the TalonFX;
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
-   talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity().times(k_gearRatio));
-*/
+   talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity() * k_gearRatio);
     }
 }

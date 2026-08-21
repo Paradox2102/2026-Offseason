@@ -5,6 +5,8 @@ import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.Trigger;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Translation2d;
 
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -41,17 +43,18 @@ public class TurretAimSubsystem extends SubsystemBase{
     }
 
     private double getTargetRotation(){
-        var rotationTriangle = new Translation2d(Subsystems.m_swerveSubsystem.getSotmHubPos().getX() - (SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub.getX() : FieldConstants.k_blueHub.getX()), (Subsystems.m_swerveSubsystem.getSotmHubPos().getY() - (SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub.getY() : FieldConstants.k_blueHub.getY())));
+        Pose3d hubPose = new Pose3d();Subsystems.m_swerveSubsystem.getSotmHubPos();
+        var rotationTriangle = new Translation2d(hubPose.getX() - (SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub.getX() : FieldConstants.k_blueHub.getX()), (hubPose.getY() - (SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub.getY() : FieldConstants.k_blueHub.getY())));
         var targetRotation = Math.atan2(rotationTriangle.getY(), rotationTriangle.getX());
         double bestRotation = targetRotation;
         for (int i = -1; i <= 1; i++) {
-            bestRotation = checkBestRotation(bestRotation, targetRotation + (i * (2 * Math.PI)));
+            bestRotation = checkBestRotation(bestRotation, targetRotation + (i * (2 * Math.PI)), hubPose.toPose2d());
         }
         return bestRotation;
     }
 
-    private double checkBestRotation(double bestRotation, double testRotation){
-        var robotRotation = Subsystems.m_swerveSubsystem.getSotmHubPos().getRotation().getRadians();
+    private double checkBestRotation(double bestRotation, double testRotation, Pose2d hubPose){
+        var robotRotation = hubPose.getRotation().getRadians();
         if (DoubleNumber.isBetween(testRotation, ShooterConstants.k_turretBounds)){
             if ((testRotation - robotRotation) < (bestRotation - robotRotation)){
                 bestRotation = testRotation;

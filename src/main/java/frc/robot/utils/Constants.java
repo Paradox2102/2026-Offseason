@@ -15,6 +15,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 
 import org.wpilib.math.geometry.Rectangle2d;
+import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation2d;
@@ -128,6 +129,8 @@ public class Constants {
     public static final double k_turretS = 0;
     public static final double k_turretP = 0;
     public static final double k_turretD = 0;
+    // TODO: Set turret offset. 
+    public static final Translation3d k_turretOffset = new Translation3d(0, 0, 0);
 
     public static final DoubleNumber k_turretBounds = new DoubleNumber(-500, 500);
     public static final double[][] k_scoreHoodAngle = {
