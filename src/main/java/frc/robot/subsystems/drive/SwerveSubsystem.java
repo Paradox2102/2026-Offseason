@@ -4,12 +4,14 @@ import static org.wpilib.units.Units.*;
 
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
 // TODO - not sure if this is needed - import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveRequest.FieldCentric;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.utility.LinearPath.State;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -19,6 +21,7 @@ import choreo.trajectory.SwerveSample;
 import org.wpilib.math.linalg.Matrix;
 import org.wpilib.math.controller.PIDController;
 import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rectangle2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Transform2d;
 import org.wpilib.math.geometry.Translation2d;
@@ -41,6 +44,8 @@ import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.sysid.SysIdRoutine;
 import frc.robot.utils.Constants.FieldConstants;
 import frc.robot.utils.Constants.ShooterConstants;
+import frc.robot.utils.Constants.Subsystems;
+import frc.robot.RobotContainer;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
@@ -151,212 +156,269 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     private Vision vision;
     
     private InterpolatingDoubleTreeMap m_shotTimeInt = new InterpolatingDoubleTreeMap();
-        private Pose2d m_sotmPose = new Pose2d();
-    
-        /**
-         * Constructs a CTRE SwerveDrivetrain using the specified constants.
-         * <p>
-         * This constructs the underlying hardware devices, so users should not construct
-         * the devices themselves. If they need the devices, they can access them through
-         * getters in the classes.
-         *
-         * @param drivetrainConstants   Drivetrain-wide constants for the swerve drive
-         * @param modules               Constants for each specific module
-         */
-        public SwerveSubsystem(
-            SwerveDrivetrainConstants drivetrainConstants,
-            SwerveModuleConstants<?, ?, ?>... modules
-        ) {
-            super(drivetrainConstants, modules);
-            if (Utils.isSimulation()) {
-                startSimThread();
-            }
-            setupPhotonVision();
-            for(double[] values : ShooterConstants.k_scoreShotTimes){
-                m_shotTimeInt.put(values[0], values[1]);
-            }
+    private Pose2d m_sotmPose = new Pose2d();
+
+    /**
+     * Constructs a CTRE SwerveDrivetrain using the specified constants.
+     * <p>
+     * This constructs the underlying hardware devices, so users should not construct
+     * the devices themselves. If they need the devices, they can access them through
+     * getters in the classes.
+     *
+     * @param drivetrainConstants   Drivetrain-wide constants for the swerve drive
+     * @param modules               Constants for each specific module
+     */
+    public SwerveSubsystem(
+        SwerveDrivetrainConstants drivetrainConstants,
+        SwerveModuleConstants<?, ?, ?>... modules
+    ) {
+        super(drivetrainConstants, modules);
+        if (Utils.isSimulation()) {
+            startSimThread();
         }
-    
-        /**
-         * Constructs a CTRE SwerveDrivetrain using the specified constants.
-         * <p>
-         * This constructs the underlying hardware devices, so users should not construct
-         * the devices themselves. If they need the devices, they can access them through
-         * getters in the classes.
-         *
-         * @param drivetrainConstants     Drivetrain-wide constants for the swerve drive
-         * @param odometryUpdateFrequency The frequency to run the odometry loop. If
-         *                                unspecified or set to 0 Hz, this is 250 Hz on
-         *                                CAN FD, and 100 Hz on CAN 2.0.
-         * @param modules                 Constants for each specific module
-         */
-        public SwerveSubsystem(
-            SwerveDrivetrainConstants drivetrainConstants,
-            double odometryUpdateFrequency,
-            SwerveModuleConstants<?, ?, ?>... modules
-        ) {
-            super(drivetrainConstants, odometryUpdateFrequency, modules);
-            if (Utils.isSimulation()) {
-                startSimThread();
-            }
-            setupPhotonVision();
-            for(double[] values : ShooterConstants.k_scoreShotTimes){
-                m_shotTimeInt.put(values[0], values[1]);
-            }
+        setupPhotonVision();
+        for(double[] values : ShooterConstants.k_scoreShotTimes){
+            m_shotTimeInt.put(values[0], values[1]);
         }
-    
-        /**
-         * Constructs a CTRE SwerveDrivetrain using the specified constants.
-         * <p>
-         * This constructs the underlying hardware devices, so users should not construct
-         * the devices themselves. If they need the devices, they can access them through
-         * getters in the classes.
-         *
-         * @param drivetrainConstants       Drivetrain-wide constants for the swerve drive
-         * @param odometryUpdateFrequency   The frequency to run the odometry loop. If
-         *                                  unspecified or set to 0 Hz, this is 250 Hz on
-         *                                  CAN FD, and 100 Hz on CAN 2.0.
-         * @param odometryStandardDeviation The standard deviation for odometry calculation
-         *                                  in the form [x, y, theta]ᵀ, with units in meters
-         *                                  and radians
-         * @param visionStandardDeviation   The standard deviation for vision calculation
-         *                                  in the form [x, y, theta]ᵀ, with units in meters
-         *                                  and radians
-         * @param modules                   Constants for each specific module
-         */
-        public SwerveSubsystem(
-            SwerveDrivetrainConstants drivetrainConstants,
-            double odometryUpdateFrequency,
-            Matrix<N3, N1> odometryStandardDeviation,
-            Matrix<N3, N1> visionStandardDeviation,
-            SwerveModuleConstants<?, ?, ?>... modules
-        ) {
-            super(drivetrainConstants, odometryUpdateFrequency, odometryStandardDeviation, visionStandardDeviation, modules);
-            if (Utils.isSimulation()) {
-                startSimThread();
-            }
-            setupPhotonVision();
-            for(double[] values : ShooterConstants.k_scoreShotTimes){
-                m_shotTimeInt.put(values[0], values[1]);
-            }
+    }
+
+    /**
+     * Constructs a CTRE SwerveDrivetrain using the specified constants.
+     * <p>
+     * This constructs the underlying hardware devices, so users should not construct
+     * the devices themselves. If they need the devices, they can access them through
+     * getters in the classes.
+     *
+     * @param drivetrainConstants     Drivetrain-wide constants for the swerve drive
+     * @param odometryUpdateFrequency The frequency to run the odometry loop. If
+     *                                unspecified or set to 0 Hz, this is 250 Hz on
+     *                                CAN FD, and 100 Hz on CAN 2.0.
+     * @param modules                 Constants for each specific module
+     */
+    public SwerveSubsystem(
+        SwerveDrivetrainConstants drivetrainConstants,
+        double odometryUpdateFrequency,
+        SwerveModuleConstants<?, ?, ?>... modules
+    ) {
+        super(drivetrainConstants, odometryUpdateFrequency, modules);
+        if (Utils.isSimulation()) {
+            startSimThread();
         }
-    
-        /**
-         * Creates a new auto factory for this drivetrain.
-         *
-         * @return AutoFactory for this drivetrain
-         */
+        setupPhotonVision();
+        for(double[] values : ShooterConstants.k_scoreShotTimes){
+            m_shotTimeInt.put(values[0], values[1]);
+        }
+    }
+
+    /**
+     * Constructs a CTRE SwerveDrivetrain using the specified constants.
+     * <p>
+     * This constructs the underlying hardware devices, so users should not construct
+     * the devices themselves. If they need the devices, they can access them through
+     * getters in the classes.
+     *
+     * @param drivetrainConstants       Drivetrain-wide constants for the swerve drive
+     * @param odometryUpdateFrequency   The frequency to run the odometry loop. If
+     *                                  unspecified or set to 0 Hz, this is 250 Hz on
+     *                                  CAN FD, and 100 Hz on CAN 2.0.
+     * @param odometryStandardDeviation The standard deviation for odometry calculation
+     *                                  in the form [x, y, theta]ᵀ, with units in meters
+     *                                  and radians
+     * @param visionStandardDeviation   The standard deviation for vision calculation
+     *                                  in the form [x, y, theta]ᵀ, with units in meters
+     *                                  and radians
+     * @param modules                   Constants for each specific module
+     */
+    public SwerveSubsystem(
+        SwerveDrivetrainConstants drivetrainConstants,
+        double odometryUpdateFrequency,
+        Matrix<N3, N1> odometryStandardDeviation,
+        Matrix<N3, N1> visionStandardDeviation,
+        SwerveModuleConstants<?, ?, ?>... modules
+    ) {
+        super(drivetrainConstants, odometryUpdateFrequency, odometryStandardDeviation, visionStandardDeviation, modules);
+        if (Utils.isSimulation()) {
+            startSimThread();
+        }
+        setupPhotonVision();
+        for(double[] values : ShooterConstants.k_scoreShotTimes){
+            m_shotTimeInt.put(values[0], values[1]);
+        }
+    }
+
+    /**
+     * Creates a new auto factory for this drivetrain.
+     *
+     * @return AutoFactory for this drivetrain
+     */
 /* TODO - need to fix this when we have a working Choreo library        
-        public AutoFactory createAutoFactory() {
-            return createAutoFactory((sample, isStart) -> {});
-        }
+    public AutoFactory createAutoFactory() {
+        return createAutoFactory((sample, isStart) -> {});
+    }
 */    
-        /**
-         * Creates a new auto factory for this drivetrain with the given
-         * trajectory logger.
-         *
-         * @param trajLogger Logger for the trajectory
-         * @return AutoFactory for this drivetrain
-         */
+    /**
+     * Creates a new auto factory for this drivetrain with the given
+     * trajectory logger.
+     *
+     * @param trajLogger Logger for the trajectory
+     * @return AutoFactory for this drivetrain
+     */
 /* TODO - Need to fix this when we have a working Choreo library        
-        public AutoFactory createAutoFactory(TrajectoryLogger<SwerveSample> trajLogger) {
-            return new AutoFactory(
-                () -> getState().Pose,
-                this::resetPose,
-                this::followPath,
-                true,
-                this,
-                trajLogger
-            );
-        }
+    public AutoFactory createAutoFactory(TrajectoryLogger<SwerveSample> trajLogger) {
+        return new AutoFactory(
+            () -> getState().Pose,
+            this::resetPose,
+            this::followPath,
+            true,
+            this,
+            trajLogger
+        );
+    }
 */            
     
-        /**
-         * Returns a command that applies the specified control request to this swerve drivetrain.
-         *
-         * @param request Function returning the request to apply
-         * @return Command to run
-         */
-        public Command applyRequest(Supplier<SwerveRequest> request) {
-            return run(() -> this.setControl(request.get()));
-        }
-    
-        /**
-         * Follows the given field-centric path sample with PID.
-         *
-         * @param sample Sample along the path to follow
-         */
+    /**
+     * Returns a command that applies the specified control request to this swerve drivetrain.
+     *
+     * @param request Function returning the request to apply
+     * @return Command to run
+     */
+    public Command applyRequest(Supplier<SwerveRequest> request) {
+        return run(() -> this.setControl(request.get()));
+    }
+
+    /**
+     * Follows the given field-centric path sample with PID.
+     *
+     * @param sample Sample along the path to follow
+     */
 /* TODO - need to fix when we have a working Choreo library        
-        public void followPath(SwerveSample sample) {
-            m_orientPID.enableContinuousInput(-Math.PI, Math.PI);
-    
-            var pose = getState().Pose;
-    
-            var targetSpeeds = sample.getChassisSpeeds();
-            targetSpeeds.vxMetersPerSecond += m_xPID.calculate(
-                pose.getX(), sample.x
-            );
-            targetSpeeds.vyMetersPerSecond += m_yPID.calculate(
-                pose.getY(), sample.y
-            );
-            targetSpeeds.omegaRadiansPerSecond += m_orientPID.calculate(
-                pose.getRotation().getRadians(), sample.heading
-            );
-    
-            setControl(
-                m_pathApplyFieldSpeeds.withSpeeds(targetSpeeds)
-                    .withWheelForceFeedforwardsX(sample.moduleForcesX())
-                    .withWheelForceFeedforwardsY(sample.moduleForcesY())
-            );
-        }
+    public void followPath(SwerveSample sample) {
+        m_orientPID.enableContinuousInput(-Math.PI, Math.PI);
+
+        var pose = getState().Pose;
+
+        var targetSpeeds = sample.getChassisSpeeds();
+        targetSpeeds.vxMetersPerSecond += m_xPID.calculate(
+            pose.getX(), sample.x
+        );
+        targetSpeeds.vyMetersPerSecond += m_yPID.calculate(
+            pose.getY(), sample.y
+        );
+        targetSpeeds.omegaRadiansPerSecond += m_orientPID.calculate(
+            pose.getRotation().getRadians(), sample.heading
+        );
+
+        setControl(
+            m_pathApplyFieldSpeeds.withSpeeds(targetSpeeds)
+                .withWheelForceFeedforwardsX(sample.moduleForcesX())
+                .withWheelForceFeedforwardsY(sample.moduleForcesY())
+        );
+    }
 */            
     
-        /**
-         * Runs the SysId Quasistatic test in the given direction for the routine
-         * specified by {@link #m_sysIdRoutineToApply}.
-         *
-         * @param direction Direction of the SysId Quasistatic test
-         * @return Command to run
-         */
-        public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-            return m_sysIdRoutineToApply.quasistatic(direction);
+    /**
+     * Runs the SysId Quasistatic test in the given direction for the routine
+     * specified by {@link #m_sysIdRoutineToApply}.
+     *
+     * @param direction Direction of the SysId Quasistatic test
+     * @return Command to run
+     */
+    public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+        return m_sysIdRoutineToApply.quasistatic(direction);
+    }
+
+    /**
+     * Runs the SysId Dynamic test in the given direction for the routine
+     * specified by {@link #m_sysIdRoutineToApply}.
+     *
+     * @param direction Direction of the SysId Dynamic test
+     * @return Command to run
+     */
+    public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+        return m_sysIdRoutineToApply.dynamic(direction);
+    }
+
+    @Override
+    public void periodic() {
+        /*
+            * Periodically try to apply the operator perspective.
+            * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
+            * This allows us to correct the perspective in case the robot code restarts mid-match.
+            * Otherwise, only check and apply the operator perspective if the DS is disabled.
+            * This ensures driving behavior doesn't change until an explicit disable event occurs during testing.
+            */
+        if (!m_hasAppliedOperatorPerspective || RobotState.isDisabled()) {
+            MatchState.getAlliance().ifPresent(allianceColor -> {
+                setOperatorPerspectiveForward(
+                    allianceColor == Alliance.RED
+                        ? kRedAlliancePerspectiveRotation
+                        : kBlueAlliancePerspectiveRotation
+                );
+                m_hasAppliedOperatorPerspective = true;
+            });
         }
+
+        vision.updatePoseEstimation(this);
+
+        cachedPose = getState().Pose;
+        alignToTrench();
+
     
-        /**
-         * Runs the SysId Dynamic test in the given direction for the routine
-         * specified by {@link #m_sysIdRoutineToApply}.
-         *
-         * @param direction Direction of the SysId Dynamic test
-         * @return Command to run
-         */
-        public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-            return m_sysIdRoutineToApply.dynamic(direction);
-        }
-    
-        @Override
-        public void periodic() {
-            /*
-             * Periodically try to apply the operator perspective.
-             * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
-             * This allows us to correct the perspective in case the robot code restarts mid-match.
-             * Otherwise, only check and apply the operator perspective if the DS is disabled.
-             * This ensures driving behavior doesn't change until an explicit disable event occurs during testing.
-             */
-            if (!m_hasAppliedOperatorPerspective || RobotState.isDisabled()) {
-                MatchState.getAlliance().ifPresent(allianceColor -> {
-                    setOperatorPerspectiveForward(
-                        allianceColor == Alliance.RED
-                            ? kRedAlliancePerspectiveRotation
-                            : kBlueAlliancePerspectiveRotation
-                    );
-                    m_hasAppliedOperatorPerspective = true;
-                });
+        m_sotmPose = sotmLookAhead(5, isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
+    }
+
+    private void alignToTrench() {
+        if (Math.abs(RobotContainer.m_controller.getLeftY()) > 0.75) {
+            double diff = 0.08;
+            Rectangle2d[] trenches = {
+                FieldConstants.k_blueTrenchLeft,
+                FieldConstants.k_blueTrenchRight,
+                FieldConstants.k_redTrenchLeft,
+                FieldConstants.k_redTrenchRight
+            };
+            var bestTrench = 0;
+            for (int i = 0; i < trenches.length; i++) {
+                if (
+                    cachedPose.getTranslation().getDistance(trenches[i].getCenter().getTranslation())
+                    <=
+                    cachedPose.getTranslation().getDistance(trenches[bestTrench].getCenter().getTranslation())
+                ) {
+                    bestTrench = i;
+                }
             }
-    
-            vision.updatePoseEstimation(this);
-    
-            cachedPose = getState().Pose;
-            m_sotmPose = sotmLookAhead(5, isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
+            
+            Rectangle2d trench = trenches[bestTrench];
+            
+            if (
+                (
+                    cachedPose.getRotation().getDegrees() < 15 
+                    ||
+                    cachedPose.getRotation().getDegrees() > 345
+                ) || (
+                    cachedPose.getRotation().getDegrees() < 165
+                    &&
+                    cachedPose.getRotation().getDegrees() > 195
+                )
+            ) {
+                if (trench.contains(cachedPose.getTranslation())) {
+                    Pose2d targetPose;
+                    if (Subsystems.m_intakeExtension.m_intakeRetracted.getAsBoolean()) {
+                        targetPose = new Pose2d(
+                            cachedPose.getX(),
+                            trench.getCenter().getY() + diff,
+                            cachedPose.getRotation()
+                        );
+                    } else {
+                        targetPose = new Pose2d(
+                            cachedPose.getX(),
+                            trench.getCenter().getY() - diff,
+                            cachedPose.getRotation()
+                        );
+                    }
+                    drive(new ChassisVelocities(getChassisSpeeds().vx, cachedPose.getY() - targetPose.getY(), 0));
+                }
+            };
+        }
     }
 
     private void setupPhotonVision() {

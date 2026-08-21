@@ -14,6 +14,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 
+import org.wpilib.math.geometry.Rectangle2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation2d;
@@ -194,8 +195,26 @@ public class Constants {
     public static final double k_yCenterline = 4.0;
     public static final double k_depotIntermediatePoint = 5.940;
     public static final double k_outpostIntermediatePoint = 1.0;
-
     
+    public static final Rectangle2d k_blueTrenchLeft = new Rectangle2d(
+        new Translation2d(2.5, 8),
+        new Translation2d(6.6, 6.8)
+    );
+
+    public static final Rectangle2d k_blueTrenchRight = new Rectangle2d(
+        new Translation2d(2.5, 1.3),
+        new Translation2d(6.6, 0)
+    );
+
+    public static final Rectangle2d k_redTrenchLeft = new Rectangle2d(
+        new Translation2d(14, 8),
+        new Translation2d(10.2, 6.8)
+    );
+
+    public static final Rectangle2d k_redTrenchRight = new Rectangle2d(
+        new Translation2d(14, 1.3),
+        new Translation2d(10.2, 0)
+    );
   }
 
   
