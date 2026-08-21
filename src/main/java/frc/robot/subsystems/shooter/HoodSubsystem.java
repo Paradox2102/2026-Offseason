@@ -12,7 +12,6 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
 import org.wpilib.math.system.DCMotor;
-// TODO - need to figure out how this is handled in 2027 - import org.wpilib.math.system.plant.LinearSystemId;
 import org.wpilib.hardware.discrete.DigitalInput;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.DCMotorSim;
@@ -36,17 +35,13 @@ public class HoodSubsystem extends SubsystemBase{
 
     private final DigitalInput m_limitSwitch = new DigitalInput(0);
 
-    private final double k_gearRatio = 5;
+    private final double k_gearRatio = 5; // what was I doing with this? this needs to be a models smth
     private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(DCMotor.getKrakenX44(1),
     k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, 0, ShooterConstants.k_hoodMaxAngle, true, 0);
     
     public final Trigger m_isAimed = new Trigger(() -> (Math.abs(m_request.Position - m_hoodLerpTable.get(Subsystems.m_swerveSubsystem.distanceToTarget())) < 0.5));
 
-    //    LinearSystemId.createDCMotorSystem(
-//       DCMotor.getKrakenX44Foc(1), 0.0254713554, k_gearRatio
-//    ),
-//    DCMotor.getKrakenX44Foc(1)
-// );
+
 
     @Override
     public void periodic() {
@@ -101,9 +96,7 @@ public class HoodSubsystem extends SubsystemBase{
    // apply the new rotor position and velocity to the TalonFX;
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
-/* TODO - need to figure out how this has changed for 2027   
-   talonFXSim.setRawRotorPosition(m_motorSimModel.getAngleRads() * k_gearRatio);
-   talonFXSim.setRotorVelocity(m_motorSimModel.getVelocityRadPerSec() * k_gearRatio);
-*/   
+   talonFXSim.setRawRotorPosition(m_motorSimModel.getAngle() * k_gearRatio);
+   talonFXSim.setRotorVelocity(m_motorSimModel.getVelocity() * k_gearRatio);
     }
 }

@@ -11,7 +11,7 @@ import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import org.wpilib.math.system.DCMotor;
-// TODO - cannot find the equivalent of this - import org.wpilib.math.system.plant.LinearSystemId;
+import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.DCMotorSim;
 import org.wpilib.command2.Command;
@@ -31,14 +31,14 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
 
     private final double k_gearRatio = 2.8;
-/* TODO - Need to figure this out for 2027    
-    private final DCMotorSim m_motorSimModel = new DCMotorSim(
-   LinearSystemId.createDCMotorSystem(
-      DCMotor.getKrakenX60Foc(2), 0.4214011009, k_gearRatio
-   ),
-   DCMotor.getKrakenX60Foc(2)
-);
-*/
+    // private final DCMotorSim m_motorSimModel = new DCMotorSim(
+// TODO: Figure out how elevators work
+        //    Models.elevatorFromPhysicalConstants(
+//       DCMotor.getKrakenX60Foc(2), 0.4214011009, k_gearRatio
+//    ),
+//    DCMotor.getKrakenX60Foc(2)
+// );
+
 
     public IntakeExtensionSubsystem() {
         m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.k_intakeRollerConfigs);

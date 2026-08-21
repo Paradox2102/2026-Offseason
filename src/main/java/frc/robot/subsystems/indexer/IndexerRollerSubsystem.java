@@ -14,6 +14,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import org.wpilib.math.controller.PIDController;
 import org.wpilib.math.system.DCMotor;
+import org.wpilib.math.system.Models;
 // TODO - cannot find the equivalent of this - import org.wpilib.math.system.plant.LinearSystemId;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.DCMotorSim;
@@ -26,15 +27,14 @@ import frc.robot.utils.Constants.IntakeConstants;
 import frc.robot.utils.Constants.IntakeConstants.IndexerConstants;
 
 public class IndexerRollerSubsystem extends SubsystemBase {
-    private final TalonFX m_indexerRollerModer = new TalonFX(CANIDConstants.indexerRoller, new CANBus("3")); // TODO - Need to assign canbus numbers
+    private final TalonFX m_indexerRollerModer = new TalonFX(CANIDConstants.indexerRoller, new CANBus("3"));
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
 
     private final double k_gearRatio = 0.31;
 
-/* TODO - Need to figure this out    
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
-        LinearSystemId.createFlywheelSystem(DCMotor.getKrakenX60(1), IndexerConstants.k_indexerRollerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
-*/
+        Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), IndexerConstants.k_indexerRollerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
+
 
     public IndexerRollerSubsystem() {
         m_indexerRollerModer.getConfigurator().apply(new MotorOutputConfigs());
@@ -60,7 +60,6 @@ public class IndexerRollerSubsystem extends SubsystemBase {
    // get the motor voltage of the TalonFX
    var motorVoltage = talonFXSim.getMotorVoltageMeasure();
 
-/* TODO - need to figure this out   
    // use the motor voltage to calculate new position and velocity
    // using WPILib's DCMotorSim class for physics simulation
    m_motorSimModel.setInputVoltage(m_indexerRollerModer.getMotorVoltage().getValueAsDouble());
@@ -69,7 +68,7 @@ public class IndexerRollerSubsystem extends SubsystemBase {
    // apply the new rotor position and velocity to the TalonFX;
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
-   talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity().times(k_gearRatio));
-*/   
+   talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity() * k_gearRatio);
+
     }
 }
