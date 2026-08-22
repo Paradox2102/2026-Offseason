@@ -2,16 +2,8 @@ package frc.robot.PathPlanningThing;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.Map;
-
-import org.wpilib.hardware.led.LEDPattern;
 import org.wpilib.smartdashboard.SendableChooser;
-import org.wpilib.smartdashboard.SmartDashboard;
-import org.wpilib.util.Color;
 import org.wpilib.command2.Command;
-import org.wpilib.command2.SelectCommand;
-import frc.robot.RobotContainer;
-import frc.robot.subsystems.drive.SwerveSubsystem;
 
 public class SelectAuto {
     

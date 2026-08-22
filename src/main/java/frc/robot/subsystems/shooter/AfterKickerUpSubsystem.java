@@ -1,9 +1,5 @@
 package frc.robot.subsystems.shooter;
 
-import static org.wpilib.units.Units.RPM;
-import static org.wpilib.units.Units.Rotations;
-import static org.wpilib.units.Units.RotationsPerSecond;
-
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -12,7 +8,6 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import org.wpilib.math.controller.PIDController;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
@@ -22,7 +17,6 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 import frc.robot.utils.Constants.CANIDConstants;
 import frc.robot.utils.Constants.ShooterConstants;
-import frc.robot.utils.Constants.IntakeConstants.IndexerConstants;
 
 public class AfterKickerUpSubsystem extends SubsystemBase {
     private final TalonFX m_goUpMotor = new TalonFX(CANIDConstants.goUp, new CANBus("1"));  // TODO - need to assign the canbus numbers
@@ -55,7 +49,7 @@ public class AfterKickerUpSubsystem extends SubsystemBase {
    talonFXSim.setSupplyVoltage(RobotController.getBatteryVoltage());
 
    // get the motor voltage of the TalonFX
-   var motorVoltage = talonFXSim.getMotorVoltageMeasure();
+//    var motorVoltage = talonFXSim.getMotorVoltageMeasure();
 
    // use the motor voltage to calculate new position and velocity
    // using WPILib's DCMotorSim class for physics simulation

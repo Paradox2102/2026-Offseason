@@ -15,60 +15,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.wpilib.vision.apriltag.AprilTagFieldLayout;
 import org.wpilib.vision.apriltag.AprilTagFields;
-import org.wpilib.math.util.MathUtil;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
-import org.wpilib.math.interpolation.Interpolatable;
 import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.math.util.Units;
-import org.wpilib.util.sendable.Sendable;
 import org.wpilib.driverstation.Alliance;
-import org.wpilib.driverstation.DriverStation;
 import org.wpilib.driverstation.MatchState;
-import org.wpilib.smartdashboard.Field2d;
-import org.wpilib.smartdashboard.SendableChooser;
 import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.Command;
-import frc.robot.RobotContainer;
 import frc.robot.utils.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
-import frc.robot.utils.Constants.Subsystems;
-
-/* I think this is done! I'll need to put it through it's paces a little bit more when I get the jason working
- * so... handling rotation.
- * lets plan out how to do that maybe :\
- * So it needs to look ahead to align to the next pose's rotation.
- * what if, it only switches points/ends if the next point is a rotation and the rotation is within a fixed(?)
- * deadzone. Then it also needs to, for orient pid, have a next index with rotation value. That could be a for loop
- * where it tries to say m_pose.m_pose.getRotation. If null it's a translation and therefore doesn't have a rotation
- * otherwise we commence normally with that being the correct pose. If the path ends in translations we want to just
- * use the rotation of the last pose so if we get bumped it'll rotate back.
- * 
- * FIXED YIPPEE
- * This also can only be run once ':/ I gotta fix that
- */
-
- /*
-  * FIXED YIPPEE
-  * We also don't take into account the is important to skip a translation if we're closer to an important position
-  */
-  /*
-   * next on todo because I don't already have enough jobs, I want it to only calculate and do the end detection every few loops
-   * especially when we're far away we don't need to calculate as often to save on loop overruns.
-   * Maybe make it only go through one for loop per overrun?
-   * that way we can optimize so it doesn't go through that much each loop
-   */
-  /*
-   * All translations might be an issue.
-   * although this would reasonably never happen (unless this is used for PID align. It will probably be used for PID align, I need to fix this)
-   * If the auto is just translations, nothing happens. We don't move at all.
-   * :'D
-   */
-  /*
-   * I think I fixed that! It's just been a while since I worked on this. Let me test some autos.
-   * Now that the software is updated to be nicer to use it should be alright and not break anything. Then I can get to work on our autos maybe
-   */
   
 public class DrivePath extends Command{
     

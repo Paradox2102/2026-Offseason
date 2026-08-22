@@ -5,7 +5,6 @@ import java.util.function.DoubleSupplier;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
@@ -14,7 +13,6 @@ import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.hardware.discrete.DigitalInput;
 import org.wpilib.system.RobotController;
-import org.wpilib.simulation.DCMotorSim;
 import org.wpilib.simulation.SingleJointedArmSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
@@ -86,7 +84,7 @@ public class HoodSubsystem extends SubsystemBase{
    talonFXSim.setSupplyVoltage(RobotController.getBatteryVoltage());
 
    // get the motor voltage of the TalonFX
-   var motorVoltage = talonFXSim.getMotorVoltageMeasure();
+//    var motorVoltage = talonFXSim.getMotorVoltageMeasure();
 
    // use the motor voltage to calculate new position and velocity
    // using WPILib's DCMotorSim class for physics simulation

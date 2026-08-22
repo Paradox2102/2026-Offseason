@@ -7,6 +7,8 @@ import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.Trigger;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.geometry.Translation2d;
 
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -42,8 +44,8 @@ public class TurretAimSubsystem extends SubsystemBase{
         return Commands.run(() -> Globals.setPosition(m_shooterAzimuth, m_request, 0), this);
     }
 
-    private double getTargetRotation(){
-        Pose3d hubPose = Subsystems.m_swerveSubsystem.getSotmHubPos();
+    private double getTargetRotation(){ // This should add the turret offset to aiming but I need to check when I get sim up and running.
+        Pose3d hubPose = new Pose3d(Subsystems.m_swerveSubsystem.getSotmHubAimPos()).plus(new Transform3d(ShooterConstants.k_turretOffset, new Rotation3d(0, 0, Subsystems.m_swerveSubsystem.getSotmHubAimPos().getRotation().getRadians())));
         var rotationTriangle = new Translation2d(hubPose.getX() - (SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub.getX() : FieldConstants.k_blueHub.getX()), (hubPose.getY() - (SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub.getY() : FieldConstants.k_blueHub.getY())));
         var targetRotation = Math.atan2(rotationTriangle.getY(), rotationTriangle.getX());
         double bestRotation = targetRotation;

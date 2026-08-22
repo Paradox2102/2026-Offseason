@@ -3,8 +3,6 @@ package frc.robot.subsystems.intake;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -13,31 +11,33 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
-import org.wpilib.simulation.DCMotorSim;
+import org.wpilib.simulation.ElevatorSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.Trigger;
+import org.wpilib.framework.RobotBase;
+
 import frc.robot.utils.Constants.CANIDConstants;
 import frc.robot.utils.Constants.Globals;
 import frc.robot.utils.Constants.IntakeConstants;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
-    private final TalonFX m_intakeExtensionLeader = new TalonFX(CANIDConstants.intakeExtensionLeader, new CANBus("2")); // TODO - need to assign canbus numbers
+    private static final double k_intakeMaxExtension = 20.0;//TODO: tune in sim
+    private static final double k_elevatorDrimRadius = 0.038091; // If something is wrong then this is the first thing to check. Idk if I did this right
+    private static final double k_elevatorMass = 5.401715051809;
+    private final TalonFX m_intakeExtensionLeader = new TalonFX(CANIDConstants.intakeExtensionLeader, new CANBus("2"));
     private final TalonFX m_intakeExtensionFollower = new TalonFX(CANIDConstants.intakeExtensionFollower, new CANBus("2"));  // TODO - should we be creating a second instance here or using the first?
-
+                                                                                                                                    //Since they use different CANIDs wouldn't they need to be different instances?
     public Trigger m_intakeRetracted = new Trigger(() -> (m_intakeExtensionLeader.getPosition().getValueAsDouble() < 0));
 
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
 
     private final double k_gearRatio = 2.8;
-    // private final DCMotorSim m_motorSimModel = new DCMotorSim(
-// TODO: Figure out how elevators work
-        //    Models.elevatorFromPhysicalConstants(
-//       DCMotor.getKrakenX60Foc(2), 0.4214011009, k_gearRatio
-//    ),
-//    DCMotor.getKrakenX60Foc(2)
-// );
+    private final ElevatorSim m_motorSimModel = new ElevatorSim(
+           Models.elevatorFromPhysicalConstants(
+      DCMotor.getKrakenX60Foc(2), k_elevatorMass, k_elevatorDrimRadius, k_gearRatio),
+       DCMotor.getKrakenX60Foc(2), 0.0, k_intakeMaxExtension, false, 0);
 
 
     public IntakeExtensionSubsystem() {
@@ -59,6 +59,9 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     public Command extendIntake() {
         return Commands.runOnce(() -> {
             Globals.setFollowerPosition(m_intakeExtensionLeader, m_intakeExtensionFollower, m_request, IntakeConstants.k_outPosition, MotorAlignmentValue.Aligned);
+            if (RobotBase.isSimulation()){
+                
+            }
         }, this);
     }
     @Override
@@ -69,9 +72,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
    talonFXSim.setSupplyVoltage(RobotController.getBatteryVoltage());
 
    // get the motor voltage of the TalonFX
-   var motorVoltage = talonFXSim.getMotorVoltageMeasure();
+//    var motorVoltage = talonFXSim.getMotorVoltageMeasure();
 
-/* TODO - need to figure this out for 2027
    // use the motor voltage to calculate new position and velocity
    // using WPILib's DCMotorSim class for physics simulation
    m_motorSimModel.setInputVoltage(m_intakeExtensionLeader.getMotorVoltage().getValueAsDouble());
@@ -80,8 +82,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
    // apply the new rotor position and velocity to the TalonFX;
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
-   talonFXSim.setRawRotorPosition(m_motorSimModel.getAngularPosition().times(k_gearRatio));
-   talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity().times(k_gearRatio));
-*/   
+   talonFXSim.setRawRotorPosition(m_motorSimModel.getPosition() * k_gearRatio);
+   talonFXSim.setRotorVelocity(m_motorSimModel.getVelocity() * k_gearRatio);
     }
 }

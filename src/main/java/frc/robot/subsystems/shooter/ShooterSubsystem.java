@@ -2,11 +2,8 @@ package frc.robot.subsystems.shooter;
 
 import java.util.function.DoubleSupplier;
 
-import javax.naming.ldap.SortResponseControl;
-
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
@@ -25,8 +22,6 @@ import org.wpilib.command2.button.Trigger;
 
 import frc.robot.utils.Constants.CANIDConstants;
 import frc.robot.utils.Constants.Globals;
-import frc.robot.utils.Constants.IntakeConstants;
-import frc.robot.utils.Constants.IntakeConstants.IndexerConstants;
 import frc.robot.utils.Constants.ShooterConstants;
 import frc.robot.utils.Constants.Subsystems;
 
@@ -78,7 +73,7 @@ public class ShooterSubsystem extends SubsystemBase{
    talonFXSim.setSupplyVoltage(RobotController.getBatteryVoltage());
 
    // get the motor voltage of the TalonFX
-   var motorVoltage = talonFXSim.getMotorVoltageMeasure();
+//    var motorVoltage = talonFXSim.getMotorVoltageMeasure();
 
    // use the motor voltage to calculate new position and velocity
    // using WPILib's DCMotorSim class for physics simulation

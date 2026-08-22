@@ -14,7 +14,6 @@ import frc.robot.utils.Constants.IntakeConstants.IndexerConstants;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
-// TODO - cannot find the equivalent of this - import org.wpilib.math.system.plant.LinearSystemId;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.command2.Command;
@@ -22,16 +21,14 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class IndexerConveyorSubsystem extends SubsystemBase {
-    private final TalonFX m_indexerConveyorLeader = new TalonFX(CANIDConstants.indexerConveyorLeader, new CANBus("3")); // TODO - need to assing canbus numbers
-    private final TalonFX m_indexerConveyorFollower = new TalonFX(CANIDConstants.indexerConveyorFollower, new CANBus("3")); // TODO - should we be creating a second instance or using the first?
+    private final TalonFX m_indexerConveyorLeader = new TalonFX(CANIDConstants.indexerConveyorLeader, new CANBus("3"));
+    private final TalonFX m_indexerConveyorFollower = new TalonFX(CANIDConstants.indexerConveyorFollower, new CANBus("3"));
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
 
     private final double k_gearRatio = 1;
 
-// /* TODO - Need to figure this out for 2027
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
         Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), IndexerConstants.k_indexerConveyorMOI, k_gearRatio), DCMotor.getKrakenX60(1));
-// */
 
     public IndexerConveyorSubsystem() {
         m_indexerConveyorFollower.getConfigurator().apply(IndexerConstants.k_indexerConveyorConfigs);
@@ -57,7 +54,7 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
    talonFXSim.setSupplyVoltage(RobotController.getBatteryVoltage());
 
    // get the motor voltage of the TalonFX
-   var motorVoltage = talonFXSim.getMotorVoltageMeasure();
+//    var motorVoltage = talonFXSim.getMotorVoltageMeasure();
 
 // /* Need to figure this out for 2027
    // use the motor voltage to calculate new position and velocity
