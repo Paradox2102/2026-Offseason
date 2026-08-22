@@ -11,19 +11,22 @@ import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.geometry.Translation2d;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import frc.robot.Constants.CANIDConstants;
+import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.Globals;
+import frc.robot.Constants.ShooterConstants;
+import frc.robot.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.utils.DoubleNumber;
-import frc.robot.utils.Constants.CANIDConstants;
-import frc.robot.utils.Constants.FieldConstants;
-import frc.robot.utils.Constants.Globals;
-import frc.robot.utils.Constants.ShooterConstants;
-import frc.robot.utils.Constants.Subsystems;
 
 public class TurretAimSubsystem extends SubsystemBase{
-    private final TalonFX m_shooterAzimuth = new TalonFX(CANIDConstants.shooterAzimuth, null);
+    private final CANBus k_CANBus = CANBus.systemcore(1);
+
+    private final TalonFX m_shooterAzimuth = new TalonFX(CANIDConstants.shooterAzimuth, k_CANBus);
     
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
 

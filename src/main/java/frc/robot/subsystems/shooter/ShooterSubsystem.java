@@ -10,6 +10,11 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import frc.robot.Constants.CANIDConstants;
+import frc.robot.Constants.Globals;
+import frc.robot.Constants.ShooterConstants;
+import frc.robot.Constants.Subsystems;
+
 import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
@@ -20,14 +25,11 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.Trigger;
 
-import frc.robot.utils.Constants.CANIDConstants;
-import frc.robot.utils.Constants.Globals;
-import frc.robot.utils.Constants.ShooterConstants;
-import frc.robot.utils.Constants.Subsystems;
-
 public class ShooterSubsystem extends SubsystemBase{
-    private final TalonFX m_shooterLeader = new TalonFX(CANIDConstants.shooterLeader, new CANBus("1")); // TODO - need to assign canbus numbers
-    private final TalonFX m_shooterFollower = new TalonFX(CANIDConstants.shooterFollower, new CANBus("1")); // TODO - should we be creating a second instance or use a copy of the one created above?
+    private final CANBus k_CANBus = CANBus.systemcore(1);
+
+    private final TalonFX m_shooterLeader = new TalonFX(CANIDConstants.shooterLeader, k_CANBus);
+    private final TalonFX m_shooterFollower = new TalonFX(CANIDConstants.shooterFollower, k_CANBus);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
 
     private final InterpolatingDoubleTreeMap m_shooterLerpTable = new InterpolatingDoubleTreeMap();

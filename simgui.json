@@ -1,0 +1,11 @@
+{
+      "NTProvider": {"types": {
+        "\/FMSInfo": "FMSInfo",
+        "\/SmartDashboard\/Module 0": "Mechanism2d",
+        "\/SmartDashboard\/Module 1": "Mechanism2d",
+        "\/SmartDashboard\/Module 2": "Mechanism2d",
+        "\/SmartDashboard\/Module 3": "Mechanism2d",
+        "\/SmartDashboard\/VisionSystemSim-Vision\/Sim Field": "Field2d"
+      }},
+      "NetworkTables Info": {"visible": true}
+    }

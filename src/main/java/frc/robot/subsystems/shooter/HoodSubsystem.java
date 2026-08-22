@@ -9,6 +9,11 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import frc.robot.Constants.CANIDConstants;
+import frc.robot.Constants.Globals;
+import frc.robot.Constants.ShooterConstants;
+import frc.robot.Constants.Subsystems;
+
 import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.hardware.discrete.DigitalInput;
@@ -19,14 +24,10 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.Trigger;
 
-import frc.robot.utils.Constants.CANIDConstants;
-import frc.robot.utils.Constants.Globals;
-import frc.robot.utils.Constants.ShooterConstants;
-import frc.robot.utils.Constants.Subsystems;
-
 public class HoodSubsystem extends SubsystemBase{
+    private final CANBus k_CANBus = CANBus.systemcore(1);
 
-    private final TalonFX m_hoodMotor = new TalonFX(CANIDConstants.hood, new CANBus("1"));  // TODO - need to assign canbus numbers
+    private final TalonFX m_hoodMotor = new TalonFX(CANIDConstants.hood, k_CANBus);  // TODO - need to assign canbus numbers
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
 
     private final InterpolatingDoubleTreeMap m_hoodLerpTable = new InterpolatingDoubleTreeMap();

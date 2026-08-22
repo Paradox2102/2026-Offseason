@@ -6,6 +6,10 @@ package frc.robot;
 
 import com.ctre.phoenix6.HootAutoReplay;
 
+import frc.robot.Constants.Subsystems;
+import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.drive.SwerveSubsystem;
+
 import org.wpilib.math.geometry.Pose2d;
 // import org.wpilib.math.util.Units;
 import org.wpilib.networktables.NetworkTableInstance;
@@ -13,12 +17,13 @@ import org.wpilib.networktables.StructPublisher;
 import org.wpilib.framework.TimedRobot;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
-import frc.robot.utils.Constants.Subsystems;
 
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
 
-    private final RobotContainer m_robotContainer;
+    // private final RobotContainer m_robotContainer;
+
+    private final SwerveSubsystem m_SwerveSubsystem = TunerConstants.createDrivetrain();
 
     private StructPublisher<Pose2d> m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("RobotPose", Pose2d.struct).publish();
 
@@ -30,7 +35,8 @@ public class Robot extends TimedRobot {
     // private final boolean kUseLimelight = false;
 
     public Robot() {
-        m_robotContainer = new RobotContainer();
+        // m_robotContainer = new RobotContainer();
+
     }
 
     @Override
@@ -73,7 +79,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+        // m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
         if (m_autonomousCommand != null) {
             CommandScheduler.getInstance().schedule(m_autonomousCommand);

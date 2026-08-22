@@ -8,6 +8,9 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import frc.robot.Constants.CANIDConstants;
+import frc.robot.Constants.ShooterConstants;
+
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
@@ -15,11 +18,11 @@ import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import frc.robot.utils.Constants.CANIDConstants;
-import frc.robot.utils.Constants.ShooterConstants;
 
 public class AfterKickerUpSubsystem extends SubsystemBase {
-    private final TalonFX m_goUpMotor = new TalonFX(CANIDConstants.goUp, new CANBus("1"));  // TODO - need to assign the canbus numbers
+    private final CANBus k_CANBus = CANBus.systemcore(1);
+
+    private final TalonFX m_goUpMotor = new TalonFX(CANIDConstants.goUp, k_CANBus);  // TODO - need to assign the canbus numbers
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
 
     private final double k_gearRatio = 1;

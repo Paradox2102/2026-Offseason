@@ -20,11 +20,13 @@ import org.wpilib.system.Timer;
 import org.wpilib.driverstation.Alliance;
 import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.util.Color;
+
+import frc.robot.Constants.LightConstants;
+
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.Trigger;
-import frc.robot.utils.Constants.LightConstants;
 
 public class LightSubsystem extends SubsystemBase {
   /** Creates a new LightSubsystem. */

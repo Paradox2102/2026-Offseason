@@ -21,7 +21,7 @@ import org.wpilib.math.numbers.N3;
 import org.wpilib.networktables.NetworkTablesJNI;
 import org.wpilib.smartdashboard.Field2d;
 import frc.robot.Robot;
-import frc.robot.utils.Constants.VisionConstants;
+import frc.robot.Constants.VisionConstants;
 
 import java.awt.Desktop;
 import java.io.IOException;

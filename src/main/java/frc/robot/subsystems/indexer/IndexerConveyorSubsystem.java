@@ -8,9 +8,9 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import frc.robot.utils.Constants.CANIDConstants;
-import frc.robot.utils.Constants.Globals;
-import frc.robot.utils.Constants.IntakeConstants.IndexerConstants;
+import frc.robot.Constants.CANIDConstants;
+import frc.robot.Constants.Globals;
+import frc.robot.Constants.IntakeConstants.IndexerConstants;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
@@ -21,8 +21,9 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class IndexerConveyorSubsystem extends SubsystemBase {
-    private final TalonFX m_indexerConveyorLeader = new TalonFX(CANIDConstants.indexerConveyorLeader, new CANBus("3"));
-    private final TalonFX m_indexerConveyorFollower = new TalonFX(CANIDConstants.indexerConveyorFollower, new CANBus("3"));
+    private final CANBus k_CANBus = CANBus.systemcore(3);
+    private final TalonFX m_indexerConveyorLeader = new TalonFX(CANIDConstants.indexerConveyorLeader, k_CANBus);
+    private final TalonFX m_indexerConveyorFollower = new TalonFX(CANIDConstants.indexerConveyorFollower, k_CANBus);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
 
     private final double k_gearRatio = 1;

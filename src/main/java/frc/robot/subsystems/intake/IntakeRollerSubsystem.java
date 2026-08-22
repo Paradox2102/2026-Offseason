@@ -7,6 +7,10 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import frc.robot.Constants.CANIDConstants;
+import frc.robot.Constants.Globals;
+import frc.robot.Constants.IntakeConstants;
+
 import org.wpilib.math.system.Models;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.system.RobotController;
@@ -14,13 +18,11 @@ import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import frc.robot.utils.Constants.CANIDConstants;
-import frc.robot.utils.Constants.Globals;
-import frc.robot.utils.Constants.IntakeConstants;
 
 public class IntakeRollerSubsystem extends SubsystemBase {
+    private final CANBus k_CANBus = CANBus.systemcore(2);
 
-    private final TalonFX m_intakeRollerMotor = new TalonFX(CANIDConstants.intakeRoller, new CANBus("2")); // TODO - Need to assign canbus numbers
+    private final TalonFX m_intakeRollerMotor = new TalonFX(CANIDConstants.intakeRoller, k_CANBus); // TODO - Need to assign canbus numbers
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
     
     private final double k_gearRatio = 0.5;

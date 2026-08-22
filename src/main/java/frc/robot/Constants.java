@@ -1,4 +1,4 @@
-package frc.robot.utils;
+package frc.robot;
 
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
@@ -33,6 +33,7 @@ import frc.robot.subsystems.shooter.HoodSubsystem;
 import frc.robot.subsystems.shooter.KickerSubsystem;
 import frc.robot.subsystems.shooter.ShooterSubsystem;
 import frc.robot.subsystems.shooter.TurretAimSubsystem;
+import frc.robot.utils.DoubleNumber;
 
 public class Constants {
     public static class CANIDConstants {
@@ -68,7 +69,7 @@ public class Constants {
     }    
 
     public static class Subsystems {
-        public static final SwerveSubsystem m_swerveSubsystem = TunerConstants.createDrivetrain();
+        public static final SwerveSubsystem m_swerveSubsystem;
         public static final IntakeExtensionSubsystem m_intakeExtension = new IntakeExtensionSubsystem();
         public static final IntakeRollerSubsystem m_intakeRoller = new IntakeRollerSubsystem();
         public static final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
@@ -78,6 +79,9 @@ public class Constants {
         public static final AfterKickerUpSubsystem m_afterKickerUpSubsystem = new AfterKickerUpSubsystem();
         public static final IndexerConveyorSubsystem m_indexerConveyor = new IndexerConveyorSubsystem();
         public static final IndexerRollerSubsystem m_indexerRollerSubsystem = new IndexerRollerSubsystem();
+        static {
+            m_swerveSubsystem = TunerConstants.createDrivetrain();
+        }
     }
 
     public static class VisionConstants {

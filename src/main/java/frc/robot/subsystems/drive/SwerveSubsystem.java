@@ -32,10 +32,11 @@ import org.wpilib.system.RobotController;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.sysid.SysIdRoutine;
-import frc.robot.utils.Constants.FieldConstants;
-import frc.robot.utils.Constants.ShooterConstants;
-import frc.robot.utils.Constants.Subsystems;
+
 import frc.robot.RobotContainer;
+import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.ShooterConstants;
+import frc.robot.Constants.Subsystems;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 

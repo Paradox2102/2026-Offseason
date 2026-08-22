@@ -4,42 +4,33 @@
 
 package frc.robot;
 
-import static org.wpilib.units.Units.*;
-
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.Command;
-import org.wpilib.command2.CommandScheduler;
-import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
 import org.wpilib.command2.button.RobotModeTriggers;
-import org.wpilib.command2.sysid.SysIdRoutine.Direction;
-import frc.robot.utils.Constants.Subsystems;
-import frc.robot.PathPlanningThing.DrivePath;
+
+import frc.robot.Constants.Controls;
+import frc.robot.Constants.Subsystems;
 import frc.robot.PathPlanningThing.SelectAuto;
 import frc.robot.subsystems.drive.SwerveSubsystem;
-import frc.robot.utils.Constants.Controls;
 public class RobotContainer {
     
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     
-    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
-    private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric()
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+    // private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+    // private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+    // private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric()
+    //         .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
     private final Telemetry logger = new Telemetry(SwerveSubsystem.MaxSpeed);
 
     public static final CommandGamepad m_controller = new CommandGamepad(0);
     private final CommandJoystick m_joystick = new CommandJoystick(1);
-
-    public final SwerveSubsystem m_swerveSubsystem = Subsystems.m_swerveSubsystem;
 
     /* Path follower */
     // TODO - choreo needed
@@ -72,16 +63,16 @@ public class RobotContainer {
         m_controller.rightTrigger().whileTrue(Controls.shoot());
         m_controller.leftBumper().onTrue(Controls.towerSweep());
         m_controller.rightBumper().whileTrue(Controls.staticLaunch());
-        m_swerveSubsystem.registerTelemetry(logger::telemeterize);
+        Subsystems.m_swerveSubsystem.registerTelemetry(logger::telemeterize);
     }
 
     private void configureDefaults() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
-        m_swerveSubsystem.setDefaultCommand(
+        Subsystems.m_swerveSubsystem.setDefaultCommand(
             // m_swerveSubsystem will execute this command periodically
-            m_swerveSubsystem.applyRequest(() ->
-                m_swerveSubsystem.getDrive().withVelocityX(-m_controller.getLeftY() * SwerveSubsystem.MaxSpeed) // Drive forward with negative Y (forward)
+            Subsystems.m_swerveSubsystem.applyRequest(() ->
+                Subsystems.m_swerveSubsystem.getDrive().withVelocityX(-m_controller.getLeftY() * SwerveSubsystem.MaxSpeed) // Drive forward with negative Y (forward)
                     .withVelocityY(-m_controller.getLeftX() * SwerveSubsystem.MaxSpeed) // Drive left with negative X (left)
                     .withRotationalRate(-m_controller.getRightX() * SwerveSubsystem.MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
@@ -95,7 +86,7 @@ public class RobotContainer {
         // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();
         RobotModeTriggers.disabled().whileTrue(
-            m_swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true)
+            Subsystems.m_swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true)
         );
     }
     private void configureAutos(){

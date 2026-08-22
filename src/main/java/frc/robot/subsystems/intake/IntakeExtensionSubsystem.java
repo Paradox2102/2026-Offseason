@@ -8,6 +8,10 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import frc.robot.Constants.CANIDConstants;
+import frc.robot.Constants.Globals;
+import frc.robot.Constants.IntakeConstants;
+
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
@@ -18,17 +22,14 @@ import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.Trigger;
 import org.wpilib.framework.RobotBase;
 
-import frc.robot.utils.Constants.CANIDConstants;
-import frc.robot.utils.Constants.Globals;
-import frc.robot.utils.Constants.IntakeConstants;
-
 public class IntakeExtensionSubsystem extends SubsystemBase {
     private static final double k_intakeMaxExtension = 20.0;//TODO: tune in sim
     private static final double k_elevatorDrimRadius = 0.038091; // If something is wrong then this is the first thing to check. Idk if I did this right
     private static final double k_elevatorMass = 5.401715051809;
-    private final TalonFX m_intakeExtensionLeader = new TalonFX(CANIDConstants.intakeExtensionLeader, new CANBus("2"));
-    private final TalonFX m_intakeExtensionFollower = new TalonFX(CANIDConstants.intakeExtensionFollower, new CANBus("2"));  // TODO - should we be creating a second instance here or using the first?
-                                                                                                                                    //Since they use different CANIDs wouldn't they need to be different instances?
+    private final CANBus k_CANBus = CANBus.systemcore(2);
+
+    private final TalonFX m_intakeExtensionLeader = new TalonFX(CANIDConstants.intakeExtensionLeader, k_CANBus);
+    private final TalonFX m_intakeExtensionFollower = new TalonFX(CANIDConstants.intakeExtensionFollower, k_CANBus); 
     public Trigger m_intakeRetracted = new Trigger(() -> (m_intakeExtensionLeader.getPosition().getValueAsDouble() < 0));
 
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
