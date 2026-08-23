@@ -139,7 +139,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         )
     );
 
-    private Pose2d cachedPose;
+    private Pose2d cachedPose = new Pose2d(0.0, 0.0, new Rotation2d(0.0));
 
     /* The SysId routine to test */
     private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
@@ -199,6 +199,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         for(double[] values : ShooterConstants.k_scoreShotTimes){
             m_shotTimeInt.put(values[0], values[1]);
         }
+        
     }
 
     /**

@@ -21,9 +21,8 @@ import org.wpilib.command2.CommandScheduler;
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
 
-    // private final RobotContainer m_robotContainer;
+    private final RobotContainer m_robotContainer;
 
-    private final SwerveSubsystem m_SwerveSubsystem = TunerConstants.createDrivetrain();
 
     private StructPublisher<Pose2d> m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("RobotPose", Pose2d.struct).publish();
 
@@ -35,7 +34,7 @@ public class Robot extends TimedRobot {
     // private final boolean kUseLimelight = false;
 
     public Robot() {
-        // m_robotContainer = new RobotContainer();
+        m_robotContainer = new RobotContainer();
 
     }
 
@@ -79,7 +78,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        // m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+        m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
         if (m_autonomousCommand != null) {
             CommandScheduler.getInstance().schedule(m_autonomousCommand);

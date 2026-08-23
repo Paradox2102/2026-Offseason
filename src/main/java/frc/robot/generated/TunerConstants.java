@@ -2,6 +2,8 @@ package frc.robot.generated;
 
 import static org.wpilib.units.Units.*;
 
+import org.wpilib.framework.RobotBase;
+
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.*;
 import com.ctre.phoenix6.hardware.*;
@@ -106,7 +108,7 @@ public class TunerConstants {
     private static final Voltage kDriveFrictionVoltage = Volts.of(0.2);
 
     public static final SwerveDrivetrainConstants DrivetrainConstants = new SwerveDrivetrainConstants()
-            .withCANBusName(kCANBus.getName())
+            .withCANBusName(RobotBase.isReal() ? kCANBus.getName() : "*")
             .withPigeon2Id(kPigeonId)
             .withPigeon2Configs(pigeonConfigs);
 

@@ -42,6 +42,7 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
         }
     }
     public Command run(boolean in) {
+        System.out.println("AAAAAA");
         return Commands.run(() -> {
             Globals.setFollowerRPS(m_indexerConveyorLeader, m_indexerConveyorFollower, m_request,
              in ? IndexerConstants.k_conveyorInRPM : IndexerConstants.k_conveyorOutRPM, MotorAlignmentValue.Opposed);   
