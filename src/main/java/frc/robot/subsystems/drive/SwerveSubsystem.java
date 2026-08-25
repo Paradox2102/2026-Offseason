@@ -29,7 +29,9 @@ import org.wpilib.driverstation.RobotState;
 import org.wpilib.smartdashboard.Field2d;
 import org.wpilib.system.Notifier;
 import org.wpilib.system.RobotController;
+import org.wpilib.system.Timer;
 import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
 import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.sysid.SysIdRoutine;
 
@@ -51,6 +53,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     private static final double kSimLoopPeriod = 0.004; // 4 ms
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
+    private boolean m_tauntIsRight = false;
 
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
     private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
@@ -478,6 +481,19 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     public Optional<Pose2d> samplePoseAt(double timestampSeconds) {
         // return super.samplePoseAt(Utils.fpgaToCurrentTime(timestampSeconds));
         return super.samplePoseAt(timestampSeconds);    // TODO - Pretty sure the conversion is no longer needed. Should verify.
+    }
+
+    public Command taunt() {
+        Timer timer = new Timer();
+        timer.start();
+
+        return Commands.run(() -> {
+            if (Math.floor(timer.get() * 10) % 2 == (m_tauntIsRight ? 1 : 0)) {
+                m_tauntIsRight = !m_tauntIsRight;
+                // DOESN'T WORK. TODO: FIND OUT WHY IT DOESN'T DRIVE
+                drive(new ChassisVelocities((m_tauntIsRight ? 5 : -5), (m_tauntIsRight ? 5 : -5), (m_tauntIsRight ? 5 : -5)));
+            }
+        }, this);
     }
 
     public double distanceToTarget() {
