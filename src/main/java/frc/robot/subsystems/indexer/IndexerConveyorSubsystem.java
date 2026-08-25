@@ -16,6 +16,7 @@ import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.FlywheelSim;
+import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
@@ -42,11 +43,11 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
         }
     }
     public Command run(boolean in) {
-        System.out.println("AAAAAA");
         return Commands.run(() -> {
             Globals.setFollowerRPS(m_indexerConveyorLeader, m_indexerConveyorFollower, m_request,
              in ? IndexerConstants.k_conveyorInRPM : IndexerConstants.k_conveyorOutRPM, MotorAlignmentValue.Opposed);   
         }, this); }
+    
     
     @Override
     public void simulationPeriodic() {
@@ -68,6 +69,6 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
    talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity() * k_gearRatio);
-// */   
+    SmartDashboard.putNumber("Indexer Conveyor Speed", m_indexerConveyorFollower.getVelocity().getValueAsDouble());
     }
 }
