@@ -16,6 +16,7 @@ import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.FlywheelSim;
+import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
@@ -63,6 +64,7 @@ public class KickerSubsystem extends SubsystemBase {
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
    talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity() * k_gearRatio);
+    SmartDashboard.putNumber("Kicker Motor Speed", m_kickerMotor.getVelocity().getValueAsDouble());
 
     }
 }

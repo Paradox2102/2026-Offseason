@@ -19,6 +19,7 @@ import org.wpilib.math.system.DCMotor;
 import org.wpilib.hardware.discrete.DigitalInput;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.SingleJointedArmSim;
+import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
@@ -97,5 +98,7 @@ public class HoodSubsystem extends SubsystemBase{
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
    talonFXSim.setRawRotorPosition(m_motorSimModel.getAngle() * k_gearRatio);
    talonFXSim.setRotorVelocity(m_motorSimModel.getVelocity() * k_gearRatio);
+   SmartDashboard.putNumber("Hood motor speed", m_hoodMotor.getVelocity().getValueAsDouble());
+
     }
 }

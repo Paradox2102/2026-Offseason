@@ -69,6 +69,8 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
    talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity() * k_gearRatio);
-    SmartDashboard.putNumber("Indexer Conveyor Speed", m_indexerConveyorFollower.getVelocity().getValueAsDouble());
+    SmartDashboard.putNumber("Indexer Conveyor Follower Speed", m_indexerConveyorFollower.getVelocity().getValueAsDouble());
+    SmartDashboard.putNumber("Indexer Conveyor Leader Speed", m_indexerConveyorLeader.getVelocity().getValueAsDouble());
+
     }
 }

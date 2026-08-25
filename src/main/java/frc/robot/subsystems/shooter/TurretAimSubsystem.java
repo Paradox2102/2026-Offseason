@@ -22,7 +22,7 @@ import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.utils.DoubleNumber;
-
+// Turret aim gear ratio is 67.86:1
 public class TurretAimSubsystem extends SubsystemBase{
     private final CANBus k_CANBus = CANBus.systemcore(1);
 
@@ -53,7 +53,7 @@ public class TurretAimSubsystem extends SubsystemBase{
         var targetRotation = Math.atan2(rotationTriangle.getY(), rotationTriangle.getX());
         double bestRotation = targetRotation;
         for (int i = -1; i <= 1; i++) {
-            bestRotation = checkBestRotation(bestRotation, targetRotation + (i * (2 * Math.PI)), hubPose.toPose2d());
+            bestRotation = (checkBestRotation(bestRotation, targetRotation + (i * (2 * Math.PI)), hubPose.toPose2d())*ShooterConstants.k_shooterGearReduction);
         }
         return bestRotation;
     }
@@ -67,7 +67,9 @@ public class TurretAimSubsystem extends SubsystemBase{
         }
         
         return bestRotation;
+
     }
 
-    
+
+
 }
