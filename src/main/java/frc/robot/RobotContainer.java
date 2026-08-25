@@ -63,6 +63,7 @@ public class RobotContainer {
         m_controller.rightTrigger().whileTrue(Controls.shoot());
         m_controller.leftBumper().onTrue(Controls.towerSweep());
         m_controller.rightBumper().whileTrue(Controls.staticLaunch());
+        m_controller.southFace().whileTrue(Subsystems.m_swerveSubsystem.taunt());
         
         Subsystems.m_swerveSubsystem.registerTelemetry(logger::telemeterize);
     }
