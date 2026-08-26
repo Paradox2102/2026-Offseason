@@ -106,6 +106,9 @@ public class Constants {
     
   }
   public static class ShooterConstants {
+    public static final double k_shooterGearReduction = (67.86);
+    // for every one 67.86 turns of the motor, the turret turns one time.
+    
     public static final int k_kickInRPM = 5000;
     public static final int k_kickOutRPM = 1000;
 
