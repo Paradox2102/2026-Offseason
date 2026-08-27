@@ -1,4 +1,8 @@
-# Compiled class file
+# Build
+build/
+ctre_sim/
+.gradle/checksums/
+*.lock
 *.class
 
 # Log file

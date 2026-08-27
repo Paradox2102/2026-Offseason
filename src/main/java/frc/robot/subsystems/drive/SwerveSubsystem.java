@@ -490,7 +490,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         return Commands.run(() -> {
             if (Math.floor(timer.get() * 5) % 2 == (m_tauntIsRight ? 1 : 0)) {
                 m_tauntIsRight = !m_tauntIsRight;
-                drive(new Translation2d(), (m_tauntIsRight ? 2 : -2), true);
+                drive(new ChassisVelocities(0, 0, (m_tauntIsRight ? 2 : -2)));
             }
         }, this);
     }
@@ -553,7 +553,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
      * @param velocity This is the field oriented velocity!
      */
     public void drive(ChassisVelocities velocity) {
-        m_velocityDrive.withVelocity(velocity);
+        setControl(m_velocityDrive.withVelocity(velocity));
     }
     /**
      * Drives the Robot!
