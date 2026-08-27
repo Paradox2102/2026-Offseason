@@ -488,10 +488,9 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         timer.start();
 
         return Commands.run(() -> {
-            if (Math.floor(timer.get() * 10) % 2 == (m_tauntIsRight ? 1 : 0)) {
+            if (Math.floor(timer.get() * 5) % 2 == (m_tauntIsRight ? 1 : 0)) {
                 m_tauntIsRight = !m_tauntIsRight;
-                // DOESN'T WORK. TODO: FIND OUT WHY IT DOESN'T DRIVE
-                drive(new ChassisVelocities((m_tauntIsRight ? 5 : -5), (m_tauntIsRight ? 5 : -5), (m_tauntIsRight ? 5 : -5)));
+                drive(new Translation2d(), (m_tauntIsRight ? 2 : -2), true);
             }
         }, this);
     }
