@@ -90,7 +90,7 @@ public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadFi
         c.addToVisionSim(visionSim);
       }
 
-      openSimCameraViews();
+      // openSimCameraViews();
     }
   }
 

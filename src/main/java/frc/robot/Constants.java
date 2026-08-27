@@ -258,11 +258,11 @@ public class Constants {
     }
 
     public static class IndexerConstants {
-        public static final int k_rollerInRPM = 3000;
-        public static final int k_rollerOutRPM = -2750;
+        public static final int k_rollerInRPS = 20;
+        public static final int k_rollerOutRPM = -45;
 
-        public static final int k_conveyorInRPM = 3000;
-        public static final int k_conveyorOutRPM = -2750;
+        public static final int k_conveyorInRPM = 50;
+        public static final int k_conveyorOutRPM = -45;
 
 
         public static final Slot0Configs k_indexerRollerConfigs = new Slot0Configs();
@@ -275,8 +275,8 @@ public class Constants {
         public static final double k_rollerS = 0;
         public static final double k_rollerV = 0;
 
-        public static final double k_conveyorP = 0;
-        public static final double k_conveyorS = 0;
+        public static final double k_conveyorP = 0.1;
+        public static final double k_conveyorS = 1;
         public static final double k_conveyorV = 0;
 
         static {

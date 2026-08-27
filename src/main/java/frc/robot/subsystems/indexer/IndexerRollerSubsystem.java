@@ -42,7 +42,7 @@ public class IndexerRollerSubsystem extends SubsystemBase {
     }
     public Command run(boolean in) {
         return Commands.run(() -> {               
-            m_indexerRollerModer.setControl(m_request.withFeedForward(in ? IndexerConstants.k_rollerInRPM : IndexerConstants.k_rollerOutRPM));
+            m_indexerRollerModer.setControl(m_request.withFeedForward(in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerOutRPM));
         }, this); }
     
     @Override

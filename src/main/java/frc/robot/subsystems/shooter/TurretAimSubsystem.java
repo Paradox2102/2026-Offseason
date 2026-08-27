@@ -53,7 +53,7 @@ public class TurretAimSubsystem extends SubsystemBase{
         var targetRotation = Math.atan2(rotationTriangle.getY(), rotationTriangle.getX());
         double bestRotation = targetRotation;
         for (int i = -1; i <= 1; i++) {
-            bestRotation = (checkBestRotation(bestRotation, targetRotation + (i * (2 * Math.PI)), hubPose.toPose2d())*ShooterConstants.k_shooterGearReduction);
+            bestRotation = (checkBestRotation(bestRotation, targetRotation + (i * (2 * Math.PI)), hubPose.toPose2d()) * ShooterConstants.k_shooterGearReduction);
         }
         return bestRotation;
     }

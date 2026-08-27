@@ -87,7 +87,6 @@ public class ShooterSubsystem extends SubsystemBase{
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
    talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity() * k_gearRatio);
-   SmartDashboard.putNumber("shooterFollower Speed", m_shooterFollower.getVelocity().getValueAsDouble());
    SmartDashboard.putNumber("shooterLeader Speed", m_shooterLeader.getVelocity().getValueAsDouble());
 
 
