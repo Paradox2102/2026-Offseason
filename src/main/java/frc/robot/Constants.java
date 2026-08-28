@@ -261,7 +261,7 @@ public class Constants {
         public static final int k_rollerInRPS = 20;
         public static final int k_rollerOutRPM = -45;
 
-        public static final int k_conveyorInRPM = 50;
+        public static final int k_conveyorInRPM = 20; // 50
         public static final int k_conveyorOutRPM = -45;
 
 
@@ -271,12 +271,12 @@ public class Constants {
         public static final double k_indexerRollerMOI = 4.2552029673;
         public static final double k_indexerConveyorMOI = 0.0848654995;
 
-        public static final double k_rollerP = 0;
+        public static final double k_rollerP = 0.0;
         public static final double k_rollerS = 0;
         public static final double k_rollerV = 0;
 
-        public static final double k_conveyorP = 0.1;
-        public static final double k_conveyorS = 1;
+        public static final double k_conveyorP = 0.03;
+        public static final double k_conveyorS = 0.48;
         public static final double k_conveyorV = 0;
 
         static {

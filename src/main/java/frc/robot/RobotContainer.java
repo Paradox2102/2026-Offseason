@@ -46,7 +46,7 @@ public class RobotContainer {
         // autoChooser.addRoutine("SimplePath", autoRoutines::simplePathAuto);
 // TODO - choreo        SmartDashboard.putData("Auto Chooser", autoChooser);
         configureDefaults();
-        // configureBindings();
+        configureBindings();
         m_controller.southFace().whileTrue(Subsystems.m_indexerConveyor.run(true));
 
         // configureAutos();
@@ -63,6 +63,8 @@ public class RobotContainer {
         m_controller.rightTrigger().whileTrue(Controls.shoot());
         m_controller.leftBumper().onTrue(Controls.towerSweep());
         m_controller.rightBumper().whileTrue(Controls.staticLaunch());
+
+        //m_controller.southFace().whileTrue()
         
         Subsystems.m_swerveSubsystem.registerTelemetry(logger::telemeterize);
     }
