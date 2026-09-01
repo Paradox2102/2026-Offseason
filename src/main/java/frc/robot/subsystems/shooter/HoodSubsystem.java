@@ -28,7 +28,7 @@ import org.wpilib.command2.button.Trigger;
 public class HoodSubsystem extends SubsystemBase{
     private final CANBus k_CANBus = CANBus.systemcore(1);
 
-    private final TalonFX m_hoodMotor = new TalonFX(CANIDConstants.hood, k_CANBus);  // TODO - need to assign canbus numbers
+    private final TalonFX m_hoodMotor = new TalonFX(CANIDConstants.hood, k_CANBus);
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
 
     private final InterpolatingDoubleTreeMap m_hoodLerpTable = new InterpolatingDoubleTreeMap();
@@ -76,6 +76,10 @@ public class HoodSubsystem extends SubsystemBase{
     public Command staticShoot(){
         return Commands.run(
             () -> Globals.setPosition(m_hoodMotor, m_request, ShooterConstants.k_staticShotAngle), this);
+    }
+
+    public double getMotorPosition() {
+        return m_hoodMotor.getPosition().getValueAsDouble();
     }
 
     @Override

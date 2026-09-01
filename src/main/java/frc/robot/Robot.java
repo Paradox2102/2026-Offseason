@@ -11,12 +11,14 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 
 import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
 // import org.wpilib.math.util.Units;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.networktables.StructPublisher;
 import org.wpilib.framework.TimedRobot;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
+import org.wpilib.command2.Subsystem;
 
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
@@ -25,6 +27,7 @@ public class Robot extends TimedRobot {
 
 
     private StructPublisher<Pose2d> m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("RobotPose", Pose2d.struct).publish();
+    private StructPublisher<Pose2d> m_turretPublisher = NetworkTableInstance.getDefault().getStructTopic("Turret", Pose2d.struct).publish();
 
     /* log and replay timestamp and joystick data */
     private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
@@ -43,7 +46,13 @@ public class Robot extends TimedRobot {
         m_timeAndJoystickReplay.update();
         CommandScheduler.getInstance().run();
 
-        m_posePublisher.set(Subsystems.m_swerveSubsystem.getPose());
+        Pose2d robotPose = Subsystems.m_swerveSubsystem.getPose();
+
+        m_posePublisher.set(robotPose);
+        
+        double rot = Subsystems.m_turretAimSubsystem.m_request.Position * Constants.ShooterConstants.k_shooterGearReduction;
+        m_turretPublisher.set(new Pose2d(robotPose.getTranslation(), robotPose.getRotation().plus(new Rotation2d(rot))));
+        //m_intakePublisher(Subsystems.m_intakeExtension.)
         
 
         /*
