@@ -43,7 +43,7 @@ public class KickerSubsystem extends SubsystemBase {
     }
     public Command run(boolean in) {
         return Commands.run(() -> {               
-            Globals.setRPS(m_kickerMotor, m_request, in ? ShooterConstants.k_kickInRPM : ShooterConstants.k_kickOutRPM);
+            Globals.setRPS(m_kickerMotor, m_request, in ? ShooterConstants.k_kickInRPS : ShooterConstants.k_kickOutRPS);
         }, this); }
 @Override
     public void simulationPeriodic() {

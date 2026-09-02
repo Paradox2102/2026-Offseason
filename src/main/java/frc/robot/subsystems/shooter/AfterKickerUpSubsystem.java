@@ -42,7 +42,7 @@ public class AfterKickerUpSubsystem extends SubsystemBase {
     }
     public Command run() {
         return Commands.run(() -> {               
-            m_goUpMotor.setControl(m_request.withFeedForward(ShooterConstants.k_preShootRPM));
+            m_goUpMotor.setControl(m_request.withFeedForward(ShooterConstants.k_preShootRPS));
         }, this); }
     
     @Override

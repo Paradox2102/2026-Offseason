@@ -109,10 +109,10 @@ public class Constants {
     public static final double k_shooterGearReduction = (67.86);
     // for every one 67.86 turns of the motor, the turret turns one time.
     
-    public static final int k_kickInRPM = 5000;
-    public static final int k_kickOutRPM = 1000;
+    public static final int k_kickInRPS = 5000;
+    public static final int k_kickOutRPS = 1000;
 
-    public static final int k_preShootRPM = 5000;
+    public static final int k_preShootRPS = 5000;
 
     public static final double k_upKickerMOI = 0.0851405808;
     public static final double k_kickerMOI = 0.5379389901;
@@ -228,8 +228,8 @@ public class Constants {
   
 
   public static class IntakeConstants {
-    public static final int k_inRPM = 5000;
-    public static final int k_outRPM = -4000;
+    public static final int k_inRPS = 5000;
+    public static final int k_outRPS = -4000;
 
     public static final int k_outPosition = 90;
 
@@ -257,12 +257,14 @@ public class Constants {
         k_intakeExtensionConfigs.kD = k_intakeExtensionD;
     }
 
+    
+    }
     public static class IndexerConstants {
         public static final int k_rollerInRPS = 20;
-        public static final int k_rollerOutRPM = -45;
+        public static final int k_rollerOutRPS = -45;
 
-        public static final int k_conveyorInRPM = 20; // 50
-        public static final int k_conveyorOutRPM = -45;
+        public static final int k_conveyorInRPS = 20; // 50
+        public static final int k_conveyorOutRPS = -45;
 
 
         public static final Slot0Configs k_indexerRollerConfigs = new Slot0Configs();
@@ -289,8 +291,6 @@ public class Constants {
             k_indexerConveyorConfigs.kV = k_conveyorV;
             
         }
-    }
-    
   }
 
   public static class Globals {
@@ -329,7 +329,7 @@ public class Constants {
      * Sets the Position of a lead and follower motor
      * @param leadMotor The lead motor to have the RPS set for
      * @param followMotor The follower motor to have the RPS of the lead motor
-     * @param request This is a VelocityVoltage. Should be created once in your class then said every time you set RPM
+     * @param request This is a VelocityVoltage. Should be created once in your class then said every time you set RPS
      * @param position Motor go spiin to position
      * @param alignmentValue Whether the motors are aligned or opposed (ugh, I think I mispelled that)
      */

@@ -12,7 +12,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.Globals;
-import frc.robot.Constants.IntakeConstants.IndexerConstants;
+import frc.robot.Constants.IndexerConstants;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
@@ -47,7 +47,7 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
     public Command run(boolean in) {
         return Commands.runEnd(() -> {
             Globals.setFollowerRPS(m_indexerConveyorLeader, m_indexerConveyorFollower, m_request,
-             in ? IndexerConstants.k_conveyorInRPM : IndexerConstants.k_conveyorOutRPM, MotorAlignmentValue.Opposed);   
+             in ? IndexerConstants.k_conveyorInRPS : IndexerConstants.k_conveyorOutRPS, MotorAlignmentValue.Opposed);   
             }, () -> {
                 m_indexerConveyorFollower.setControl(new VoltageOut(0));
             }, this); 
