@@ -9,7 +9,7 @@ import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.IntakeConstants.IndexerConstants;
+import frc.robot.Constants.IndexerConstants;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;

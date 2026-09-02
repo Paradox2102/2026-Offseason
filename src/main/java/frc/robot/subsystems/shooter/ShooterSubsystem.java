@@ -50,17 +50,16 @@ public class ShooterSubsystem extends SubsystemBase{
             m_shooterLerpTable.put(shotPower[0], shotPower[1]);
         
         if (Utils.isSimulation()){
-        var talonFXSim = m_shooterLeader.getSimState();
-        talonFXSim.Orientation = ChassisReference.CounterClockwise_Positive;
-        talonFXSim.setMotorType(TalonFXSimState.MotorType.KrakenX60);
-        }
+            var talonFXSim = m_shooterLeader.getSimState();
+            talonFXSim.Orientation = ChassisReference.CounterClockwise_Positive;
+            talonFXSim.setMotorType(TalonFXSimState.MotorType.KrakenX60);
+            }
         }
     }
 
     public Command shoot(DoubleSupplier distanceToTarget) {
     return Commands.run(() -> {               
-        Globals.setFollowerRPS(m_shooterLeader, m_shooterFollower, m_request, m_shooterLerpTable.get(distanceToTarget.getAsDouble()),
-        MotorAlignmentValue.Aligned);   
+        // Globals.bangBang(m_shooterLerpTable.get(distanceToTarget.getAsDouble()), ShooterConstants.k_shooterV, m_shooterLeader, m_shooterFollower);
     }, this); }
 
     public Command staticShoot(){
