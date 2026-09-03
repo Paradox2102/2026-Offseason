@@ -23,7 +23,7 @@ import org.wpilib.command2.SubsystemBase;
 public class AfterKickerUpSubsystem extends SubsystemBase {
     private final CANBus k_CANBus = CANBus.systemcore(1);
 
-    private final TalonFX m_goUpMotor = new TalonFX(CANIDConstants.goUp, k_CANBus);  // TODO - need to assign the canbus numbers
+    private final TalonFX m_goUpMotor = new TalonFX(CANIDConstants.goUp, k_CANBus);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
 
     private final double k_gearRatio = 1;

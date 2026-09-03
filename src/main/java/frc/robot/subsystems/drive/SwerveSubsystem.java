@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
-// TODO - not sure if this is needed - import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveRequest.FieldCentric;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;

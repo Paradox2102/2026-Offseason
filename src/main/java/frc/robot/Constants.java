@@ -8,6 +8,8 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.Trigger;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -228,28 +230,29 @@ public class Constants {
   
 
   public static class IntakeConstants {
-    public static final int k_inRPS = 5000;
-    public static final int k_outRPS = -4000;
+    public static final int k_inRPS = 10;
+    public static final int k_outRPS = -60;
 
     public static final int k_outPosition = 90;
 
-    public static final Slot0Configs k_intakeRollerConfigs = new Slot0Configs();
+    public static final TalonFXConfiguration k_intakeRollerConfigs = new TalonFXConfiguration();
     public static final Slot0Configs k_intakeExtensionConfigs = new Slot0Configs();
 
-        public static final double k_rollerP = 0;
-        public static final double k_rollerS = 0;
-        public static final double k_rollerV = 0;
+        public static final double k_rollerP = 0.01;
+        public static final double k_rollerS = 0.8;
+        public static final double k_rollerV = 0.1;
 
     public static final double k_intakeExtensionG = 0;
     public static final double k_intakeExtensionP = 0;
     public static final double k_intakeExtensionV = 0;
     public static final double k_intakeExtensionD = 0;
 
-    public static final double k_intakeRollerMOI = 7.8368899188;
+    public static final double k_intakeRollerMOI = 0.0048980018;
     static {
-        k_intakeRollerConfigs.kP = k_rollerP;
-        k_intakeRollerConfigs.kS = k_rollerS;
-        k_intakeRollerConfigs.kV = k_rollerV;
+        k_intakeRollerConfigs.Slot0.kP = k_rollerP;
+        k_intakeRollerConfigs.Slot0.kV = k_rollerV;
+        k_intakeRollerConfigs.Slot0.kS = k_rollerS;
+
 
         k_intakeExtensionConfigs.kG = k_intakeExtensionG;
         k_intakeExtensionConfigs.kP = k_intakeExtensionP;
@@ -269,7 +272,7 @@ public class Constants {
 
         public static final Slot0Configs k_indexerRollerConfigs = new Slot0Configs();
         public static final Slot0Configs k_indexerConveyorConfigs = new Slot0Configs();
-
+        public static final TalonFXConfiguration k_configuration = new TalonFXConfiguration();
         public static final double k_indexerRollerMOI = 4.2552029673;
         public static final double k_indexerConveyorMOI = 0.0848654995;
 
@@ -285,6 +288,8 @@ public class Constants {
             k_indexerRollerConfigs.kP = k_rollerP;
             k_indexerRollerConfigs.kS = k_rollerS;
             k_indexerRollerConfigs.kV = k_rollerV;
+            
+            
 
             k_indexerConveyorConfigs.kP = k_conveyorP;
             k_indexerConveyorConfigs.kS = k_conveyorS;
@@ -340,7 +345,7 @@ public class Constants {
   }
 
   public static class Controls {
-    public static final Trigger isReadyToShoot = new Trigger(Subsystems.m_hoodSubsystem.m_isAimed.and(Subsystems.m_shooterSubsystem.m_isAtSpeed.and(Subsystems.m_turretAimSubsystem.m_isOnTarget)));
+    public static final Trigger isReadyToShoot = new Trigger(Subsystems.m_hoodSubsystem.m_isOnTarget.and(Subsystems.m_shooterSubsystem.m_isAtSpeed.and(Subsystems.m_turretAimSubsystem.m_isOnTarget)));
     public static final Command extendIntake() {
         return Commands.sequence(
             Subsystems.m_intakeExtension.extendIntake(),
