@@ -65,7 +65,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     private final SwerveRequest.ApplyFieldVelocity m_pathApplyFieldSpeeds = new SwerveRequest.ApplyFieldVelocity();
     public final PIDController m_xPID = new PIDController(10, 0, 0);
     public final PIDController m_yPID = new PIDController(10, 0, 0);
-    public final PIDController m_orientPID = new PIDController(3, 0, 0);
+    public final PIDController m_orientPID = new PIDController(0.5, 0, 0);
 
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
@@ -370,18 +370,18 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 FieldConstants.k_redTrenchLeft,
                 FieldConstants.k_redTrenchRight
             };
-            var bestTrench = 0;
-            for (int i = 0; i < trenches.length; i++) {
+            Rectangle2d bestTrench = trenches[0];
+            for (Rectangle2d trench : trenches) {
                 if (
-                    cachedPose.getTranslation().getDistance(trenches[i].getCenter().getTranslation())
+                    cachedPose.getTranslation().getDistance(trench.getCenter().getTranslation())
                     <=
-                    cachedPose.getTranslation().getDistance(trenches[bestTrench].getCenter().getTranslation())
+                    cachedPose.getTranslation().getDistance(bestTrench.getCenter().getTranslation())
                 ) {
-                    bestTrench = i;
+                    bestTrench = trench;
                 }
             }
             
-            Rectangle2d trench = trenches[bestTrench];
+            
             
             if (
                 (
@@ -394,22 +394,23 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                     cachedPose.getRotation().getDegrees() > 195
                 )
             ) {
-                if (trench.contains(cachedPose.getTranslation())) {
+                if (bestTrench.contains(cachedPose.getTranslation())) {
                     Pose2d targetPose;
                     if (Subsystems.m_intakeExtension.m_intakeRetracted.getAsBoolean()) {
                         targetPose = new Pose2d(
                             cachedPose.getX(),
-                            trench.getCenter().getY() + diff,
+                            bestTrench.getCenter().getY() + diff,
                             cachedPose.getRotation()
                         );
                     } else {
                         targetPose = new Pose2d(
                             cachedPose.getX(),
-                            trench.getCenter().getY() - diff,
+                            bestTrench.getCenter().getY() - diff,
                             cachedPose.getRotation()
                         );
                     }
-                    drive(new ChassisVelocities(getChassisSpeeds().vx, cachedPose.getY() - targetPose.getY(), 0));
+                    drive(new ChassisVelocities(getChassisSpeeds().vx, (cachedPose.getY() - targetPose.getY()), 0));
+                    System.out.println("hellooooo");
                 }
             };
         }
@@ -521,7 +522,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     }
 
     public boolean inTeamAlliance(){
-        return MatchState.getAlliance() == inAllianceZone();
+        return MatchState.getAlliance().isEmpty() ? true : MatchState.getAlliance() == inAllianceZone();
 
     }
 

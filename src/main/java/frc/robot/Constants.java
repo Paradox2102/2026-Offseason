@@ -25,6 +25,8 @@ import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearVelocity;
 
+import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.Subsystems;
 import frc.robot.PathPlanningThing.DrivePath;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
@@ -365,62 +367,61 @@ public class Constants {
     }
   }
 
-  public static class Controls {
-    public static final Trigger isReadyToShoot = new Trigger(Subsystems.m_hoodSubsystem.m_isOnTarget.and(Subsystems.m_shooterSubsystem.m_isAtSpeed.and(Subsystems.m_turretAimSubsystem.m_isOnTarget)));
-    public static final Command extendIntake() {
-        return Commands.sequence(
-            Subsystems.m_intakeExtension.extendIntake(),
-            Subsystems.m_intakeRoller.run(true));
-    }
+    public static class Controls {
+        public static final Trigger isReadyToShoot = new Trigger(Subsystems.m_hoodSubsystem.m_isOnTarget.and(Subsystems.m_shooterSubsystem.m_isAtSpeed.and(Subsystems.m_turretAimSubsystem.m_isOnTarget)));
+        public static final Command extendIntake() {
+            return Commands.sequence(
+                Subsystems.m_intakeExtension.extendIntake(),
+                Subsystems.m_intakeRoller.run(true));
+        }
 
-    public static Command shoot(){
-        return Commands.either(launch(), aim(), Controls.isReadyToShoot);
-    }
+        public static Command shoot(){
+            return Commands.either(launch(), aim(), Controls.isReadyToShoot);
+        }
 
-    public static Command aim(){
-        return Commands.parallel(
-            Subsystems.m_hoodSubsystem.pitchHood(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
-            Subsystems.m_shooterSubsystem.shoot(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
-            Subsystems.m_turretAimSubsystem.rotateToTarget()
-        );
-
-    }
-
-    public static Command launch() {
-        return Commands.parallel(
-            aim(),
-            Subsystems.m_indexerConveyor.run(true),
-            Subsystems.m_indexerRollerSubsystem.run(true),
-            Subsystems.m_afterKickerUpSubsystem.run(),
-            Subsystems.m_kickerSubsystem.run(true)
+        public static Command aim(){
+            return Commands.parallel(
+                Subsystems.m_hoodSubsystem.pitchHood(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
+                Subsystems.m_shooterSubsystem.shoot(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
+                Subsystems.m_turretAimSubsystem.rotateToTarget()
             );
-    }
 
-    public static Command staticLaunch() {
-        return Commands.parallel(
-            staticAim(),
-            Subsystems.m_indexerConveyor.run(true),
-            Subsystems.m_indexerRollerSubsystem.run(true),
-            Subsystems.m_afterKickerUpSubsystem.run(),
-            Subsystems.m_kickerSubsystem.run(true)
+        }
+
+        public static Command launch() {
+            return Commands.parallel(
+                aim(),
+                Subsystems.m_indexerConveyor.run(true),
+                Subsystems.m_indexerRollerSubsystem.run(true),
+                Subsystems.m_afterKickerUpSubsystem.run(),
+                Subsystems.m_kickerSubsystem.run(true)
+                );
+        }
+
+        public static Command staticLaunch() {
+            return Commands.parallel(
+                staticAim(),
+                Subsystems.m_indexerConveyor.run(true),
+                Subsystems.m_indexerRollerSubsystem.run(true),
+                Subsystems.m_afterKickerUpSubsystem.run(),
+                Subsystems.m_kickerSubsystem.run(true)
+                );
+        }
+        public static Command staticAim(){
+            return Commands.parallel(
+                Subsystems.m_hoodSubsystem.staticShoot(),
+                Subsystems.m_shooterSubsystem.staticShoot(),
+                Subsystems.m_turretAimSubsystem.staticAim()
             );
-    }
-    public static Command staticAim(){
-        return Commands.parallel(
-            Subsystems.m_hoodSubsystem.staticShoot(),
-            Subsystems.m_shooterSubsystem.staticShoot(),
-            Subsystems.m_turretAimSubsystem.staticAim()
-        );
 
-    }
+        }
 
-    public static Command towerSweep() {
-        if (!Subsystems.m_swerveSubsystem.inTeamAlliance()) return Commands.none();
-
-        if (Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_yCenterline)
-            return Commands.either(new DrivePath("DepotOutpostTowerSweep.json"), new DrivePath("DepotOutpostTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_depotIntermediatePoint);
-        else
-            return Commands.either(new DrivePath("OutpostDepotTowerSweep.json"), new DrivePath("OutpostDepotTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() < FieldConstants.k_outpostIntermediatePoint);
+        public static Command towerSweep() {
+            return Commands.either(Commands.either(
+                Commands.either(new DrivePath("OutpostDepotTowerSweep.json"), new DrivePath("OutpostDepotTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_depotIntermediatePoint),
+                Commands.either(new DrivePath("DepotOutpostTowerSweep.json"), new DrivePath("DepotOutpostTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() < FieldConstants.k_outpostIntermediatePoint),
+                () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_yCenterline),
+            Commands.none(), () -> !Subsystems.m_swerveSubsystem.inTeamAlliance());    
+        }
     }
-  }
 }
