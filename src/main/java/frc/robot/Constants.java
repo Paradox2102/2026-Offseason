@@ -3,6 +3,7 @@ package frc.robot;
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 
+import org.opencv.ml.StatModel;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.Trigger;
@@ -16,6 +17,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 
+import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rectangle2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation2d;
@@ -230,7 +232,7 @@ public class Constants {
   
 
   public static class IntakeConstants {
-    public static final int k_inRPS = 10;
+    public static final int k_inRPS = 25;
     public static final int k_outRPS = -60;
 
     public static final int k_outPosition = 90;
@@ -238,18 +240,21 @@ public class Constants {
     public static final TalonFXConfiguration k_intakeRollerConfigs = new TalonFXConfiguration();
     public static final Slot0Configs k_intakeExtensionConfigs = new Slot0Configs();
 
-        public static final double k_rollerP = 0.01;
-        public static final double k_rollerS = 0.8;
-        public static final double k_rollerV = 0.1;
+    public static final double k_rollerP = 0.3;
+    public static final double k_rollerS = 0.09;
+    public static final double k_rollerV = 0.04;
 
     public static final double k_intakeExtensionG = 0;
     public static final double k_intakeExtensionP = 0;
     public static final double k_intakeExtensionV = 0;
     public static final double k_intakeExtensionD = 0;
-
+    
+    
     public static final double k_intakeRollerMOI = 0.0048980018;
     static {
-        k_intakeRollerConfigs.Slot0.kP = k_rollerP;
+
+        
+        // k_intakeRollerConfigs.Slot0.kP = k_rollerP;
         k_intakeRollerConfigs.Slot0.kV = k_rollerV;
         k_intakeRollerConfigs.Slot0.kS = k_rollerS;
 
@@ -276,7 +281,7 @@ public class Constants {
         public static final double k_indexerRollerMOI = 4.2552029673;
         public static final double k_indexerConveyorMOI = 0.0848654995;
 
-        public static final double k_rollerP = 0.0;
+        public static final double k_rollerP = 5.0;
         public static final double k_rollerS = 0;
         public static final double k_rollerV = 0;
 
@@ -341,6 +346,22 @@ public class Constants {
     public static void setFollowerPosition(TalonFX leadMotor, TalonFX followMotor, PositionVoltage request, double position, MotorAlignmentValue alignmentValue){
         setPosition(leadMotor, request, position);
         followMotor.setControl(new Follower(leadMotor.getDeviceID(), alignmentValue));
+    }
+
+    public static void bangBang(double targetRPS, double kv, TalonFX... Motors){
+        for (TalonFX motor : Motors) {
+            var m_RPSSetPoint = targetRPS;
+        if(m_RPSSetPoint == 0){
+        motor.setVoltage(0);
+        } else {
+        if(motor.getVelocity().getValueAsDouble() < m_RPSSetPoint){
+            motor.setVoltage(12);
+        } else {
+            motor.setVoltage(kv * m_RPSSetPoint);
+        }
+    }
+        }
+    
     }
   }
 

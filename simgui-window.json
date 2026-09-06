@@ -3,13 +3,13 @@
       "MainWindow": {"GLOBAL": {
         "font": "Proggy Dotted",
         "fps": "120",
-        "height": "720",
-        "maximized": "0",
+        "height": "974",
+        "maximized": "1",
         "style": "0",
         "userScaling": "100",
-        "width": "1280",
-        "xpos": "-32000",
-        "ypos": "-32000"
+        "width": "1920",
+        "xpos": "0",
+        "ypos": "34"
       }},
       "Table": {
         "0x48040D35,4": {
@@ -33,8 +33,8 @@
         },
         "Joysticks": {
           "Collapsed": "0",
-          "Pos": "383,399",
-          "Size": "796,241"
+          "Pos": "374,545",
+          "Size": "1216,330"
         },
         "NetworkTables": {
           "Collapsed": "0",
