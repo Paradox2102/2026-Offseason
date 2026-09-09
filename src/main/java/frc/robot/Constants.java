@@ -234,7 +234,7 @@ public class Constants {
   
 
   public static class IntakeConstants {
-    public static final int k_inRPS = 25;
+    public static final int k_inRPS = 40;
     public static final int k_outRPS = -60;
 
     public static final int k_outPosition = 90;
@@ -242,9 +242,9 @@ public class Constants {
     public static final TalonFXConfiguration k_intakeRollerConfigs = new TalonFXConfiguration();
     public static final Slot0Configs k_intakeExtensionConfigs = new Slot0Configs();
 
-    public static final double k_rollerP = 0.3;
-    public static final double k_rollerS = 0.09;
-    public static final double k_rollerV = 0.04;
+    public static final double k_rollerP = 0.006;
+    public static final double k_rollerS = 0.116;
+    public static final double k_rollerV = 0.24;
 
     public static final double k_intakeExtensionG = 0;
     public static final double k_intakeExtensionP = 0;
@@ -283,13 +283,13 @@ public class Constants {
         public static final double k_indexerRollerMOI = 4.2552029673;
         public static final double k_indexerConveyorMOI = 0.0848654995;
 
-        public static final double k_rollerP = 5.0;
+        public static final double k_rollerP = 0.0;
         public static final double k_rollerS = 0;
         public static final double k_rollerV = 0;
 
-        public static final double k_conveyorP = 0.03;
-        public static final double k_conveyorS = 0.48;
-        public static final double k_conveyorV = 0;
+        public static final double k_conveyorP = 0.0;
+        public static final double k_conveyorS = 0.0;
+        public static final double k_conveyorV = 0.0;
 
         static {
             k_indexerRollerConfigs.kP = k_rollerP;

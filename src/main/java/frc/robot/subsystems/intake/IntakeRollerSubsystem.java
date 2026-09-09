@@ -51,8 +51,9 @@ public class IntakeRollerSubsystem extends SubsystemBase {
            m_intakeRollerMotor.configNeutralMode(NeutralModeValue.Coast);
             // m_intakeRollerMotor.setControl(new VelocityVoltage((k_bangBang.calculate(m_intakeRollerMotor.getVelocity(true).getValueAsDouble(), in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS)* k_feedForward.calculate(in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS))));
             // m_intakeRollerMotor.setControl(new VelocityVoltage(in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS));
-            Globals.bangBang(IntakeConstants.k_inRPS, IntakeConstants.k_rollerV, m_intakeRollerMotor);
-            System.out.println("Test" + String.valueOf(m_intakeRollerMotor.getMotorVoltage().getValueAsDouble()));
+            // Globals.bangBang(IntakeConstants.k_inRPS, IntakeConstants.k_rollerV, m_intakeRollerMotor);
+            // m_intakeRollerMotor.setControl(new VelocityVoltage(k_feedForward.calculate(IntakeConstants.k_inRPS)));
+            m_intakeRollerMotor.setThrottle(k_bangBang.calculate(k_bangBang.calculate(m_intakeRollerMotor.getVelocity(true).getValueAsDouble(), in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS)));
         }, () -> {
             m_intakeRollerMotor.configNeutralMode(NeutralModeValue.Brake);
             m_intakeRollerMotor.setControl(new StaticBrake());

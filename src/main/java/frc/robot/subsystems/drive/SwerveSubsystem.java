@@ -410,7 +410,6 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                         );
                     }
                     drive(new ChassisVelocities(getChassisSpeeds().vx, (cachedPose.getY() - targetPose.getY()), 0));
-                    System.out.println("hellooooo");
                 }
             };
         }
