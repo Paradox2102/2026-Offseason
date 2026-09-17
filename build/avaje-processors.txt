@@ -1,3 +1,6 @@
 avaje-jsonb-generator
 avaje-spi-coree
+avaje-spi-corere
+avaje-spi-coreore
+avaje-spi-corecore
 avaje-spi-core

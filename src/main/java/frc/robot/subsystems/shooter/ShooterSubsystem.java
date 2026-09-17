@@ -50,17 +50,16 @@ public class ShooterSubsystem extends SubsystemBase{
             m_shooterLerpTable.put(shotPower[0], shotPower[1]);
         
         if (Utils.isSimulation()){
-        var talonFXSim = m_shooterLeader.getSimState();
-        talonFXSim.Orientation = ChassisReference.CounterClockwise_Positive;
-        talonFXSim.setMotorType(TalonFXSimState.MotorType.KrakenX60);
-        }
+            var talonFXSim = m_shooterLeader.getSimState();
+            talonFXSim.Orientation = ChassisReference.CounterClockwise_Positive;
+            talonFXSim.setMotorType(TalonFXSimState.MotorType.KrakenX60);
+            }
         }
     }
 
     public Command shoot(DoubleSupplier distanceToTarget) {
     return Commands.run(() -> {               
-        Globals.setFollowerRPS(m_shooterLeader, m_shooterFollower, m_request, m_shooterLerpTable.get(distanceToTarget.getAsDouble()),
-        MotorAlignmentValue.Aligned);   
+        // Globals.bangBang(m_shooterLerpTable.get(distanceToTarget.getAsDouble()), ShooterConstants.k_shooterV, m_shooterLeader, m_shooterFollower);
     }, this); }
 
     public Command staticShoot(){
@@ -70,25 +69,27 @@ public class ShooterSubsystem extends SubsystemBase{
 
     @Override
     public void simulationPeriodic() {
-    var talonFXSim = m_shooterLeader.getSimState();
+        var talonFXSim = m_shooterLeader.getSimState();
 
-   // set the supply voltage of the TalonFX
-   talonFXSim.setSupplyVoltage(RobotController.getBatteryVoltage());
+        // set the supply voltage of the TalonFX
+        talonFXSim.setSupplyVoltage(RobotController.getBatteryVoltage());
 
-   // get the motor voltage of the TalonFX
-//    var motorVoltage = talonFXSim.getMotorVoltageMeasure();
+        // get the motor voltage of the TalonFX
+        var motorVoltage = talonFXSim.getMotorVoltageMeasure();
 
-   // use the motor voltage to calculate new position and velocity
-   // using WPILib's DCMotorSim class for physics simulation
-   m_motorSimModel.setInputVoltage(m_shooterLeader.getMotorVoltage().getValueAsDouble());
-   m_motorSimModel.update(0.020); // assume 20 ms loop time
+        // use the motor voltage to calculate new position and velocity
+        // using WPILib's DCMotorSim class for physics simulation
+        m_motorSimModel.setInputVoltage(motorVoltage.in(m_shooterLeader.getMotorVoltage().getValue().unit()));
+        m_motorSimModel.update(0.020); // assume 20 ms loop time
 
-   // apply the new rotor position and velocity to the TalonFX;
-   // note that this is rotor position/velocity (before gear ratio), but
-   // DCMotorSim returns mechanism position/velocity (after gear ratio)
-   talonFXSim.setRotorVelocity(m_motorSimModel.getAngularVelocity() * k_gearRatio);
-   SmartDashboard.putNumber("shooterFollower Speed", m_shooterFollower.getVelocity().getValueAsDouble());
-   SmartDashboard.putNumber("shooterLeader Speed", m_shooterLeader.getVelocity().getValueAsDouble());
+        // apply the new rotor position and velocity to the TalonFX;
+        // note that this is rotor position/velocity (before gear ratio), but
+        // DCMotorSim returns mechanism position/velocity (after gear ratio)
+        talonFXSim.setRotorAcceleration(m_motorSimModel.getAngularAcceleration() * k_gearRatio);
+        talonFXSim.setRotorVelocity((m_motorSimModel.getAngularVelocity() * 0.1591549430919) * k_gearRatio);
+            
+        //Multipled by 0.159 to convert rad/s to rps
+        SmartDashboard.putNumber("Shooter Motor Speed", m_motorSimModel.getAngularVelocity() * 0.1591549430919);
 
 
     }

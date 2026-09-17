@@ -28,7 +28,7 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     private final TalonFX m_shooterAzimuth = new TalonFX(CANIDConstants.shooterAzimuth, k_CANBus);
     
-    private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
+    public final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
 
     public final Trigger m_isOnTarget = new Trigger(() -> (Math.abs(m_request.Position - getTargetRotation()) < 0.5));
 
@@ -38,8 +38,7 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     public Command rotateToTarget() {
         return Commands.run(() -> {
-            
-            Globals.setPosition(m_shooterAzimuth, m_request, getTargetRotation());       
+            Globals.setPosition(m_shooterAzimuth, m_request, getTargetRotation());     
         }, this);
     }
 
@@ -53,7 +52,7 @@ public class TurretAimSubsystem extends SubsystemBase{
         var targetRotation = Math.atan2(rotationTriangle.getY(), rotationTriangle.getX());
         double bestRotation = targetRotation;
         for (int i = -1; i <= 1; i++) {
-            bestRotation = (checkBestRotation(bestRotation, targetRotation + (i * (2 * Math.PI)), hubPose.toPose2d())*ShooterConstants.k_shooterGearReduction);
+            bestRotation = (checkBestRotation(bestRotation, targetRotation + (i * (2 * Math.PI)), hubPose.toPose2d()) * ShooterConstants.k_shooterGearReduction);
         }
         return bestRotation;
     }

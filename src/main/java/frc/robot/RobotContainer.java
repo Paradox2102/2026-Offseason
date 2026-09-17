@@ -47,7 +47,8 @@ public class RobotContainer {
 // TODO - choreo        SmartDashboard.putData("Auto Chooser", autoChooser);
         configureDefaults();
         configureBindings();
-        configureAutos();
+        m_controller.southFace().whileFalse(Subsystems.m_intakeRoller.run(true));
+        // configureAutos();
 
         // Warmup Choreo to avoid Java pauses
 // TODO - choreo        CommandScheduler.getInstance().schedule(autoFactory.warmupCmd());
@@ -56,14 +57,13 @@ public class RobotContainer {
     private void configureBindings() {
         
         
-        // m_controller.a().onTrue(new DrivePath("test.json"));
-        // m_controller.b().whileTrue(Commands.run(() -> {new ChassisSpeeds(2, 0, 0);}, m_swerveSubsystem));
         
         m_controller.leftTrigger().onTrue(Controls.extendIntake()).onFalse(Subsystems.m_intakeRoller.stop());
         m_controller.rightTrigger().whileTrue(Controls.shoot());
         m_controller.leftBumper().onTrue(Controls.towerSweep());
         m_controller.rightBumper().whileTrue(Controls.staticLaunch());
-        m_controller.southFace().whileTrue(Subsystems.m_swerveSubsystem.taunt());
+
+        //m_controller.southFace().whileTrue()
         
         Subsystems.m_swerveSubsystem.registerTelemetry(logger::telemeterize);
     }
@@ -80,7 +80,7 @@ public class RobotContainer {
             )
         );
 
-        Subsystems.m_indexerConveyor.setDefaultCommand(Subsystems.m_indexerConveyor.run(true));
+        // Subsystems.m_indexerConveyor.setDefaultCommand(Subsystems.m_indexerConveyor.run(true));
         Subsystems.m_indexerRollerSubsystem.setDefaultCommand(Subsystems.m_indexerRollerSubsystem.run(true));
         Subsystems.m_kickerSubsystem.setDefaultCommand(Subsystems.m_kickerSubsystem.run(false));
         Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.returnHood());

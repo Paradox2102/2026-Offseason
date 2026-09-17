@@ -11,12 +11,18 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 
 import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.math.geometry.Translation3d;
 // import org.wpilib.math.util.Units;
 import org.wpilib.networktables.NetworkTableInstance;
+import org.wpilib.networktables.StructArrayPublisher;
 import org.wpilib.networktables.StructPublisher;
 import org.wpilib.framework.TimedRobot;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
+import org.wpilib.command2.Subsystem;
 
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
@@ -25,7 +31,8 @@ public class Robot extends TimedRobot {
 
 
     private StructPublisher<Pose2d> m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("RobotPose", Pose2d.struct).publish();
-
+    private StructArrayPublisher<Pose3d> zeroedComponentPoses = NetworkTableInstance.getDefault()
+        .getStructArrayTopic("Zeroed Poses", Pose3d.struct).publish();
     /* log and replay timestamp and joystick data */
     private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
         .withTimestampReplay()
@@ -43,7 +50,17 @@ public class Robot extends TimedRobot {
         m_timeAndJoystickReplay.update();
         CommandScheduler.getInstance().run();
 
-        m_posePublisher.set(Subsystems.m_swerveSubsystem.getPose());
+        Pose2d robotPose = Subsystems.m_swerveSubsystem.getPose();
+
+        m_posePublisher.set(robotPose);
+        
+        Rotation2d rot = new Rotation2d(Subsystems.m_turretAimSubsystem.m_request.Position * Constants.ShooterConstants.k_shooterGearReduction);
+
+        Pose3d turret = new Pose3d(
+            new Translation3d(),
+            new Rotation3d(rot));
+        zeroedComponentPoses.set(new Pose3d[] {turret, new Pose3d(), new Pose3d()});
+        //m_intakePublisher(Subsystems.m_intakeExtension.)
         
 
         /*

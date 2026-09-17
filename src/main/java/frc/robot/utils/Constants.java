@@ -3,17 +3,21 @@ package frc.robot;
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 
+import org.opencv.ml.StatModel;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.Trigger;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 
+import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rectangle2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation2d;
@@ -21,6 +25,8 @@ import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearVelocity;
 
+import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.Subsystems;
 import frc.robot.PathPlanningThing.DrivePath;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
@@ -109,10 +115,10 @@ public class Constants {
     public static final double k_shooterGearReduction = (67.86);
     // for every one 67.86 turns of the motor, the turret turns one time.
     
-    public static final int k_kickInRPM = 5000;
-    public static final int k_kickOutRPM = 1000;
+    public static final int k_kickInRPS = 5000;
+    public static final int k_kickOutRPS = 1000;
 
-    public static final int k_preShootRPM = 5000;
+    public static final int k_preShootRPS = 5000;
 
     public static final double k_upKickerMOI = 0.0851405808;
     public static final double k_kickerMOI = 0.5379389901;
@@ -228,28 +234,32 @@ public class Constants {
   
 
   public static class IntakeConstants {
-    public static final int k_inRPM = 5000;
-    public static final int k_outRPM = -4000;
+    public static final int k_inRPS = 40;
+    public static final int k_outRPS = -60;
 
     public static final int k_outPosition = 90;
 
-    public static final Slot0Configs k_intakeRollerConfigs = new Slot0Configs();
+    public static final TalonFXConfiguration k_intakeRollerConfigs = new TalonFXConfiguration();
     public static final Slot0Configs k_intakeExtensionConfigs = new Slot0Configs();
 
-        public static final double k_rollerP = 0;
-        public static final double k_rollerS = 0;
-        public static final double k_rollerV = 0;
+    public static final double k_rollerP = 0.006;
+    public static final double k_rollerS = 0.116;
+    public static final double k_rollerV = 0.24;
 
     public static final double k_intakeExtensionG = 0;
     public static final double k_intakeExtensionP = 0;
     public static final double k_intakeExtensionV = 0;
     public static final double k_intakeExtensionD = 0;
-
-    public static final double k_intakeRollerMOI = 7.8368899188;
+    
+    
+    public static final double k_intakeRollerMOI = 0.0048980018;
     static {
-        k_intakeRollerConfigs.kP = k_rollerP;
-        k_intakeRollerConfigs.kS = k_rollerS;
-        k_intakeRollerConfigs.kV = k_rollerV;
+
+        
+        // k_intakeRollerConfigs.Slot0.kP = k_rollerP;
+        k_intakeRollerConfigs.Slot0.kV = k_rollerV;
+        k_intakeRollerConfigs.Slot0.kS = k_rollerS;
+
 
         k_intakeExtensionConfigs.kG = k_intakeExtensionG;
         k_intakeExtensionConfigs.kP = k_intakeExtensionP;
@@ -257,40 +267,42 @@ public class Constants {
         k_intakeExtensionConfigs.kD = k_intakeExtensionD;
     }
 
+    
+    }
     public static class IndexerConstants {
-        public static final int k_rollerInRPM = 3000;
-        public static final int k_rollerOutRPM = -2750;
+        public static final int k_rollerInRPS = 20;
+        public static final int k_rollerOutRPS = -45;
 
-        public static final int k_conveyorInRPM = 3000;
-        public static final int k_conveyorOutRPM = -2750;
+        public static final int k_conveyorInRPS = 20; // 50
+        public static final int k_conveyorOutRPS = -45;
 
 
         public static final Slot0Configs k_indexerRollerConfigs = new Slot0Configs();
         public static final Slot0Configs k_indexerConveyorConfigs = new Slot0Configs();
-
+        public static final TalonFXConfiguration k_configuration = new TalonFXConfiguration();
         public static final double k_indexerRollerMOI = 4.2552029673;
         public static final double k_indexerConveyorMOI = 0.0848654995;
 
-        public static final double k_rollerP = 0;
+        public static final double k_rollerP = 0.0;
         public static final double k_rollerS = 0;
         public static final double k_rollerV = 0;
 
-        public static final double k_conveyorP = 0;
-        public static final double k_conveyorS = 0;
-        public static final double k_conveyorV = 0;
+        public static final double k_conveyorP = 0.0;
+        public static final double k_conveyorS = 0.0;
+        public static final double k_conveyorV = 0.0;
 
         static {
             k_indexerRollerConfigs.kP = k_rollerP;
             k_indexerRollerConfigs.kS = k_rollerS;
             k_indexerRollerConfigs.kV = k_rollerV;
+            
+            
 
             k_indexerConveyorConfigs.kP = k_conveyorP;
             k_indexerConveyorConfigs.kS = k_conveyorS;
             k_indexerConveyorConfigs.kV = k_conveyorV;
             
         }
-    }
-    
   }
 
   public static class Globals {
@@ -329,7 +341,7 @@ public class Constants {
      * Sets the Position of a lead and follower motor
      * @param leadMotor The lead motor to have the RPS set for
      * @param followMotor The follower motor to have the RPS of the lead motor
-     * @param request This is a VelocityVoltage. Should be created once in your class then said every time you set RPM
+     * @param request This is a VelocityVoltage. Should be created once in your class then said every time you set RPS
      * @param position Motor go spiin to position
      * @param alignmentValue Whether the motors are aligned or opposed (ugh, I think I mispelled that)
      */
@@ -337,64 +349,79 @@ public class Constants {
         setPosition(leadMotor, request, position);
         followMotor.setControl(new Follower(leadMotor.getDeviceID(), alignmentValue));
     }
-  }
 
-  public static class Controls {
-    public static final Trigger isReadyToShoot = new Trigger(Subsystems.m_hoodSubsystem.m_isAimed.and(Subsystems.m_shooterSubsystem.m_isAtSpeed.and(Subsystems.m_turretAimSubsystem.m_isOnTarget)));
-    public static final Command extendIntake() {
-        return Commands.sequence(
-            Subsystems.m_intakeExtension.extendIntake(),
-            Subsystems.m_intakeRoller.run(true));
+    public static void bangBang(double targetRPS, double kv, TalonFX... Motors){
+        for (TalonFX motor : Motors) {
+            var m_RPSSetPoint = targetRPS;
+        if(m_RPSSetPoint == 0){
+        motor.setVoltage(0);
+        } else {
+        if(motor.getVelocity().getValueAsDouble() < m_RPSSetPoint){
+            motor.setVoltage(12);
+        } else {
+            motor.setVoltage(kv * m_RPSSetPoint);
+        }
     }
-
-    public static Command shoot(){
-        return Commands.either(launch(), aim(), Controls.isReadyToShoot);
-    }
-
-    public static Command aim(){
-        return Commands.parallel(
-            Subsystems.m_hoodSubsystem.pitchHood(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
-            Subsystems.m_shooterSubsystem.shoot(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
-            Subsystems.m_turretAimSubsystem.rotateToTarget()
-        );
-
-    }
-
-    public static Command launch() {
-        return Commands.parallel(
-            aim(),
-            Subsystems.m_indexerConveyor.run(true),
-            Subsystems.m_indexerRollerSubsystem.run(true),
-            Subsystems.m_afterKickerUpSubsystem.run(),
-            Subsystems.m_kickerSubsystem.run(true)
-            );
-    }
-
-    public static Command staticLaunch() {
-        return Commands.parallel(
-            staticAim(),
-            Subsystems.m_indexerConveyor.run(true),
-            Subsystems.m_indexerRollerSubsystem.run(true),
-            Subsystems.m_afterKickerUpSubsystem.run(),
-            Subsystems.m_kickerSubsystem.run(true)
-            );
-    }
-    public static Command staticAim(){
-        return Commands.parallel(
-            Subsystems.m_hoodSubsystem.staticShoot(),
-            Subsystems.m_shooterSubsystem.staticShoot(),
-            Subsystems.m_turretAimSubsystem.staticAim()
-        );
-
-    }
-
-    public static Command towerSweep() {
-        if (!Subsystems.m_swerveSubsystem.inTeamAlliance()) return Commands.none();
-
-        if (Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_yCenterline)
-            return Commands.either(new DrivePath("DepotOutpostTowerSweep.json"), new DrivePath("DepotOutpostTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_depotIntermediatePoint);
-        else
-            return Commands.either(new DrivePath("OutpostDepotTowerSweep.json"), new DrivePath("OutpostDepotTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() < FieldConstants.k_outpostIntermediatePoint);
+        }
+    
     }
   }
+
+    public static class Controls {
+        public static final Trigger isReadyToShoot = new Trigger(Subsystems.m_hoodSubsystem.m_isOnTarget.and(Subsystems.m_shooterSubsystem.m_isAtSpeed.and(Subsystems.m_turretAimSubsystem.m_isOnTarget)));
+        public static final Command extendIntake() {
+            return Commands.sequence(
+                Subsystems.m_intakeExtension.extendIntake(),
+                Subsystems.m_intakeRoller.run(true));
+        }
+
+        public static Command shoot(){
+            return Commands.either(launch(), aim(), Controls.isReadyToShoot);
+        }
+
+        public static Command aim(){
+            return Commands.parallel(
+                Subsystems.m_hoodSubsystem.pitchHood(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
+                Subsystems.m_shooterSubsystem.shoot(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
+                Subsystems.m_turretAimSubsystem.rotateToTarget()
+            );
+
+        }
+
+        public static Command launch() {
+            return Commands.parallel(
+                aim(),
+                Subsystems.m_indexerConveyor.run(true),
+                Subsystems.m_indexerRollerSubsystem.run(true),
+                Subsystems.m_afterKickerUpSubsystem.run(),
+                Subsystems.m_kickerSubsystem.run(true)
+                );
+        }
+
+        public static Command staticLaunch() {
+            return Commands.parallel(
+                staticAim(),
+                Subsystems.m_indexerConveyor.run(true),
+                Subsystems.m_indexerRollerSubsystem.run(true),
+                Subsystems.m_afterKickerUpSubsystem.run(),
+                Subsystems.m_kickerSubsystem.run(true)
+                );
+        }
+        public static Command staticAim(){
+            return Commands.parallel(
+                Subsystems.m_hoodSubsystem.staticShoot(),
+                Subsystems.m_shooterSubsystem.staticShoot(),
+                Subsystems.m_turretAimSubsystem.staticAim()
+            );
+
+        }
+
+        public static Command towerSweep() {
+            return Commands.either(Commands.either(
+                Commands.either(new DrivePath("OutpostDepotTowerSweep.json"), new DrivePath("OutpostDepotTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_depotIntermediatePoint),
+                Commands.either(new DrivePath("DepotOutpostTowerSweep.json"), new DrivePath("DepotOutpostTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() < FieldConstants.k_outpostIntermediatePoint),
+                () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_yCenterline),
+            Commands.none(), () -> !Subsystems.m_swerveSubsystem.inTeamAlliance());    
+        }
+    }
 }

@@ -297,7 +297,7 @@ public class DrivePath extends Command{
 
     @Override
     public void end(boolean interrupted) {
-        m_swerveSubsystem.setChassisSpeeds(new ChassisVelocities(0, 0, 0));
+        m_swerveSubsystem.drive(new ChassisVelocities(0, 0, 0));
     }
 
     @Override

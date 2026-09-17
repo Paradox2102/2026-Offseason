@@ -42,8 +42,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
 
     public IntakeExtensionSubsystem() {
-        m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.k_intakeRollerConfigs);
-        m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.k_intakeRollerConfigs);
+        m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
+        m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
 
         if (Utils.isSimulation()){
             var talonFXSim = m_intakeExtensionLeader.getSimState();
