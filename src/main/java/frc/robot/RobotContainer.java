@@ -9,9 +9,11 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.Command;
+import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
 import org.wpilib.command2.button.RobotModeTriggers;
+import org.wpilib.command2.button.Trigger;
 
 import frc.robot.Constants.Controls;
 import frc.robot.Constants.Subsystems;
@@ -32,6 +34,8 @@ public class RobotContainer {
     public static final CommandGamepad m_controller = new CommandGamepad(0);
     private final CommandJoystick m_joystick = new CommandJoystick(1);
 
+    //We need Jam detection. If indexer is too slow some time after running, then run it full speed backwards
+
     /* Path follower */
     // TODO - choreo needed
     // private final AutoFactory autoFactory;
@@ -47,7 +51,7 @@ public class RobotContainer {
 // TODO - choreo        SmartDashboard.putData("Auto Chooser", autoChooser);
         configureDefaults();
         configureBindings();
-        m_controller.southFace().whileFalse(Subsystems.m_intakeRoller.run(true));
+        m_controller.southFace().whileFalse(Subsystems.m_shooterSubsystem.staticShoot());
         // configureAutos();
 
         // Warmup Choreo to avoid Java pauses

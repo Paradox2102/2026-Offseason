@@ -69,6 +69,12 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     }
 
+    public TalonFX getShooterAzimuth(){
+        return m_shooterAzimuth;
+    }
+
+    
+
 
 
 }

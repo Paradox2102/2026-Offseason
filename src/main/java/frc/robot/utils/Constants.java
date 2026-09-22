@@ -120,9 +120,9 @@ public class Constants {
 
     public static final int k_preShootRPS = 5000;
 
-    public static final double k_upKickerMOI = 0.0851405808;
-    public static final double k_kickerMOI = 0.5379389901;
-    public static final double k_shooterMOI = 4.7850241331;
+    public static final double k_upKickerMOI = 0.00000494 * 2;
+    public static final double k_kickerMOI = 0.0000356;
+    public static final double k_shooterMOI = 0.0004812;
 
     public static final Slot0Configs k_hoodConfig = new Slot0Configs();
     public static final Slot0Configs k_shooterConfigs = new Slot0Configs();
@@ -134,8 +134,8 @@ public class Constants {
     public static final double k_hoodD = 0;
 
     public static final double k_shooterP = 0;
-    public static final double k_shooterS = 0;
-    public static final double k_shooterV = 0;
+    public static final double k_shooterS = 0.61;
+    public static final double k_shooterV = 0.02;
 
     public static final double k_turretS = 0;
     public static final double k_turretP = 0;
@@ -167,10 +167,10 @@ public class Constants {
         {0, 0}
     };
 
-    public static final double k_staticShotSpeed = 4000;
+    public static final double k_staticShotSpeed = 70;
     public static final double k_staticShotAngle = 0;
-    public static final double k_hoodMOI = 0.0254713554;
-    public static final double k_hoodArmLength = 0.0254713554;
+    public static final double k_hoodMOI = 0.02635296; // need to find
+    public static final double k_hoodArmLength = 0.0254713554; // Wha the heck? why is this identical to the MOI? let's fix that.
     public static final double k_hoodMaxAngle = 90;
 
     static {
@@ -252,14 +252,13 @@ public class Constants {
     public static final double k_intakeExtensionD = 0;
     
     
-    public static final double k_intakeRollerMOI = 0.0048980018;
+    public static final double k_intakeRollerMOI = 0.093084;
     static {
 
         
         // k_intakeRollerConfigs.Slot0.kP = k_rollerP;
         k_intakeRollerConfigs.Slot0.kV = k_rollerV;
         k_intakeRollerConfigs.Slot0.kS = k_rollerS;
-
 
         k_intakeExtensionConfigs.kG = k_intakeExtensionG;
         k_intakeExtensionConfigs.kP = k_intakeExtensionP;
@@ -276,12 +275,13 @@ public class Constants {
         public static final int k_conveyorInRPS = 20; // 50
         public static final int k_conveyorOutRPS = -45;
 
+        public static final int k_jamThreshold = 5; // should be tuned to not happen too much
 
         public static final Slot0Configs k_indexerRollerConfigs = new Slot0Configs();
         public static final Slot0Configs k_indexerConveyorConfigs = new Slot0Configs();
         public static final TalonFXConfiguration k_configuration = new TalonFXConfiguration();
-        public static final double k_indexerRollerMOI = 4.2552029673;
-        public static final double k_indexerConveyorMOI = 0.0848654995;
+        public static final double k_indexerRollerMOI = 0.00045822;
+        public static final double k_indexerConveyorMOI = 0.00001722;
 
         public static final double k_rollerP = 0.0;
         public static final double k_rollerS = 0;

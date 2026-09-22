@@ -77,6 +77,13 @@ public class HoodSubsystem extends SubsystemBase{
     }
 
     @Override
+    public void periodic() {
+        if (m_limitSwitch.get()){
+            // m_hoodMotor
+        }
+    }
+
+    @Override
     public void simulationPeriodic() {
     var talonFXSim = m_hoodMotor.getSimState();
 

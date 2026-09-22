@@ -16,9 +16,13 @@ import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.smartdashboard.SmartDashboard;
+
+import java.util.Optional;
+
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
+import org.wpilib.command2.button.Trigger;
 
 public class IndexerRollerSubsystem extends SubsystemBase {
     private final CANBus k_CANBus = CANBus.systemcore(3);
@@ -29,6 +33,14 @@ public class IndexerRollerSubsystem extends SubsystemBase {
 
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
         Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), IndexerConstants.k_indexerRollerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
+
+            private Optional<Boolean> m_isRunningIn = Optional.empty();
+            public Trigger isJammed = new Trigger(() -> {
+                if (m_isRunningIn.isEmpty())
+                    return false;
+                
+                return (Math.abs(m_indexerRollerModer.getVelocity().getValueAsDouble() - (m_isRunningIn.get() ? IndexerConstants.k_conveyorInRPS : IndexerConstants.k_conveyorOutRPS)) < IndexerConstants.k_jamThreshold);
+            });
 
 
     public IndexerRollerSubsystem() {
@@ -41,9 +53,10 @@ public class IndexerRollerSubsystem extends SubsystemBase {
         }
     }
     public Command run(boolean in) {
-        return Commands.run(() -> {               
+        return Commands.runEnd(() -> {    
+            m_isRunningIn = Optional.of(in);           
             m_indexerRollerModer.setControl(m_request.withFeedForward(in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerOutRPS));
-        }, this); }
+        }, () -> m_isRunningIn = Optional.empty(), this); }
     
     @Override
     public void simulationPeriodic() {

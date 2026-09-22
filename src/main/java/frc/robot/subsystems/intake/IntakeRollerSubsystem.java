@@ -23,6 +23,7 @@ import org.wpilib.system.RobotController;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
+import org.wpilib.command2.button.Trigger;
 
 public class IntakeRollerSubsystem extends SubsystemBase {
     private final CANBus k_CANBus = CANBus.systemcore(2);
@@ -36,7 +37,8 @@ public class IntakeRollerSubsystem extends SubsystemBase {
 
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
         Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), IntakeConstants.k_intakeRollerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
-    public IntakeRollerSubsystem() {
+    
+        public IntakeRollerSubsystem() {
         m_intakeRollerMotor.getConfigurator().apply(IntakeConstants.k_intakeRollerConfigs);
         
         if (Utils.isSimulation()){

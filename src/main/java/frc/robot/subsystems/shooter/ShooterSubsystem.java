@@ -7,6 +7,7 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
@@ -63,7 +64,12 @@ public class ShooterSubsystem extends SubsystemBase{
     }, this); }
 
     public Command staticShoot(){
-        return Commands.run(() -> Globals.setFollowerRPS(m_shooterLeader, m_shooterFollower, m_request, ShooterConstants.k_staticShotSpeed, MotorAlignmentValue.Aligned), this);
+        return Commands.runEnd(() -> Globals.setFollowerRPS(m_shooterLeader, m_shooterFollower, m_request, ShooterConstants.k_staticShotSpeed, MotorAlignmentValue.Aligned), () -> {
+            m_shooterLeader.configNeutralMode(NeutralModeValue.Coast);
+            m_shooterFollower.configNeutralMode(NeutralModeValue.Coast);
+            m_shooterLeader.setThrottle(0);
+            m_shooterFollower.setThrottle(0);
+        }, this);
     }
 
 

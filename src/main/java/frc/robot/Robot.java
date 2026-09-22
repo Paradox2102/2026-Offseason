@@ -54,7 +54,7 @@ public class Robot extends TimedRobot {
 
         m_posePublisher.set(robotPose);
         
-        Rotation2d rot = new Rotation2d(Subsystems.m_turretAimSubsystem.m_request.Position * Constants.ShooterConstants.k_shooterGearReduction);
+        Rotation2d rot = new Rotation2d(Subsystems.m_turretAimSubsystem.getShooterAzimuth().getPosition().getValueAsDouble() * Constants.ShooterConstants.k_shooterGearReduction);
 
         Pose3d turret = new Pose3d(
             new Translation3d(),
