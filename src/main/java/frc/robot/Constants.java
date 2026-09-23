@@ -234,7 +234,7 @@ public class Constants {
   
 
   public static class IntakeConstants {
-    public static final int k_inRPS = 40;
+    public static final int k_inRPS = 10;
     public static final int k_outRPS = -60;
 
     public static final int k_outPosition = 90;
@@ -242,9 +242,9 @@ public class Constants {
     public static final TalonFXConfiguration k_intakeRollerConfigs = new TalonFXConfiguration();
     public static final Slot0Configs k_intakeExtensionConfigs = new Slot0Configs();
 
-    public static final double k_rollerP = 0.006;
-    public static final double k_rollerS = 0.116;
-    public static final double k_rollerV = 0.24;
+    public static final double k_rollerP = 0.0;
+    public static final double k_rollerS = 0.0;
+    public static final double k_rollerV = 0.0;
 
     public static final double k_intakeExtensionG = 0;
     public static final double k_intakeExtensionP = 0;
@@ -256,7 +256,7 @@ public class Constants {
     static {
 
         
-        // k_intakeRollerConfigs.Slot0.kP = k_rollerP;
+        k_intakeRollerConfigs.Slot0.kP = k_rollerP;
         k_intakeRollerConfigs.Slot0.kV = k_rollerV;
         k_intakeRollerConfigs.Slot0.kS = k_rollerS;
 
@@ -269,7 +269,7 @@ public class Constants {
     
     }
     public static class IndexerConstants {
-        public static final int k_rollerInRPS = 20;
+        public static final int k_rollerInRPS = 80;
         public static final int k_rollerOutRPS = -45;
 
         public static final int k_conveyorInRPS = 20; // 50
@@ -284,11 +284,11 @@ public class Constants {
         public static final double k_indexerConveyorMOI = 0.00001722;
 
         public static final double k_rollerP = 0.0;
-        public static final double k_rollerS = 0;
-        public static final double k_rollerV = 0;
+        public static final double k_rollerS = 0.015;
+        public static final double k_rollerV = 0.0367;
 
         public static final double k_conveyorP = 0.0;
-        public static final double k_conveyorS = 0.0;
+        public static final double k_conveyorS = 0.1;
         public static final double k_conveyorV = 0.0;
 
         static {

@@ -9,6 +9,7 @@ import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
+import frc.robot.Constants.Globals;
 import frc.robot.Constants.IndexerConstants;
 
 import org.wpilib.math.system.DCMotor;
@@ -44,7 +45,7 @@ public class IndexerRollerSubsystem extends SubsystemBase {
 
 
     public IndexerRollerSubsystem() {
-        m_indexerRollerModer.getConfigurator().apply(new MotorOutputConfigs());
+        m_indexerRollerModer.getConfigurator().apply(IndexerConstants.k_indexerRollerConfigs);
 
         if (Utils.isSimulation()){
             var talonFXSim = m_indexerRollerModer.getSimState();
@@ -55,7 +56,7 @@ public class IndexerRollerSubsystem extends SubsystemBase {
     public Command run(boolean in) {
         return Commands.runEnd(() -> {    
             m_isRunningIn = Optional.of(in);           
-            m_indexerRollerModer.setControl(m_request.withFeedForward(in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerOutRPS));
+            Globals.setRPS(m_indexerRollerModer, m_request, IndexerConstants.k_rollerInRPS);
         }, () -> m_isRunningIn = Optional.empty(), this); }
     
     @Override

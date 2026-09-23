@@ -51,7 +51,7 @@ public class RobotContainer {
 // TODO - choreo        SmartDashboard.putData("Auto Chooser", autoChooser);
         configureDefaults();
         configureBindings();
-        m_controller.southFace().whileFalse(Subsystems.m_shooterSubsystem.staticShoot());
+        m_controller.southFace().whileTrue(Subsystems.m_indexerRollerSubsystem.run(true));
         // configureAutos();
 
         // Warmup Choreo to avoid Java pauses
