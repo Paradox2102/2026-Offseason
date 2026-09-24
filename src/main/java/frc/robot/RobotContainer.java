@@ -33,6 +33,7 @@ public class RobotContainer {
 
     public static final CommandGamepad m_controller = new CommandGamepad(0);
     private final CommandJoystick m_joystick = new CommandJoystick(1);
+    
 
     //We need Jam detection. If indexer is too slow some time after running, then run it full speed backwards
 
@@ -43,19 +44,10 @@ public class RobotContainer {
     // private final AutoChooser autoChooser = new AutoChooser();
 
     public RobotContainer() {
-// TODO - choreo needed        autoFactory = m_swerveSubsystem.createAutoFactory();
-        // autoFactory = null;
-        // autoRoutines = new AutoRoutines(autoFactory);
-
-        // autoChooser.addRoutine("SimplePath", autoRoutines::simplePathAuto);
-// TODO - choreo        SmartDashboard.putData("Auto Chooser", autoChooser);
-        configureDefaults();
-        configureBindings();
-        m_controller.southFace().whileTrue(Subsystems.m_indexerRollerSubsystem.run(true));
+        // configureDefaults();
+        // configureBindings();
+        // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
         // configureAutos();
-
-        // Warmup Choreo to avoid Java pauses
-// TODO - choreo        CommandScheduler.getInstance().schedule(autoFactory.warmupCmd());
     }
 
     private void configureBindings() {

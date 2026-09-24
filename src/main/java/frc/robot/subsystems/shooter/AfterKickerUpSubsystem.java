@@ -9,10 +9,12 @@ import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
+import frc.robot.Constants.Globals;
 import frc.robot.Constants.ShooterConstants;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
+import org.wpilib.math.util.Units;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.smartdashboard.SmartDashboard;
@@ -32,7 +34,7 @@ public class AfterKickerUpSubsystem extends SubsystemBase {
         Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), ShooterConstants.k_upKickerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
 
     public AfterKickerUpSubsystem() {
-        m_goUpMotor.getConfigurator().apply(new MotorOutputConfigs());
+        m_goUpMotor.getConfigurator().apply(ShooterConstants.k_secondaryKickerConfig);
 
         if (Utils.isSimulation()){
             var talonFXSim = m_goUpMotor.getSimState();
@@ -42,7 +44,7 @@ public class AfterKickerUpSubsystem extends SubsystemBase {
     }
     public Command run() {
         return Commands.run(() -> {               
-            m_goUpMotor.setControl(m_request.withFeedForward(ShooterConstants.k_preShootRPS));
+            Globals.setRPS(m_goUpMotor, m_request, ShooterConstants.k_secondaryKickerRPS);
         }, this); }
     
     @Override
@@ -64,10 +66,10 @@ public class AfterKickerUpSubsystem extends SubsystemBase {
         // note that this is rotor position/velocity (before gear ratio), but
         // DCMotorSim returns mechanism position/velocity (after gear ratio)
         talonFXSim.setRotorAcceleration(m_motorSimModel.getAngularAcceleration() * k_gearRatio);
-        talonFXSim.setRotorVelocity((m_motorSimModel.getAngularVelocity() * 0.1591549430919) * k_gearRatio);
+        talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getAngularVelocity()) * k_gearRatio);
             
-        //Multipled by 0.159 to convert rad/s to rps
-        SmartDashboard.putNumber("Upward Kicker Motor Speed", m_motorSimModel.getAngularVelocity() * 0.1591549430919);
+        
+        SmartDashboard.putNumber("Upward Kicker Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
 
     }
 }

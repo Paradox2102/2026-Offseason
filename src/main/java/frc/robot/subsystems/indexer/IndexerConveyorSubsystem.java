@@ -16,6 +16,7 @@ import frc.robot.Constants.IndexerConstants;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
+import org.wpilib.math.util.Units;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.smartdashboard.SmartDashboard;
@@ -73,10 +74,10 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
         // note that this is rotor position/velocity (before gear ratio), but
         // DCMotorSim returns mechanism position/velocity (after gear ratio)
         talonFXSim.setRotorAcceleration(m_motorSimModel.getAngularAcceleration() * k_gearRatio);
-        talonFXSim.setRotorVelocity((m_motorSimModel.getAngularVelocity() * 0.1591549430919) * k_gearRatio);
+        talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getAngularVelocity()) * k_gearRatio);
             
         //Multipled by 0.159 to convert rad/s to rps
-        SmartDashboard.putNumber("Indexer Conveyor Motor Speed", m_motorSimModel.getAngularVelocity() * 0.1591549430919);
+        SmartDashboard.putNumber("Indexer Conveyor Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
 
     }
 }

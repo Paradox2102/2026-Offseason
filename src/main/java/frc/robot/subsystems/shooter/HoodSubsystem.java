@@ -17,6 +17,7 @@ import frc.robot.Constants.Subsystems;
 
 import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
 import org.wpilib.math.system.DCMotor;
+import org.wpilib.math.util.Units;
 import org.wpilib.hardware.discrete.DigitalInput;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.SingleJointedArmSim;
@@ -36,10 +37,10 @@ public class HoodSubsystem extends SubsystemBase{
 
     private final DigitalInput m_limitSwitch = new DigitalInput(0);
 
-    private final double k_gearRatio = 5; // what was I doing with this? this needs to be a models smth
+    private final double k_gearRatio = 0.2; // what was I doing with this? this needs to be a models smth
     // The hood's actual angle is the motor's location times the gearRatio (actually divided because it's geared down)
     private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(DCMotor.getKrakenX44(1),
-    k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, 0, ShooterConstants.k_hoodMaxAngle, true, 0);
+    k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, Math.toRadians(-90), Math.toRadians(90), true, 0);
     
     public final Trigger m_isOnTarget = new Trigger(() -> (Math.abs(m_request.Position - m_hoodLerpTable.get(Subsystems.m_swerveSubsystem.distanceToTarget())) < 0.5));
 
@@ -67,9 +68,9 @@ public class HoodSubsystem extends SubsystemBase{
             () -> m_hoodMotor.setControl(new VelocityVoltage(-10)), this).until(() -> m_limitSwitch.get());
     }
 
-    public Command staticShoot(){
+    public Command staticShoot(){ // TODO: Remove Ignore Disable
         return Commands.run(
-            () -> Globals.setPosition(m_hoodMotor, m_request, ShooterConstants.k_staticShotAngle), this);
+            () -> Globals.setPosition(m_hoodMotor, m_request, ShooterConstants.k_staticShotAngle), this).ignoringDisable(true);
     }
 
     public double getMotorPosition() {
@@ -87,23 +88,14 @@ public class HoodSubsystem extends SubsystemBase{
     public void simulationPeriodic() {
     var talonFXSim = m_hoodMotor.getSimState();
 
-   // set the supply voltage of the TalonFX
    talonFXSim.setSupplyVoltage(RobotController.getBatteryVoltage());
 
-   // get the motor voltage of the TalonFX
-//    var motorVoltage = talonFXSim.getMotorVoltageMeasure();
-
-   // use the motor voltage to calculate new position and velocity
-   // using WPILib's DCMotorSim class for physics simulation
    m_motorSimModel.setInputVoltage(m_hoodMotor.getMotorVoltage().getValueAsDouble());
-   m_motorSimModel.update(0.020); // assume 20 ms loop time
+   m_motorSimModel.update(0.020);
 
-   // apply the new rotor position and velocity to the TalonFX;
-   // note that this is rotor position/velocity (before gear ratio), but
-   // DCMotorSim returns mechanism position/velocity (after gear ratio)
    talonFXSim.setRawRotorPosition(m_motorSimModel.getAngle() * k_gearRatio);
-   talonFXSim.setRotorVelocity(m_motorSimModel.getVelocity() * k_gearRatio);
-   SmartDashboard.putNumber("Hood motor speed", m_hoodMotor.getVelocity().getValueAsDouble());
+   talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getVelocity()) * k_gearRatio);
+   SmartDashboard.putNumber("Hood motor position", Units.rotationsToDegrees(m_hoodMotor.getPosition(true).getValueAsDouble()));
 
     }
 }

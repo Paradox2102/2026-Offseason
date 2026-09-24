@@ -3,21 +3,18 @@ package frc.robot;
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 
-import org.opencv.ml.StatModel;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.Trigger;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 
-import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rectangle2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation2d;
@@ -25,8 +22,6 @@ import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearVelocity;
 
-import frc.robot.Constants.FieldConstants;
-import frc.robot.Constants.Subsystems;
 import frc.robot.PathPlanningThing.DrivePath;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
@@ -115,10 +110,10 @@ public class Constants {
     public static final double k_shooterGearReduction = (67.86);
     // for every one 67.86 turns of the motor, the turret turns one time.
     
-    public static final int k_kickInRPS = 5000;
-    public static final int k_kickOutRPS = 1000;
+    public static final int k_kickInRPS = 50;
+    public static final int k_kickOutRPS = 50;
 
-    public static final int k_preShootRPS = 5000;
+    public static final int k_secondaryKickerRPS = 60;
 
     public static final double k_upKickerMOI = 0.00000494 * 2;
     public static final double k_kickerMOI = 0.0000356;
@@ -127,15 +122,25 @@ public class Constants {
     public static final Slot0Configs k_hoodConfig = new Slot0Configs();
     public static final Slot0Configs k_shooterConfigs = new Slot0Configs();
     public static final Slot0Configs k_turretConfig = new Slot0Configs();
+    public static final Slot0Configs k_kickerConfig = new Slot0Configs();
+    public static final Slot0Configs k_secondaryKickerConfig = new Slot0Configs();
 
-    public static final double k_hoodG = 0;
+    public static final double k_hoodG = 15.0;
     public static final double k_hoodS = 0;
     public static final double k_hoodP = 0;
     public static final double k_hoodD = 0;
 
-    public static final double k_shooterP = 0;
-    public static final double k_shooterS = 0.61;
-    public static final double k_shooterV = 0.02;
+    public static final double k_shooterP = 0.3;
+    public static final double k_shooterS = 0.01;
+    public static final double k_shooterV = 0.11966;
+
+    public static final double k_kickerP = 0.01;
+    public static final double k_kickerS = 0.01;
+    public static final double k_kickerV = 0.118;
+
+    public static final double k_secondaryKickerP = 0.0;
+    public static final double k_secondaryKickerS = 0.01;
+    public static final double k_secondaryKickerV = 0.1195;
 
     public static final double k_turretS = 0;
     public static final double k_turretP = 0;
@@ -167,16 +172,24 @@ public class Constants {
         {0, 0}
     };
 
-    public static final double k_staticShotSpeed = 70;
+    public static final double k_staticShotSpeed = 40;
     public static final double k_staticShotAngle = 0;
-    public static final double k_hoodMOI = 0.02635296; // need to find
-    public static final double k_hoodArmLength = 0.0254713554; // Wha the heck? why is this identical to the MOI? let's fix that.
+    public static final double k_hoodMOI = 0.02635296; 
+    public static final double k_hoodArmLength = 0.20860766;
     public static final double k_hoodMaxAngle = 90;
 
     static {
         k_shooterConfigs.kP = k_shooterP;
         k_shooterConfigs.kS = k_shooterS;
         k_shooterConfigs.kV = k_shooterV;
+
+        k_kickerConfig.kP = k_kickerP;
+        k_kickerConfig.kS = k_kickerS;
+        k_kickerConfig.kV = k_kickerV;
+
+        k_secondaryKickerConfig.kP = k_secondaryKickerP;
+        k_secondaryKickerConfig.kS = k_secondaryKickerS;
+        k_secondaryKickerConfig.kV = k_secondaryKickerV;
 
         k_turretConfig.kS = k_turretS;
         k_turretConfig.kP = k_turretP;
