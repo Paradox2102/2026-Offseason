@@ -15,10 +15,12 @@ import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.math.linalg.Matrix;
 // import org.wpilib.math.util.Units;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.networktables.StructArrayPublisher;
 import org.wpilib.networktables.StructPublisher;
+import org.wpilib.system.Timer;
 import org.wpilib.framework.TimedRobot;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
@@ -33,6 +35,8 @@ public class Robot extends TimedRobot {
     private StructPublisher<Pose2d> m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("RobotPose", Pose2d.struct).publish();
     private StructArrayPublisher<Pose3d> zeroedComponentPoses = NetworkTableInstance.getDefault()
         .getStructArrayTopic("Zeroed Poses", Pose3d.struct).publish();
+    private StructArrayPublisher<Pose3d> finalComponentPoses = NetworkTableInstance.getDefault()
+        .getStructArrayTopic("Final Poses", Pose3d.struct).publish();
     /* log and replay timestamp and joystick data */
     private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
         .withTimestampReplay()
@@ -55,11 +59,22 @@ public class Robot extends TimedRobot {
         m_posePublisher.set(robotPose);
         
         Rotation2d rot = new Rotation2d(Subsystems.m_turretAimSubsystem.getShooterAzimuth().getPosition().getValueAsDouble() * Constants.ShooterConstants.k_shooterGearReduction);
-
+        Rotation3d hoodRot = new Rotation3d(Subsystems.m_hoodSubsystem.getAngle(), 0, rot.getRadians());
+        //Rotation3d hoodRot = new Rotation3d(Math.sin(Timer.getTimestamp()), Math.cos(Timer.getTimestamp()), Math.tan(Timer.getTimestamp()));
+        
         Pose3d turret = new Pose3d(
-            new Translation3d(),
+            new Translation3d(-0.16,
+                0.19,
+                0.38),
             new Rotation3d(rot));
-        zeroedComponentPoses.set(new Pose3d[] {turret, new Pose3d(), new Pose3d()});
+
+        Pose3d hood = new Pose3d(
+            new Translation3d(-0.16,
+                0.275,
+                0.455),
+            hoodRot);
+        zeroedComponentPoses.set(new Pose3d[] {new Pose3d(), new Pose3d(), new Pose3d()});
+        finalComponentPoses.set(new Pose3d[] {turret, hood, new Pose3d()});
         //m_intakePublisher(Subsystems.m_intakeExtension.)
         
 
