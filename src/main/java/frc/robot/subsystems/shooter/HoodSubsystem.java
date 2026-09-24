@@ -57,6 +57,10 @@ public class HoodSubsystem extends SubsystemBase{
         }
     }
 
+    public double getAngle() {
+        return m_motorSimModel.getAngle() * k_gearRatio;
+    }
+
     public Command pitchHood(DoubleSupplier distanceToTarget) {
         return Commands.run(() -> {
             Globals.setPosition(m_hoodMotor, m_request, m_hoodLerpTable.get(distanceToTarget.getAsDouble()));
