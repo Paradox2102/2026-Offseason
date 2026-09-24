@@ -141,7 +141,7 @@ public class Constants {
     public static final double k_turretP = 0;
     public static final double k_turretD = 0;
     // TODO: Set turret offset. 
-    public static final Translation3d k_turretOffset = new Translation3d(0, 0, 0);
+    public static final Translation3d k_turretOffset = new Translation3d(-5.965, 7.5429, 10.3851);
 
     public static final DoubleNumber k_turretBounds = new DoubleNumber(-500, 500);
     public static final double[][] k_scoreHoodAngle = {
