@@ -14,6 +14,7 @@ import frc.robot.Constants.IntakeConstants;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
+import org.wpilib.math.util.Units;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.ElevatorSim;
 import org.wpilib.command2.Command;
@@ -84,6 +85,5 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
    talonFXSim.setRawRotorPosition(m_motorSimModel.getPosition() * k_gearRatio);
-   talonFXSim.setRotorVelocity(m_motorSimModel.getVelocity() * k_gearRatio);
     }
 }

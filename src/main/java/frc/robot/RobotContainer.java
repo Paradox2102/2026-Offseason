@@ -33,6 +33,7 @@ public class RobotContainer {
 
     public static final CommandGamepad m_controller = new CommandGamepad(0);
     private final CommandJoystick m_joystick = new CommandJoystick(1);
+    
 
     //We need Jam detection. If indexer is too slow some time after running, then run it full speed backwards
 
@@ -53,9 +54,6 @@ public class RobotContainer {
         configureBindings();
         m_controller.southFace().whileTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
         // configureAutos();
-
-        // Warmup Choreo to avoid Java pauses
-// TODO - choreo        CommandScheduler.getInstance().schedule(autoFactory.warmupCmd());
     }
 
     private void configureBindings() {
