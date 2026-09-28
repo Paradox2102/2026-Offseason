@@ -10,6 +10,14 @@ public class DoubleNumber {
         maxBound = maximum;
     }
 
+    public double getMinBound(){
+        return minBound;
+    }
+
+    public double getMaxBound(){
+        return maxBound;
+    }
+
     public static boolean isBetween(double value, DoubleNumber bounds){
         return ((value > bounds.minBound) && (value < bounds.maxBound)); 
     }

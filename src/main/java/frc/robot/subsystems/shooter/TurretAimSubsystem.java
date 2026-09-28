@@ -10,6 +10,11 @@ import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.system.DCMotor;
+import org.wpilib.math.system.Models;
+import org.wpilib.simulation.FlywheelSim;
+import org.wpilib.simulation.SingleJointedArmSim;
+import org.wpilib.smartdashboard.SmartDashboard;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -18,6 +23,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.Globals;
+import frc.robot.Constants.IndexerConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
@@ -31,7 +37,7 @@ public class TurretAimSubsystem extends SubsystemBase{
     public final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
 
     public final Trigger m_isOnTarget = new Trigger(() -> (Math.abs(m_request.Position - getTargetRotation()) < 0.5));
-
+ private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(Models.singleJointedArmFromPhysicalConstants(DCMotor.getKrakenX60(1), 0.04969116, ShooterConstants.k_shooterGearReduction), DCMotor.getKrakenX60(1), ShooterConstants.k_shooterGearReduction, 0.1, ShooterConstants.k_turretBounds.getMinBound(), ShooterConstants.k_turretBounds.getMaxBound(), false, 0);
     public TurretAimSubsystem() {
         m_shooterAzimuth.getConfigurator().apply(ShooterConstants.k_turretConfig);
     }
@@ -43,7 +49,7 @@ public class TurretAimSubsystem extends SubsystemBase{
     }
 
     public Command staticAim() {
-        return Commands.run(() -> Globals.setPosition(m_shooterAzimuth, m_request, 0), this);
+        return Commands.run(() -> Globals.setPosition(m_shooterAzimuth, m_request, .1), this);
     }
 
     private double getTargetRotation(){ // This should add the turret offset to aiming but I need to check when I get sim up and running.
@@ -72,9 +78,12 @@ public class TurretAimSubsystem extends SubsystemBase{
     public TalonFX getShooterAzimuth(){
         return m_shooterAzimuth;
     }
+    @Override
+    public void simulationPeriodic() {
 
-    
+        SmartDashboard.putNumber("Indexer Roller Motor Speed", m_motorSimModel.getAngularVelocity() * 0.1591549430919);
 
+    }
 
 
 }

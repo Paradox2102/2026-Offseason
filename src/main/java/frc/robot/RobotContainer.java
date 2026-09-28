@@ -43,7 +43,7 @@ public class RobotContainer {
     // private final AutoChooser autoChooser = new AutoChooser();
 
     public RobotContainer() {
-// TODO - choreo needed        autoFactory = m_swerveSubsystem.createAutoFactory();
+// TODO - choreo needed        autoFactory = m_swerveSubsystem.createAutoFactory();''
         // autoFactory = null;
         // autoRoutines = new AutoRoutines(autoFactory);
 
@@ -51,7 +51,7 @@ public class RobotContainer {
 // TODO - choreo        SmartDashboard.putData("Auto Chooser", autoChooser);
         configureDefaults();
         configureBindings();
-        m_controller.southFace().whileTrue(Subsystems.m_indexerRollerSubsystem.run(true));
+        m_controller.southFace().whileTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
         // configureAutos();
 
         // Warmup Choreo to avoid Java pauses

@@ -134,8 +134,8 @@ public class Constants {
     public static final double k_hoodD = 0;
 
     public static final double k_shooterP = 0;
-    public static final double k_shooterS = 0.61;
-    public static final double k_shooterV = 0.02;
+    public static final double k_shooterS = 0;
+    public static final double k_shooterV = 0;
 
     public static final double k_turretS = 0;
     public static final double k_turretP = 0;
