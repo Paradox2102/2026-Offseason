@@ -1,0 +1,88 @@
+General:
+- You should keep your files formatted properly to make them easier to read
+- You appear to be using Openloop for driving
+- You are using Command.run inside a Subsystem where you could just use run()
+- Where are you setting the PID numbers for the drive?
+
+IndexerConveyorSubsystem:
+- Probably should use defined constant for the can bus id
+- Follower motor is not set up correctly
+- Command: Should not be calling external function to set motor
+- run: you are only turning the follower off in this command. However once you set up the followers properly then all you need to do is set the leader to zero here and the follower will follow.
+
+IndexerRollerSubsystem:
+- Probably should use defined constant for the can bus id
+- Command: should not be calling external function to set motor
+- Why is m_isRunning an Optional<Boolean>
+
+IntakeExtensionSubsystem:
+- Probably should use defined constant for the can bus id
+- Follower motor is not set up correctly
+- m_intakeRetracted should not really be a trigger. Instead provide a function which returns the state and use that
+- IntakeExtensionSubsystem (constructor): The pid values should only be set on the leader. The follower should be set to follow the leader once here.
+- retractIntake: Should not be calling external function to set motor
+- extendIntake: Should not be calling external function to set motor
+
+IntakeRollerSubsystem:
+- Probably should use defined constant for the can bus id
+- Do you understand what the BangBangController does and why are you using it?
+- k_feedForward is unused. Are you planning on using it at some point?
+- run: You are creating a new StaticBrake() every time. Probably would be better to create it once and store it in a member variable.
+
+AfterKickerUpSubsystem:
+- Probably should use defined constant for the can bus id
+- run: Should not be calling external function to set motor.
+- run: This command turns the motor on, I don't see anywhere where it is turned back off. Does it run the entire match?
+
+HoodSubsystem:
+- Probably should use defined constant for the can bus id
+- m_isOnTarget should really not be a trigger. Just create a function that returns the state and use that.
+- getAngle: is this returning the angle in degrees or some other unit?
+- pitchHood: Should not be calling external function to set motor.
+- returnHood: Should not be create a new VelocityVoltage instance each time. Use setVoltage instead?
+- staticShoot: Should not be calling external function to set motor
+- getMotorPosition: Is this in degrees or some other unit?
+- periodic: Why are you calling m_limitSwitch.get() every 20ms?
+
+KickerSubsystem:
+- Probably should use defined constant for the can bus id
+- run: Should not be calling external function to set the motor
+- run: Is the kicker motor always running either in or out? Is it never stopped?
+
+ShooterSubsystem:
+- Probably should use defined constant for the can bus id
+- Follower not setup correctly
+- m_isAtSpeed probably should not be a Trigger. You should just create a function and call it for the state.
+- ShooterSubsystem (constructor): Only the leader should have the PID set. The follower should be configured here once.
+- shoot: Currently does nothing
+- staticShoot: Should not call external function to set the motors
+
+TurretAimSubsystem:
+- Probably should use defined constant for the can bus id
+- m_isOnTarget probably should not be a trigger. Just create a function you can call which returns the state.
+- rotateToTarget: Should not call external function to set the motors
+- staticAim: Should not call external function to set the motors
+- getTargetRotation: I don't understand how this function works but it seems way more complex that it needs to be. The angle of the turret, with respect to the robot (which is what you need), is simply the angle of the target given by atan2(dy,dx) (where dy and dx are the vertical and horizontal distance to the target) minus the angle of the robot given by the position estimator. I am also unsure what you are doing to find the bestRotation. Is that to ensure that you do not try and turn the turret beyond the dead zone?  
+
+HoodSubsystem:
+- pitchHood: do not call Globals.setPosition to set the position. Just make the motor calls right here.
+- returnHood: Don't create a new VelocityVoltage instance each time. Create one once (like you do for the PositionVoltage and re-use it
+- staticShoot: Why are you specifying this to "run when disabled". You do realize that you cannot run motors when the robot is disabled?
+
+RobotContainer:
+- choro has not been addressed. Are we not going to attempt any auto for this competition?
+- I am only seeing 5 active buttons, are there still more to be implemented?
+- Why are 4 of the buttons configured in configureBindings but the fifth is in the RobotContainer constructor?
+- configureDefaults: You are setting up a trigger to have the swerve subsystem do something when the robot is disabled. This, of course, won't work since you cannot power any of the motors when the robot is disabled.
+
+Constants:
+- setRPS: this function should not be here
+- setPosition: this function should not be here
+- setFollowerRPS: this function should not be here (and definitely should NOT be creating a new instance of Follower each time it is called!)
+- setFollowerPosition: this function should not be here (and definitely should NOT be creating a new instance of Follower each time it is called!)
+- bangBang: does not appear to be used
+- isReadyToShoot: Should not use a combination of triggers, just a combination of function calls.
+- shoot: They way I read this is that each time the command is started it will either launch() or aim(). This means that if the robot is not on target, pressing the button will aim the robot but it will not begin shooting until the button is released and pressed a second time. Is this the desired behavior?
+- staticLaunch: does not appear to wait for the aim and spinup to happen.
+- towerSweep: What is this command supposed to do?
+
