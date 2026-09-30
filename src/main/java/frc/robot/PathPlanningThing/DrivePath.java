@@ -34,10 +34,10 @@ public class DrivePath extends Command{
     private final SwerveSubsystem m_swerveSubsystem = Subsystems.m_swerveSubsystem;
     private int m_point = 0;
     private final double alignDeadzone = 1.1;
-
+    @SuppressWarnings("unused")
     private double m_totalPathDistance;
     private int m_rotationIndex = -1;
-
+    @SuppressWarnings("unused")
     private final double k_checkEndThreshold = 1.0; 
 
     private ObjectMapper m_jsonMapper = new ObjectMapper();

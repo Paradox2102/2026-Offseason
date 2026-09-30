@@ -2,7 +2,6 @@ package frc.robot.generated;
 
 import static org.wpilib.units.Units.*;
 
-import org.wpilib.framework.RobotBase;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.*;

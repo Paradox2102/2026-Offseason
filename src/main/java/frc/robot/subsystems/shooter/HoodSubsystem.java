@@ -5,20 +5,17 @@ import java.util.function.DoubleSupplier;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState.MotorType;
 
 import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.Globals;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
 
 import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.util.Units;
-import org.wpilib.hardware.discrete.DigitalInput;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.SingleJointedArmSim;
 import org.wpilib.smartdashboard.SmartDashboard;
@@ -34,8 +31,6 @@ public class HoodSubsystem extends SubsystemBase{
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
 
     private final InterpolatingDoubleTreeMap m_hoodLerpTable = new InterpolatingDoubleTreeMap();
-
-    private final DigitalInput m_limitSwitch = new DigitalInput(0);
 
     private final double k_gearRatio = 0.2; // what was I doing with this? this needs to be a models smth
     // The hood's actual angle is the motor's location times the gearRatio (actually divided because it's geared down)
@@ -57,7 +52,7 @@ public class HoodSubsystem extends SubsystemBase{
         }
     }
     /**
-     * 
+     * Gets turret angle
      * @return radians
      */
     public double getAngle() {
@@ -66,30 +61,25 @@ public class HoodSubsystem extends SubsystemBase{
 
     public Command pitchHood(DoubleSupplier distanceToTarget) {
         return Commands.run(() -> {
-            Globals.setPosition(m_hoodMotor, m_request, m_hoodLerpTable.get(distanceToTarget.getAsDouble()));
+            m_hoodMotor.setControl(m_request.withPosition(m_hoodLerpTable.get(distanceToTarget.getAsDouble())));
+            
         }, this);
     }
 
     public Command returnHood(){
         return Commands.run(
-            () -> m_hoodMotor.setControl(new VelocityVoltage(-10)), this).until(() -> m_limitSwitch.get());
+            () -> m_hoodMotor.setControl(m_request.withPosition(0)), this);
     }
 
     public Command staticShoot(){
         return Commands.run(
-            () -> Globals.setPosition(m_hoodMotor, m_request, ShooterConstants.k_staticShotAngle), this);
+            () -> {
+                m_request.Position = ShooterConstants.k_staticShotAngle;
+            m_hoodMotor.setControl(m_request);
+            }, this);
     }
 
-    // public double getMotorPosition() {
-    //     return m_hoodMotor.getPosition().getValueAsDouble();
-    // }
 
-    @Override
-    public void periodic() {
-        if (m_limitSwitch.get()){
-            // m_hoodMotor
-        }
-    }
 
     @Override
     public void simulationPeriodic() {

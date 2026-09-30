@@ -62,6 +62,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     private boolean m_hasAppliedOperatorPerspective = false;
 
     /** Swerve request to apply during field-centric path following */
+    @SuppressWarnings("unused")
     private final SwerveRequest.ApplyFieldVelocity m_pathApplyFieldSpeeds = new SwerveRequest.ApplyFieldVelocity();
     public final PIDController m_xPID = new PIDController(10, 0, 0);
     public final PIDController m_yPID = new PIDController(10, 0, 0);
@@ -99,6 +100,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     );
 
     /* SysId routine for characterizing steer. This is used to find PID gains for the steer motors. */
+    @SuppressWarnings("unused")
     private final SysIdRoutine m_sysIdRoutineSteer = new SysIdRoutine(
         new SysIdRoutine.Config(
             null,        // Use default ramp rate (1 V/s)
@@ -119,6 +121,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
      * This is used to find PID gains for the FieldCentricFacingAngle HeadingController.
      * See the documentation of SwerveRequest.SysIdSwerveRotation for info on importing the log to SysId.
      */
+    @SuppressWarnings("unused")
     private final SysIdRoutine m_sysIdRoutineRotation = new SysIdRoutine(
         new SysIdRoutine.Config(
             /* This is in radians per second², but SysId only supports "volts per second" */
@@ -240,35 +243,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         }
     }
 
-    /**
-     * Creates a new auto factory for this drivetrain.
-     *
-     * @return AutoFactory for this drivetrain
-     */
-/* TODO - need to fix this when we have a working Choreo library        
-    public AutoFactory createAutoFactory() {
-        return createAutoFactory((sample, isStart) -> {});
-    }
-*/    
-    /**
-     * Creates a new auto factory for this drivetrain with the given
-     * trajectory logger.
-     *
-     * @param trajLogger Logger for the trajectory
-     * @return AutoFactory for this drivetrain
-     */
-/* TODO - Need to fix this when we have a working Choreo library        
-    public AutoFactory createAutoFactory(TrajectoryLogger<SwerveSample> trajLogger) {
-        return new AutoFactory(
-            () -> getState().Pose,
-            this::resetPose,
-            this::followPath,
-            true,
-            this,
-            trajLogger
-        );
-    }
-*/            
+
     
     /**
      * Returns a command that applies the specified control request to this swerve drivetrain.
@@ -280,35 +255,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         return run(() -> this.setControl(request.get()));
     }
 
-    /**
-     * Follows the given field-centric path sample with PID.
-     *
-     * @param sample Sample along the path to follow
-     */
-/* TODO - need to fix when we have a working Choreo library        
-    public void followPath(SwerveSample sample) {
-        m_orientPID.enableContinuousInput(-Math.PI, Math.PI);
-
-        var pose = getState().Pose;
-
-        var targetSpeeds = sample.getChassisSpeeds();
-        targetSpeeds.vxMetersPerSecond += m_xPID.calculate(
-            pose.getX(), sample.x
-        );
-        targetSpeeds.vyMetersPerSecond += m_yPID.calculate(
-            pose.getY(), sample.y
-        );
-        targetSpeeds.omegaRadiansPerSecond += m_orientPID.calculate(
-            pose.getRotation().getRadians(), sample.heading
-        );
-
-        setControl(
-            m_pathApplyFieldSpeeds.withSpeeds(targetSpeeds)
-                .withWheelForceFeedforwardsX(sample.moduleForcesX())
-                .withWheelForceFeedforwardsY(sample.moduleForcesY())
-        );
-    }
-*/            
+  
     
     /**
      * Runs the SysId Quasistatic test in the given direction for the routine
@@ -396,7 +343,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
             ) {
                 if (bestTrench.contains(cachedPose.getTranslation())) {
                     Pose2d targetPose;
-                    if (Subsystems.m_intakeExtension.m_intakeRetracted.getAsBoolean()) {
+                    if (Subsystems.m_intakeExtension.isIntakeRetracted()) {
                         targetPose = new Pose2d(
                             cachedPose.getX(),
                             bestTrench.getCenter().getY() + diff,
@@ -564,20 +511,9 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         ChassisVelocities velocity = fieldRelative ? new ChassisVelocities(translation.getX(), translation.getY(), rotation) : 
         // ChassisVelocities.fromRobotRelativeSpeeds(new ChassisVelocities(translation.getX(), translation.getY(), rotation), getPose().getRotation());
         (new ChassisVelocities(translation.getX(), translation.getY(), rotation)).toRobotRelative(getPose().getRotation());
-        setControl(m_velocityDrive.withVelocity(velocity)); // TODO - I believe this is how you do this now but should verify
+        setControl(m_velocityDrive.withVelocity(velocity));
         
     } 
-
-    /**
-     * THIS LIKELY DOESN'T WORK
-     * Set chassis speeds with closed-loop velocity control.
-     * <b> This is ROBOT RELATIVE </b>
-     * @param chassisSpeeds Chassis Speeds to set.
-     * 
-     */
-    public void setChassisSpeeds(ChassisVelocities chassisSpeeds) {
-        this.getState().Velocity = chassisSpeeds;
-    }
 
     public SwerveRequest.FieldCentric getDrive() {
         return drive;

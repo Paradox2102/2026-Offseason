@@ -184,6 +184,7 @@ public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadFi
    * @return Could be empty if there isn't a good reading.
    */
   @Deprecated(since = "2024", forRemoval = true)
+  @SuppressWarnings("unused")
   private Optional<EstimatedRobotPose> filterPose(Optional<EstimatedRobotPose> pose)
   {
     if (pose.isPresent())
@@ -275,6 +276,7 @@ public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadFi
   /**
    * Open up the photon vision camera streams on the localhost, assumes running photon vision on localhost.
    */
+  @SuppressWarnings("unused")
   private void openSimCameraViews()
   {
     if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
@@ -394,6 +396,7 @@ public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadFi
     /**
      * Last read from the camera timestamp to prevent lag due to slow data fetches.
      */
+    @SuppressWarnings("unused")
     private       double                       lastReadTimestamp = Microseconds.of(NetworkTablesJNI.now()).in(Seconds);
 
     /**
@@ -512,6 +515,7 @@ public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadFi
     {
       double mostRecentTimestamp = resultsList.isEmpty() ? 0.0 : resultsList.get(0).getTimestampSeconds();
       double currentTimestamp    = Microseconds.of(NetworkTablesJNI.now()).in(Seconds);
+      @SuppressWarnings("unused")
       double debounceTime        = Milliseconds.of(15).in(Seconds);
       for (PhotonPipelineResult result : resultsList)
       {

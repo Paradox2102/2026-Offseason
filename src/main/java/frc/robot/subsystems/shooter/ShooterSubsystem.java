@@ -4,6 +4,7 @@ import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
@@ -12,7 +13,6 @@ import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.Globals;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
 
@@ -34,6 +34,7 @@ public class ShooterSubsystem extends SubsystemBase{
     private final TalonFX m_shooterLeader = new TalonFX(CANIDConstants.shooterLeader, k_CANBus);
     private final TalonFX m_shooterFollower = new TalonFX(CANIDConstants.shooterFollower, k_CANBus);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
+    private final Follower m_follow = new Follower(CANIDConstants.shooterFollower, MotorAlignmentValue.Opposed);
 
     private final InterpolatingDoubleTreeMap m_shooterLerpTable = new InterpolatingDoubleTreeMap();
 
@@ -45,8 +46,11 @@ public class ShooterSubsystem extends SubsystemBase{
 
     public final Trigger m_isAtSpeed = new Trigger(() -> (Math.abs((m_request.Velocity + m_shooterFollower.getVelocity().getValueAsDouble()) / 2) - m_shooterLerpTable.get(Subsystems.m_swerveSubsystem.distanceToTarget())) < 100);
     public ShooterSubsystem() {
-        m_shooterFollower.getConfigurator().apply(ShooterConstants.k_shooterConfigs);
         m_shooterLeader.getConfigurator().apply(ShooterConstants.k_shooterConfigs);
+        m_shooterFollower.setControl(m_follow);
+
+        m_shooterLeader.configNeutralMode(NeutralModeValue.Coast);
+        
 
         for (double[] shotPower : ShooterConstants.k_scoreShotSpeeds){
             m_shooterLerpTable.put(shotPower[0], shotPower[1]);
@@ -60,16 +64,18 @@ public class ShooterSubsystem extends SubsystemBase{
     }
 
     public Command shoot(DoubleSupplier distanceToTarget) {
-    return Commands.run(() -> {               
-        // Globals.bangBang(m_shooterLerpTable.get(distanceToTarget.getAsDouble()), ShooterConstants.k_shooterV, m_shooterLeader, m_shooterFollower);
-    }, this); }
+        return Commands.runEnd(() -> {               
+            m_shooterLeader.setControl(m_request.withVelocity(m_shooterLerpTable.get(distanceToTarget.getAsDouble())));
+        }, () -> {
+            m_shooterLeader.setThrottle(0);
+        }, this);
+    }
 
     public Command staticShoot(){
-        return Commands.runEnd(() -> Globals.setFollowerRPS(m_shooterLeader, m_shooterFollower, m_request, ShooterConstants.k_staticShotSpeed, MotorAlignmentValue.Aligned), () -> {
-            m_shooterLeader.configNeutralMode(NeutralModeValue.Coast);
-            m_shooterFollower.configNeutralMode(NeutralModeValue.Coast);
+        return Commands.runEnd(() -> { // TODO: Remove Magic Number
+            m_shooterLeader.setControl(m_request.withVelocity(20));
+        }, () -> {
             m_shooterLeader.setThrottle(0);
-            m_shooterFollower.setThrottle(0);
         }, this);
     }
 

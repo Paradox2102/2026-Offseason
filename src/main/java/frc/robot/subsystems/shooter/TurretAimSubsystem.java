@@ -13,7 +13,6 @@ import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.math.util.Units;
-import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.simulation.SingleJointedArmSim;
 import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.system.RobotController;
@@ -24,8 +23,6 @@ import com.ctre.phoenix6.hardware.TalonFX;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.Constants.Globals;
-import frc.robot.Constants.IndexerConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
@@ -46,7 +43,7 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     public Command rotateToTarget() {
         return Commands.run(() -> {
-            Globals.setPosition(m_shooterAzimuth, m_request, getTargetRotation());     
+            m_shooterAzimuth.setControl(m_request.withPosition(getTargetRotation()));    
         }, this);
     }
 
@@ -57,7 +54,9 @@ public class TurretAimSubsystem extends SubsystemBase{
     }
 
     public Command staticAim() {
-        return Commands.run(() -> Globals.setPosition(m_shooterAzimuth, m_request, .1), this);
+        return Commands.run(() -> {
+            m_shooterAzimuth.setControl(m_request.withPosition(0));    
+        }, this);
     }
 
     private double getTargetRotation(){ // This should add the turret offset to aiming but I need to check when I get sim up and running.

@@ -4,17 +4,10 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
-import com.ctre.phoenix6.swerve.SwerveRequest;
-
 import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.Command;
-import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
-import org.wpilib.command2.button.RobotModeTriggers;
-import org.wpilib.command2.button.Trigger;
-
 import frc.robot.Constants.Controls;
 import frc.robot.Constants.Subsystems;
 import frc.robot.PathPlanningThing.SelectAuto;
@@ -32,16 +25,9 @@ public class RobotContainer {
     private final Telemetry logger = new Telemetry(SwerveSubsystem.MaxSpeed);
 
     public static final CommandGamepad m_controller = new CommandGamepad(0);
+    @SuppressWarnings("unused")
     private final CommandJoystick m_joystick = new CommandJoystick(1);
     
-
-    //We need Jam detection. If indexer is too slow some time after running, then run it full speed backwards
-
-    /* Path follower */
-    // TODO - choreo needed
-    // private final AutoFactory autoFactory;
-    // private final AutoRoutines autoRoutines;
-    // private final AutoChooser autoChooser = new AutoChooser();
 
     public RobotContainer() {
 

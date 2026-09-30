@@ -2,14 +2,12 @@ package frc.robot.subsystems.shooter;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.Globals;
 import frc.robot.Constants.ShooterConstants;
 
 import org.wpilib.math.system.DCMotor;
@@ -43,8 +41,8 @@ public class KickerSubsystem extends SubsystemBase {
         }
     }
     public Command run(boolean in) {
-        return Commands.run(() -> {               
-            Globals.setRPS(m_kickerMotor, m_request, in ? ShooterConstants.k_kickInRPS : ShooterConstants.k_kickOutRPS);
+        return Commands.run(() -> {
+            m_kickerMotor.setControl(m_request.withVelocity(in ? ShooterConstants.k_kickInRPS : ShooterConstants.k_kickOutRPS));
         }, this); }
     @Override
     public void simulationPeriodic() {

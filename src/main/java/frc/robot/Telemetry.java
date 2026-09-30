@@ -7,7 +7,6 @@ import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.math.kinematics.SwerveModulePosition;
 import org.wpilib.math.kinematics.SwerveModuleVelocity;
-import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.networktables.DoubleArrayPublisher;
 import org.wpilib.networktables.DoublePublisher;
 import org.wpilib.networktables.NetworkTable;

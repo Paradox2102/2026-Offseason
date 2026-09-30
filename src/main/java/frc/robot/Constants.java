@@ -7,13 +7,8 @@ import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.Trigger;
 
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
+import com.ctre.phoenix6.signals.InvertedValue;
 
 import org.wpilib.math.geometry.Rectangle2d;
 import org.wpilib.math.geometry.Rotation3d;
@@ -29,7 +24,7 @@ import frc.robot.subsystems.indexer.IndexerConveyorSubsystem;
 import frc.robot.subsystems.indexer.IndexerRollerSubsystem;
 import frc.robot.subsystems.intake.IntakeExtensionSubsystem;
 import frc.robot.subsystems.intake.IntakeRollerSubsystem;
-import frc.robot.subsystems.shooter.AfterKickerUpSubsystem;
+import frc.robot.subsystems.shooter.SecondaryKicker;
 import frc.robot.subsystems.shooter.HoodSubsystem;
 import frc.robot.subsystems.shooter.KickerSubsystem;
 import frc.robot.subsystems.shooter.ShooterSubsystem;
@@ -77,7 +72,7 @@ public class Constants {
         public static final HoodSubsystem m_hoodSubsystem = new HoodSubsystem();
         public static final TurretAimSubsystem m_turretAimSubsystem = new TurretAimSubsystem();
         public static final KickerSubsystem m_kickerSubsystem = new KickerSubsystem();
-        public static final AfterKickerUpSubsystem m_afterKickerUpSubsystem = new AfterKickerUpSubsystem();
+        public static final SecondaryKicker m_secondaryKicker = new SecondaryKicker();
         public static final IndexerConveyorSubsystem m_indexerConveyor = new IndexerConveyorSubsystem();
         public static final IndexerRollerSubsystem m_indexerRollerSubsystem = new IndexerRollerSubsystem();
         static {
@@ -119,11 +114,11 @@ public class Constants {
     public static final double k_kickerMOI = 0.0000356;
     public static final double k_shooterMOI = 0.0004812;
 
-    public static final Slot0Configs k_hoodConfig = new Slot0Configs();
-    public static final Slot0Configs k_shooterConfigs = new Slot0Configs();
-    public static final Slot0Configs k_turretConfig = new Slot0Configs();
-    public static final Slot0Configs k_kickerConfig = new Slot0Configs();
-    public static final Slot0Configs k_secondaryKickerConfig = new Slot0Configs();
+    public static final TalonFXConfiguration k_hoodConfig = new TalonFXConfiguration();
+    public static final TalonFXConfiguration k_shooterConfigs = new TalonFXConfiguration();
+    public static final TalonFXConfiguration k_turretConfig = new TalonFXConfiguration();
+    public static final TalonFXConfiguration k_kickerConfig = new TalonFXConfiguration();
+    public static final TalonFXConfiguration k_secondaryKickerConfig = new TalonFXConfiguration();
 
     public static final double k_hoodG = 0.1;
     public static final double k_hoodS = 0;
@@ -179,26 +174,27 @@ public class Constants {
     public static final double k_hoodMaxAngle = 90;
 
     static {
-        k_shooterConfigs.kP = k_shooterP;
-        k_shooterConfigs.kS = k_shooterS;
-        k_shooterConfigs.kV = k_shooterV;
+        k_shooterConfigs.Slot0.kP = k_shooterP;
+        k_shooterConfigs.Slot0.kS = k_shooterS;
+        k_shooterConfigs.Slot0.kV = k_shooterV;
 
-        k_kickerConfig.kP = k_kickerP;
-        k_kickerConfig.kS = k_kickerS;
-        k_kickerConfig.kV = k_kickerV;
+        k_kickerConfig.Slot0.kP = k_kickerP;
+        k_kickerConfig.Slot0.kS = k_kickerS;
+        k_kickerConfig.Slot0.kV = k_kickerV;
 
-        k_secondaryKickerConfig.kP = k_secondaryKickerP;
-        k_secondaryKickerConfig.kS = k_secondaryKickerS;
-        k_secondaryKickerConfig.kV = k_secondaryKickerV;
+        k_secondaryKickerConfig.withMotorOutput(k_secondaryKickerConfig.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive));
+        k_secondaryKickerConfig.Slot0.kP = k_secondaryKickerP;
+        k_secondaryKickerConfig.Slot0.kS = k_secondaryKickerS;
+        k_secondaryKickerConfig.Slot0.kV = k_secondaryKickerV;
 
-        k_turretConfig.kS = k_turretS;
-        k_turretConfig.kP = k_turretP;
-        k_turretConfig.kD = k_turretD;
+        k_turretConfig.Slot0.kS = k_turretS;
+        k_turretConfig.Slot0.kP = k_turretP;
+        k_turretConfig.Slot0.kD = k_turretD;
 
-        k_hoodConfig.kG = k_hoodG;
-        // k_hoodConfig.kS = k_hoodS;
-        // k_hoodConfig.kP = k_hoodP;
-        // k_hoodConfig.kD = k_hoodD;
+        k_hoodConfig.Slot0.kG = k_hoodG;
+        // k_hoodConfig.Slot0.kS = k_hoodS;
+        // k_hoodConfig.Slot0.kP = k_hoodP;
+        // k_hoodConfig.Slot0.kD = k_hoodD;
     }
   }
 
@@ -253,7 +249,7 @@ public class Constants {
     public static final int k_outPosition = 90;
 
     public static final TalonFXConfiguration k_intakeRollerConfigs = new TalonFXConfiguration();
-    public static final Slot0Configs k_intakeExtensionConfigs = new Slot0Configs();
+    public static final TalonFXConfiguration k_intakeExtensionConfigs = new TalonFXConfiguration();
 
     public static final double k_rollerP = 0.0;
     public static final double k_rollerS = 0.0;
@@ -273,10 +269,10 @@ public class Constants {
         k_intakeRollerConfigs.Slot0.kV = k_rollerV;
         k_intakeRollerConfigs.Slot0.kS = k_rollerS;
 
-        k_intakeExtensionConfigs.kG = k_intakeExtensionG;
-        k_intakeExtensionConfigs.kP = k_intakeExtensionP;
-        k_intakeExtensionConfigs.kV = k_intakeExtensionV;
-        k_intakeExtensionConfigs.kD = k_intakeExtensionD;
+        k_intakeExtensionConfigs.Slot0.kG = k_intakeExtensionG;
+        k_intakeExtensionConfigs.Slot0.kP = k_intakeExtensionP;
+        k_intakeExtensionConfigs.Slot0.kV = k_intakeExtensionV;
+        k_intakeExtensionConfigs.Slot0.kD = k_intakeExtensionD;
     }
 
     
@@ -290,9 +286,8 @@ public class Constants {
 
         public static final int k_jamThreshold = 5; // should be tuned to not happen too much
 
-        public static final Slot0Configs k_indexerRollerConfigs = new Slot0Configs();
-        public static final Slot0Configs k_indexerConveyorConfigs = new Slot0Configs();
-        public static final TalonFXConfiguration k_configuration = new TalonFXConfiguration();
+        public static final TalonFXConfiguration k_indexerRollerConfigs = new TalonFXConfiguration();
+        public static final TalonFXConfiguration k_indexerConveyorConfigs = new TalonFXConfiguration();
         public static final double k_indexerRollerMOI = 0.00045822;
         public static final double k_indexerConveyorMOI = 0.00001722;
 
@@ -305,81 +300,20 @@ public class Constants {
         public static final double k_conveyorV = 0.0;
 
         static {
-            k_indexerRollerConfigs.kP = k_rollerP;
-            k_indexerRollerConfigs.kS = k_rollerS;
-            k_indexerRollerConfigs.kV = k_rollerV;
+            k_indexerRollerConfigs.Slot0.kP = k_rollerP;
+            k_indexerRollerConfigs.Slot0.kS = k_rollerS;
+            k_indexerRollerConfigs.Slot0.kV = k_rollerV;
             
             
 
-            k_indexerConveyorConfigs.kP = k_conveyorP;
-            k_indexerConveyorConfigs.kS = k_conveyorS;
-            k_indexerConveyorConfigs.kV = k_conveyorV;
+            k_indexerConveyorConfigs.Slot0.kP = k_conveyorP;
+            k_indexerConveyorConfigs.Slot0.kS = k_conveyorS;
+            k_indexerConveyorConfigs.Slot0.kV = k_conveyorV;
             
         }
   }
 
-  public static class Globals {
-    /**
-     * Sets the RPS of a specified motor
-     * @param motor The motor to set the RPS of
-     * @param request This is a VelocityVoltage. Should be created once in your class then sed every time you set RPS
-     * @param RPS This is the RPS the motor will go spiin
-     */
-    public static void setRPS(TalonFX motor, VelocityVoltage request, double RPS){
-        motor.setControl(request.withVelocity(RPS));
-    }
-    /**
-     * Sets the RPS of a specified motor
-     * @param motor The motor to set the RPS of
-     * @param request This is a PositionVoltage. Should be created once in your class then said every time you set RPS
-     * @param position This is the position the motor will go spiin
-     */
-    public static void setPosition(TalonFX motor, PositionVoltage request, double position){
-        motor.setControl(request.withPosition(position));
-    }
-    /**
-     * Sets the RPS of a lead and follower motor
-     * @param leadMotor The lead motor to have the RPS set for
-     * @param followMotor The follower motor to have the RPS of the lead motor
-     * @param request This is a VelocityVoltage. Should be created once in your class then said every time you set RPS
-     * @param RPS Motor go spiin at rps
-     * @param alignmentValue Whether the motors are aligned or opposed (ugh, I think I mispelled that)
-     */
-    public static void setFollowerRPS(TalonFX leadMotor, TalonFX followMotor, VelocityVoltage request, double RPS, MotorAlignmentValue alignmentValue){
-        setRPS(leadMotor, request, RPS);
-        followMotor.setControl(new Follower(leadMotor.getDeviceID(), alignmentValue));
-    }
-
-    /**
-     * Sets the Position of a lead and follower motor
-     * @param leadMotor The lead motor to have the RPS set for
-     * @param followMotor The follower motor to have the RPS of the lead motor
-     * @param request This is a VelocityVoltage. Should be created once in your class then said every time you set RPS
-     * @param position Motor go spiin to position
-     * @param alignmentValue Whether the motors are aligned or opposed (ugh, I think I mispelled that)
-     */
-    public static void setFollowerPosition(TalonFX leadMotor, TalonFX followMotor, PositionVoltage request, double position, MotorAlignmentValue alignmentValue){
-        setPosition(leadMotor, request, position);
-        followMotor.setControl(new Follower(leadMotor.getDeviceID(), alignmentValue));
-    }
-
-    public static void bangBang(double targetRPS, double kv, TalonFX... Motors){
-        for (TalonFX motor : Motors) {
-            var m_RPSSetPoint = targetRPS;
-        if(m_RPSSetPoint == 0){
-        motor.setVoltage(0);
-        } else {
-        if(motor.getVelocity().getValueAsDouble() < m_RPSSetPoint){
-            motor.setVoltage(12);
-        } else {
-            motor.setVoltage(kv * m_RPSSetPoint);
-        }
-    }
-        }
-    
-    }
-  }
-
+ 
     public static class Controls {
         public static final Trigger isReadyToShoot = new Trigger(Subsystems.m_hoodSubsystem.m_isOnTarget.and(Subsystems.m_shooterSubsystem.m_isAtSpeed.and(Subsystems.m_turretAimSubsystem.m_isOnTarget)));
         public static final Command extendIntake() {
@@ -406,7 +340,7 @@ public class Constants {
                 aim(),
                 Subsystems.m_indexerConveyor.run(true),
                 Subsystems.m_indexerRollerSubsystem.run(true),
-                Subsystems.m_afterKickerUpSubsystem.run(),
+                Subsystems.m_secondaryKicker.run(),
                 Subsystems.m_kickerSubsystem.run(true)
                 );
         }
@@ -416,7 +350,7 @@ public class Constants {
                 staticAim(),
                 Subsystems.m_indexerConveyor.run(true),
                 Subsystems.m_indexerRollerSubsystem.run(true),
-                Subsystems.m_afterKickerUpSubsystem.run(),
+                Subsystems.m_secondaryKicker.run(),
                 Subsystems.m_kickerSubsystem.run(true)
                 );
         }

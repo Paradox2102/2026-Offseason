@@ -2,6 +2,7 @@ package frc.robot.subsystems.intake;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
@@ -9,18 +10,15 @@ import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.Globals;
 import frc.robot.Constants.IntakeConstants;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
-import org.wpilib.math.util.Units;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.ElevatorSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import org.wpilib.command2.button.Trigger;
 import org.wpilib.framework.RobotBase;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
@@ -31,9 +29,9 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     private final TalonFX m_intakeExtensionLeader = new TalonFX(CANIDConstants.intakeExtensionLeader, k_CANBus);
     private final TalonFX m_intakeExtensionFollower = new TalonFX(CANIDConstants.intakeExtensionFollower, k_CANBus); 
-    public Trigger m_intakeRetracted = new Trigger(() -> (m_intakeExtensionLeader.getPosition().getValueAsDouble() < 0));
 
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
+    private final Follower m_follow = new Follower(CANIDConstants.intakeExtensionLeader, MotorAlignmentValue.Aligned);
 
     private final double k_gearRatio = 2.8;
     private final ElevatorSim m_motorSimModel = new ElevatorSim(
@@ -43,8 +41,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
 
     public IntakeExtensionSubsystem() {
-        m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
         m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
+        m_intakeExtensionFollower.setControl(m_follow);
 
         if (Utils.isSimulation()){
             var talonFXSim = m_intakeExtensionLeader.getSimState();
@@ -55,17 +53,22 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     public Command retractIntake() {
         return Commands.run(() -> {
-            Globals.setFollowerPosition(m_intakeExtensionLeader, m_intakeExtensionFollower, m_request, 0, MotorAlignmentValue.Aligned);
-        }, this).until(() -> m_intakeRetracted.getAsBoolean());
+            m_intakeExtensionLeader.setControl(m_request.withPosition(0));
+        }, this).until(() -> isIntakeRetracted());
     }
     public Command extendIntake() {
         return Commands.runOnce(() -> {
-            Globals.setFollowerPosition(m_intakeExtensionLeader, m_intakeExtensionFollower, m_request, IntakeConstants.k_outPosition, MotorAlignmentValue.Aligned);
+            m_intakeExtensionLeader.setControl(m_request.withPosition(IntakeConstants.k_outPosition));
             if (RobotBase.isSimulation()){
                 
             }
         }, this);
     }
+
+    public boolean isIntakeRetracted(){
+        return m_intakeExtensionLeader.getPosition().getValueAsDouble() < 0;
+    }
+
     @Override
     public void simulationPeriodic() {
     var talonFXSim = m_intakeExtensionLeader.getSimState();

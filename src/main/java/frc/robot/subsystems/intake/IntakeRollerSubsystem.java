@@ -3,20 +3,17 @@ package frc.robot.subsystems.intake;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.StaticBrake;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.Globals;
 import frc.robot.Constants.IntakeConstants;
 
 import org.wpilib.math.system.Models;
 import org.wpilib.math.util.Units;
 import org.wpilib.math.controller.BangBangController;
-import org.wpilib.math.controller.SimpleMotorFeedforward;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.smartdashboard.SmartDashboard;
@@ -24,7 +21,6 @@ import org.wpilib.system.RobotController;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import org.wpilib.command2.button.Trigger;
 
 public class IntakeRollerSubsystem extends SubsystemBase {
     private static final StaticBrake k_brakeRequest = new StaticBrake();
@@ -34,7 +30,6 @@ public class IntakeRollerSubsystem extends SubsystemBase {
     private final TalonFX m_intakeRollerMotor = new TalonFX(CANIDConstants.intakeRoller, k_CANBus);
     
     private final BangBangController k_bangBang = new BangBangController();
-    private final SimpleMotorFeedforward k_feedForward = new SimpleMotorFeedforward(IntakeConstants.k_rollerS, IntakeConstants.k_rollerV);
 
     private final double k_gearRatio = 0.5;
 
@@ -54,10 +49,6 @@ public class IntakeRollerSubsystem extends SubsystemBase {
     public Command run(boolean in){
         return Commands.runEnd(() -> {
            m_intakeRollerMotor.configNeutralMode(NeutralModeValue.Coast);
-            // m_intakeRollerMotor.setControl(new VelocityVoltage((k_bangBang.calculate(m_intakeRollerMotor.getVelocity(true).getValueAsDouble(), in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS)* k_feedForward.calculate(in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS))));
-            // m_intakeRollerMotor.setControl(new VelocityVoltage(in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS));
-            // Globals.bangBang(IntakeConstants.k_inRPS, IntakeConstants.k_rollerV, m_intakeRollerMotor);
-            // m_intakeRollerMotor.setControl(new VelocityVoltage(k_feedForward.calculate(IntakeConstants.k_inRPS)));
             m_intakeRollerMotor.setThrottle(k_bangBang.calculate(m_intakeRollerMotor.getVelocity(true).getValueAsDouble(), in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS));
         }, () -> {
             m_intakeRollerMotor.configNeutralMode(NeutralModeValue.Brake);

@@ -15,7 +15,7 @@ public class SelectAuto {
      * Make sure that you call checkSelectedAuto() in Disabled Periodic. 
      */
     public static Command selectedAuto = new DrivePath();
-
+    @SuppressWarnings("unused")
     private static final File autoDirectory = Paths.get("./src/main/java/frc/robot/PathPlanningThing/Autos/").toAbsolutePath().toFile();
 
 

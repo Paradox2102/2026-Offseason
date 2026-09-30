@@ -2,16 +2,15 @@ package frc.robot.subsystems.indexer;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.Globals;
 import frc.robot.Constants.IndexerConstants;
 
 import org.wpilib.math.system.DCMotor;
@@ -29,6 +28,8 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
     private final TalonFX m_indexerConveyorLeader = new TalonFX(CANIDConstants.indexerConveyorLeader, k_CANBus);
     private final TalonFX m_indexerConveyorFollower = new TalonFX(CANIDConstants.indexerConveyorFollower, k_CANBus);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
+    private final Follower m_follow = new Follower(CANIDConstants.indexerConveyorLeader, MotorAlignmentValue.Opposed);
+    private final StaticBrake m_brake = new StaticBrake();
 
     private final double k_gearRatio = 1;
 
@@ -36,9 +37,9 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
         Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), IndexerConstants.k_indexerConveyorMOI, k_gearRatio), DCMotor.getKrakenX60(1));
 
     public IndexerConveyorSubsystem() {
-        
-        m_indexerConveyorFollower.getConfigurator().apply(IndexerConstants.k_indexerConveyorConfigs);
         m_indexerConveyorLeader.getConfigurator().apply(IndexerConstants.k_indexerConveyorConfigs);
+        m_indexerConveyorFollower.setControl(m_follow);
+
 
         if (Utils.isSimulation()){
             var talonFXSim = m_indexerConveyorLeader.getSimState();
@@ -48,10 +49,9 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
     }
     public Command run(boolean in) {
         return Commands.runEnd(() -> {
-            Globals.setFollowerRPS(m_indexerConveyorLeader, m_indexerConveyorFollower, m_request,
-             in ? IndexerConstants.k_conveyorInRPS : IndexerConstants.k_conveyorOutRPS, MotorAlignmentValue.Opposed);   
+            m_indexerConveyorLeader.setControl(m_request.withVelocity(in ? IndexerConstants.k_conveyorInRPS : IndexerConstants.k_conveyorOutRPS));
             }, () -> {
-                m_indexerConveyorFollower.setControl(new VoltageOut(0));
+                m_indexerConveyorFollower.setControl(m_brake);
             }, this); 
     }
     
