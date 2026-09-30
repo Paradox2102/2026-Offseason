@@ -125,7 +125,7 @@ public class Constants {
     public static final Slot0Configs k_kickerConfig = new Slot0Configs();
     public static final Slot0Configs k_secondaryKickerConfig = new Slot0Configs();
 
-    public static final double k_hoodG = 15.0;
+    public static final double k_hoodG = 0.1;
     public static final double k_hoodS = 0;
     public static final double k_hoodP = 0;
     public static final double k_hoodD = 0;
@@ -145,7 +145,7 @@ public class Constants {
     public static final double k_turretS = 0;
     public static final double k_turretP = 0;
     public static final double k_turretD = 0;
-    // TODO: Set turret offset. 
+    
     public static final Translation3d k_turretOffset = new Translation3d(-5.965, 7.5429, 10.3851);
 
     public static final DoubleNumber k_turretBounds = new DoubleNumber(-500, 500);
@@ -196,9 +196,9 @@ public class Constants {
         k_turretConfig.kD = k_turretD;
 
         k_hoodConfig.kG = k_hoodG;
-        k_hoodConfig.kS = k_hoodS;
-        k_hoodConfig.kP = k_hoodP;
-        k_hoodConfig.kD = k_hoodD;
+        // k_hoodConfig.kS = k_hoodS;
+        // k_hoodConfig.kP = k_hoodP;
+        // k_hoodConfig.kD = k_hoodD;
     }
   }
 

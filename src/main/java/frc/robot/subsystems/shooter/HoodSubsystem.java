@@ -56,7 +56,10 @@ public class HoodSubsystem extends SubsystemBase{
             talonFXSim.setMotorType(MotorType.KrakenX60);
         }
     }
-
+    /**
+     * 
+     * @return radians
+     */
     public double getAngle() {
         return m_motorSimModel.getAngle() * k_gearRatio;
     }
@@ -72,14 +75,14 @@ public class HoodSubsystem extends SubsystemBase{
             () -> m_hoodMotor.setControl(new VelocityVoltage(-10)), this).until(() -> m_limitSwitch.get());
     }
 
-    public Command staticShoot(){ // TODO: Remove Ignore Disable
+    public Command staticShoot(){
         return Commands.run(
-            () -> Globals.setPosition(m_hoodMotor, m_request, ShooterConstants.k_staticShotAngle), this).ignoringDisable(true);
+            () -> Globals.setPosition(m_hoodMotor, m_request, ShooterConstants.k_staticShotAngle), this);
     }
 
-    public double getMotorPosition() {
-        return m_hoodMotor.getPosition().getValueAsDouble();
-    }
+    // public double getMotorPosition() {
+    //     return m_hoodMotor.getPosition().getValueAsDouble();
+    // }
 
     @Override
     public void periodic() {
@@ -97,9 +100,10 @@ public class HoodSubsystem extends SubsystemBase{
    m_motorSimModel.setInputVoltage(m_hoodMotor.getMotorVoltage().getValueAsDouble());
    m_motorSimModel.update(0.020);
 
-   talonFXSim.setRawRotorPosition(m_motorSimModel.getAngle() * k_gearRatio);
+   talonFXSim.setRawRotorPosition(Units.rotationsToRadians(m_motorSimModel.getAngle()) * k_gearRatio);
    talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getVelocity()) * k_gearRatio);
-   SmartDashboard.putNumber("Hood motor position", Units.rotationsToDegrees(m_hoodMotor.getPosition(true).getValueAsDouble()));
+
+   SmartDashboard.putNumber("Hood motor position", Units.radiansToDegrees(m_motorSimModel.getAngle()));
 
     }
 }

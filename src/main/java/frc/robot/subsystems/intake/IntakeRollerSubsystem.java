@@ -27,6 +27,8 @@ import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.Trigger;
 
 public class IntakeRollerSubsystem extends SubsystemBase {
+    private static final StaticBrake k_brakeRequest = new StaticBrake();
+
     private final CANBus k_CANBus = CANBus.systemcore(2);
 
     private final TalonFX m_intakeRollerMotor = new TalonFX(CANIDConstants.intakeRoller, k_CANBus);
@@ -56,10 +58,10 @@ public class IntakeRollerSubsystem extends SubsystemBase {
             // m_intakeRollerMotor.setControl(new VelocityVoltage(in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS));
             // Globals.bangBang(IntakeConstants.k_inRPS, IntakeConstants.k_rollerV, m_intakeRollerMotor);
             // m_intakeRollerMotor.setControl(new VelocityVoltage(k_feedForward.calculate(IntakeConstants.k_inRPS)));
-            m_intakeRollerMotor.setThrottle(k_bangBang.calculate(k_bangBang.calculate(m_intakeRollerMotor.getVelocity(true).getValueAsDouble(), in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS)));
+            m_intakeRollerMotor.setThrottle(k_bangBang.calculate(m_intakeRollerMotor.getVelocity(true).getValueAsDouble(), in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS));
         }, () -> {
             m_intakeRollerMotor.configNeutralMode(NeutralModeValue.Brake);
-            m_intakeRollerMotor.setControl(new StaticBrake());
+            m_intakeRollerMotor.setControl(k_brakeRequest);
         }, this);
     }
 

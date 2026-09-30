@@ -44,16 +44,11 @@ public class RobotContainer {
     // private final AutoChooser autoChooser = new AutoChooser();
 
     public RobotContainer() {
-// TODO - choreo needed        autoFactory = m_swerveSubsystem.createAutoFactory();''
-        // autoFactory = null;
-        // autoRoutines = new AutoRoutines(autoFactory);
 
-        // autoChooser.addRoutine("SimplePath", autoRoutines::simplePathAuto);
-// TODO - choreo        SmartDashboard.putData("Auto Chooser", autoChooser);
         configureDefaults();
         configureBindings();
-        m_controller.southFace().whileTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
-        // configureAutos();
+        // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
+        configureAutos();
     }
 
     private void configureBindings() {
@@ -88,10 +83,10 @@ public class RobotContainer {
         Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.returnHood());
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
-        final var idle = new SwerveRequest.Idle();
-        RobotModeTriggers.disabled().whileTrue(
-            Subsystems.m_swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true)
-        );
+        // final var idle = new SwerveRequest.Idle();
+        // RobotModeTriggers.disabled().whileTrue(
+        //     Subsystems.m_swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true)
+        // );
     }
     private void configureAutos(){
         SmartDashboard.putData("Auto Selection", SelectAuto.m_autoSelection);
