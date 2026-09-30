@@ -12,9 +12,11 @@ import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
+import org.wpilib.math.util.Units;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.simulation.SingleJointedArmSim;
 import org.wpilib.smartdashboard.SmartDashboard;
+import org.wpilib.system.RobotController;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -37,14 +39,20 @@ public class TurretAimSubsystem extends SubsystemBase{
     public final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
 
     public final Trigger m_isOnTarget = new Trigger(() -> (Math.abs(m_request.Position - getTargetRotation()) < 0.5));
- private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(Models.singleJointedArmFromPhysicalConstants(DCMotor.getKrakenX60(1), 0.04969116, ShooterConstants.k_shooterGearReduction), DCMotor.getKrakenX60(1), ShooterConstants.k_shooterGearReduction, 0.1, ShooterConstants.k_turretBounds.getMinBound(), ShooterConstants.k_turretBounds.getMaxBound(), false, 0);
-    public TurretAimSubsystem() {
+ private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(Models.singleJointedArmFromPhysicalConstants(DCMotor.getKrakenX60(1), 0.04969116, ShooterConstants.k_shooterGearReduction), DCMotor.getKrakenX60(1), ShooterConstants.k_shooterGearReduction, 0.1, ShooterConstants.k_turretBounds.getMinBound(), ShooterConstants.k_turretBounds.getMaxBound(), false, 0);   
+ public TurretAimSubsystem() {
         m_shooterAzimuth.getConfigurator().apply(ShooterConstants.k_turretConfig);
     }
 
     public Command rotateToTarget() {
         return Commands.run(() -> {
             Globals.setPosition(m_shooterAzimuth, m_request, getTargetRotation());     
+        }, this);
+    }
+
+    public Command rotateToTargetPID() {
+        return Commands.run(() -> {
+            m_shooterAzimuth.setControl(m_request.withPosition(0.1 * ShooterConstants.k_shooterGearReduction));
         }, this);
     }
 
@@ -79,11 +87,29 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     public TalonFX getShooterAzimuth(){
         return m_shooterAzimuth;
+
     }
     @Override
     public void simulationPeriodic() {
+    var talonFXSim = m_shooterAzimuth.getSimState();
 
-        // SmartDashboard.putNumber("Indexer Roller Motor Speed", m_motorSimModel.getAngularVelocity() * 0.1591549430919);
+        // set the supply voltage of the TalonFX
+        talonFXSim.setSupplyVoltage(RobotController.getBatteryVoltage());
+
+        // get the motor voltage of the TalonFX
+        var motorVoltage = talonFXSim.getMotorVoltageMeasure();
+
+        // use the motor voltage to calculate new position and velocity
+        // using WPILib's DCMotorSim class for physics simulation
+        m_motorSimModel.setInputVoltage(motorVoltage.in(m_shooterAzimuth.getMotorVoltage().getValue().unit()));
+        m_motorSimModel.update(0.020); // assume 20 ms loop time
+
+        // apply the new rotor position and velocity to the TalonFX;
+        // note that this is rotor position/velocity (before gear ratio), but
+        // DCMotorSim returns mechanism position/velocity (after gear ratio)
+        talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getVelocity()));
+            
+        SmartDashboard.putNumber("Turret Angel not in rotations instead", Units.radiansToRotations(m_motorSimModel.getAngle()*ShooterConstants.k_shooterGearReduction));
 
     }
 

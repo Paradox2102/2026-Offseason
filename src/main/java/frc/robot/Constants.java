@@ -142,8 +142,8 @@ public class Constants {
     public static final double k_secondaryKickerS = 0.01;
     public static final double k_secondaryKickerV = 0.1195;
 
-    public static final double k_turretS = 0;
-    public static final double k_turretP = 0;
+    public static final double k_turretS = 10;
+    public static final double k_turretP = 0.0;
     public static final double k_turretD = 0;
     
     public static final Translation3d k_turretOffset = new Translation3d(-5.965, 7.5429, 10.3851);

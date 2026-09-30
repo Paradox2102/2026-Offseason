@@ -4,4 +4,5 @@ avaje-spi-corere
 avaje-spi-coreore
 avaje-spi-corecore
 avaje-spi-core-core
+avaje-spi-corei-core
 avaje-spi-core
