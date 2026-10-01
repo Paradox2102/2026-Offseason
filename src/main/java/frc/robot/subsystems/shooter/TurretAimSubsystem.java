@@ -29,7 +29,7 @@ import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.utils.DoubleNumber;
 // Turret aim gear ratio is 67.86:1
 public class TurretAimSubsystem extends SubsystemBase{
-    private final CANBus k_CANBus = CANBus.systemcore(1);
+    private final CANBus k_CANBus = CANIDConstants.k_canBus1;
 
     private final TalonFX m_shooterAzimuth = new TalonFX(CANIDConstants.shooterAzimuth, k_CANBus);
     

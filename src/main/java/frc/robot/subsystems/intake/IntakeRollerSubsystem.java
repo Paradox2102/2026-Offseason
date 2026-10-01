@@ -25,7 +25,7 @@ import org.wpilib.command2.SubsystemBase;
 public class IntakeRollerSubsystem extends SubsystemBase {
     private static final StaticBrake k_brakeRequest = new StaticBrake();
 
-    private final CANBus k_CANBus = CANBus.systemcore(2);
+    private final CANBus k_CANBus = CANIDConstants.k_canBus2;
 
     private final TalonFX m_intakeRollerMotor = new TalonFX(CANIDConstants.intakeRoller, k_CANBus);
     

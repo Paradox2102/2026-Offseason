@@ -7,6 +7,7 @@ import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.Trigger;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
 
@@ -33,6 +34,13 @@ import frc.robot.utils.DoubleNumber;
 
 public class Constants {
     public static class CANIDConstants {
+
+        public static final CANBus k_canBus0 = CANBus.systemcore(0);
+        public static final CANBus k_canBus1 = CANBus.systemcore(1);
+        public static final CANBus k_canBus2 = CANBus.systemcore(2);
+        public static final CANBus k_canBus3 = CANBus.systemcore(3);
+        public static final CANBus k_canBus4 = CANBus.systemcore(4);
+
         public static final int gyro = 0;
 
         public static final int fl_drive = 1;
@@ -121,7 +129,7 @@ public class Constants {
 
     public static final double k_hoodG = 0.0;
     public static final double k_hoodS = 0;
-    public static final double k_hoodP = 0.2;
+    public static final double k_hoodP = 2.0;
     public static final double k_hoodD = 0;
 
     public static final double k_shooterP = 0.3;

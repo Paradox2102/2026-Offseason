@@ -79,7 +79,7 @@ public class TunerConstants {
 
     // CAN bus that the devices are located on;
     // All swerve devices must share the same CAN bus
-    public static final CANBus kCANBus = CANBus.systemcore(2);
+    public static final CANBus kCANBus = CANIDConstants.k_canBus2;
 
     // Measured robot speed (m/s) at 12 V applied output;
     // This is NOT the desired max robot speed - see MaxSpeed in RobotContainer instead;

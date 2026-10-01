@@ -25,7 +25,7 @@ import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.Trigger;
 
 public class HoodSubsystem extends SubsystemBase{
-    private final CANBus k_CANBus = CANBus.systemcore(1);
+    private final CANBus k_CANBus = CANIDConstants.k_canBus1;
 
     private final TalonFX m_hoodMotor = new TalonFX(CANIDConstants.hood, k_CANBus);
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
@@ -63,7 +63,7 @@ public class HoodSubsystem extends SubsystemBase{
 
     public Command pitchHood(DoubleSupplier distanceToTarget) {
         return Commands.run(() -> {
-            m_hoodMotor.setControl(m_request.withPosition(m_hoodLerpTable.get(distanceToTarget.getAsDouble())));
+            m_hoodMotor.setControl(m_request.clone().withPosition(m_hoodLerpTable.get(distanceToTarget.getAsDouble())));
             
         }, this);
     }
@@ -76,8 +76,8 @@ public class HoodSubsystem extends SubsystemBase{
     public Command staticShoot(){
         return Commands.run(
             () -> {
-                m_request.Position = ShooterConstants.k_staticShotAngle;
-            m_hoodMotor.setControl(m_request);
+            m_hoodMotor.setControl(m_request.withPosition(ShooterConstants.k_staticShotAngle));
+            System.out.println("static SHooting");
             }, this);
     }
 
@@ -92,7 +92,7 @@ public class HoodSubsystem extends SubsystemBase{
    m_motorSimModel.setInputVoltage(m_hoodMotor.getMotorVoltage().getValueAsDouble());
    m_motorSimModel.update(0.020);
 
-   talonFXSim.setRawRotorPosition(Units.rotationsToRadians(m_motorSimModel.getAngle()) * k_gearRatio);
+   talonFXSim.setRawRotorPosition(Units.radiansToRotations(m_motorSimModel.getAngle()) * k_gearRatio);
    talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getVelocity()) * k_gearRatio);
 
    SmartDashboard.putNumber("Hood motor position", Units.radiansToDegrees(m_motorSimModel.getAngle()));

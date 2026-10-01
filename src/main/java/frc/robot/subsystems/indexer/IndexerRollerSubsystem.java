@@ -23,7 +23,7 @@ import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.Trigger;
 
 public class IndexerRollerSubsystem extends SubsystemBase {
-    private final CANBus k_CANBus = CANBus.systemcore(3);
+    private final CANBus k_CANBus = CANIDConstants.k_canBus3;
     private final TalonFX m_indexerRollerMotor = new TalonFX(CANIDConstants.indexerRoller, k_CANBus);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
 
