@@ -137,10 +137,10 @@ public class Constants {
     public static final double k_secondaryKickerV = 0.1195;
 
     public static final double k_turretI = 0.0;
-    public static final double k_turretP = 0.0;
+    public static final double k_turretP = 1.0;
     public static final double k_turretD = 0.0;
     public static final double k_turretV = 0.0;
-    public static final double k_turretS = 0.0;
+    public static final double k_turretS = 100.0;
     
     public static final Translation3d k_turretOffset = new Translation3d(-5.965, 7.5429, 10.3851);
 
@@ -188,8 +188,8 @@ public class Constants {
         k_secondaryKickerConfig.Slot0.kS = k_secondaryKickerS;
         k_secondaryKickerConfig.Slot0.kV = k_secondaryKickerV;
 
-        k_turretConfig.Slot0.kV = k_turretV;
-        k_turretConfig.Slot0.kI = k_turretI;
+        //k_turretConfig.Slot0.kV = k_turretV;
+        //k_turretConfig.Slot0.kI = k_turretI;
         k_turretConfig.Slot0.kP = k_turretP;
         k_turretConfig.Slot0.kD = k_turretD;
         k_turretConfig.Slot0.kS = k_turretS;
@@ -318,7 +318,7 @@ public class Constants {
 
  
     public static class Controls {
-        public static final Trigger isReadyToShoot = new Trigger(Subsystems.m_hoodSubsystem.m_isOnTarget.and(Subsystems.m_shooterSubsystem.m_isAtSpeed.and(Subsystems.m_turretAimSubsystem.m_isOnTarget)));
+        public static final Trigger isReadyToShoot = new Trigger(() -> (Subsystems.m_hoodSubsystem.m_isOnTarget() && Subsystems.m_shooterSubsystem.m_isAtSpeed() && Subsystems.m_turretAimSubsystem.m_isOnTarget()));
         public static final Command extendIntake() {
             return Commands.sequence(
                 Subsystems.m_intakeExtension.extendIntake(),

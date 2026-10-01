@@ -35,7 +35,7 @@ public class RobotContainer {
         // configureBindings();
         // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
         // configureAutos();
-        m_controller.northFace().onTrue(Subsystems.m_hoodSubsystem.staticShoot());
+        m_controller.northFace().onTrue(Subsystems.m_turretAimSubsystem.staticAim());
         m_controller.southFace().onTrue(Subsystems.m_hoodSubsystem.returnHood());
     }
 

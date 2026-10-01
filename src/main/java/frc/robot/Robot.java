@@ -7,18 +7,24 @@ package frc.robot;
 import com.ctre.phoenix6.HootAutoReplay;
 
 import frc.robot.Constants.Subsystems;
+import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.drive.SwerveSubsystem;
+
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.math.linalg.Matrix;
 // import org.wpilib.math.util.Units;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.networktables.StructArrayPublisher;
 import org.wpilib.networktables.StructPublisher;
+import org.wpilib.system.Timer;
 import org.wpilib.framework.TimedRobot;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
+import org.wpilib.command2.Subsystem;
 
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
@@ -75,12 +81,17 @@ public class Robot extends TimedRobot {
                 0.455),
             hoodRot);
 
-        //15.133
+        //ex: 0.13
+        //ret: -0.15
+
+        double retracted = -0.15;
+        double extended = 0.13;
+        double extension = 0;
         
         Pose3d intake = new Pose3d(
-            new Translation3d(0,
+            new Translation3d(extension * ((extended-retracted)/1) + retracted,
                 0,
-                0.31 + -1 * Math.tan(Math.toRadians(-15.133))),
+                0.31 + -extension*((extended-retracted)/1) * Math.tan(Math.toRadians(-15.133))),
             new Rotation3d(0, Math.toRadians(15.133), 0));
         zeroedComponentPoses.set(new Pose3d[] {new Pose3d(), new Pose3d(), new Pose3d()});
         finalComponentPoses.set(new Pose3d[] {turret, hood, intake});

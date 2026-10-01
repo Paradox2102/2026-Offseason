@@ -5,17 +5,17 @@
     "extensions": [
       {
         "name": "Sim GUI",
-        "libName": "C:\\Users\\Team Paradox\\Desktop\\FRC\\2026-Offseason\\build\\jni\\release\\halsim_gui.dll",
+        "libName": "C:\\Users\\Paradox\\Desktop\\FRC2027\\2026-Offseason\\build\\jni\\release\\halsim_gui.dll",
         "defaultEnabled": true
       },
       {
         "name": "Use Real DriverStation",
-        "libName": "C:\\Users\\Team Paradox\\Desktop\\FRC\\2026-Offseason\\build\\jni\\release\\halsim_ds_socket.dll",
+        "libName": "C:\\Users\\Paradox\\Desktop\\FRC2027\\2026-Offseason\\build\\jni\\release\\halsim_ds_socket.dll",
         "defaultEnabled": false
       }
     ],
     "environment": {},
-    "libraryDir": "C:\\Users\\Team Paradox\\Desktop\\FRC\\2026-Offseason\\build\\jni\\release",
+    "libraryDir": "C:\\Users\\Paradox\\Desktop\\FRC2027\\2026-Offseason\\build\\jni\\release",
     "mainClassName": "frc.robot.Main"
   }
 ]

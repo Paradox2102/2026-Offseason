@@ -35,7 +35,10 @@ public class TurretAimSubsystem extends SubsystemBase{
     
     public final PositionVoltage m_request = new PositionVoltage(0);
 
-    public final Trigger m_isOnTarget = new Trigger(() -> (Math.abs(m_request.Position - getTargetRotation()) < 0.5));
+    public boolean m_isOnTarget() {
+        return Math.abs(m_request.Position - getTargetRotation()) < 0.5;
+    }
+
  private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(Models.singleJointedArmFromPhysicalConstants(DCMotor.getKrakenX60(1), 0.04969116, ShooterConstants.k_shooterGearReduction), DCMotor.getKrakenX60(1), ShooterConstants.k_shooterGearReduction, 0.1, ShooterConstants.k_turretBounds.getMinBound(), ShooterConstants.k_turretBounds.getMaxBound(), false, 0);   
  public TurretAimSubsystem() {
         m_shooterAzimuth.getConfigurator().apply(ShooterConstants.k_turretConfig);
@@ -49,7 +52,7 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     public Command staticAim() {
         return Commands.run(() -> {
-            m_shooterAzimuth.setControl(m_request.withPosition(0.3 * ShooterConstants.k_shooterGearReduction));    
+            m_shooterAzimuth.setControl(m_request.withPosition(0.1 * ShooterConstants.k_shooterGearReduction));    
         }, this);
     }
 
@@ -101,7 +104,7 @@ public class TurretAimSubsystem extends SubsystemBase{
         // note that this is rotor position/velocity (before gear ratio), but
         // DCMotorSim returns mechanism position/velocity (after gear ratio)
         talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getVelocity()));
-        talonFXSim.setRawRotorPosition(Units.radiansToDegrees(m_motorSimModel.getAngle()));
+        talonFXSim.setRawRotorPosition(Units.radiansToRotations(m_motorSimModel.getAngle()));
             
         SmartDashboard.putNumber("Turret Angle Rotations", Units.radiansToRotations(m_motorSimModel.getAngle()*ShooterConstants.k_shooterGearReduction));
 

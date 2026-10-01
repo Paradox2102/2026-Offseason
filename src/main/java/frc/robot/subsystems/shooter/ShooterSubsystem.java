@@ -44,7 +44,9 @@ public class ShooterSubsystem extends SubsystemBase{
         Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), ShooterConstants.k_shooterMOI, k_gearRatio), DCMotor.getKrakenX60(1));
 
 
-    public final Trigger m_isAtSpeed = new Trigger(() -> (Math.abs((m_request.Velocity + m_shooterFollower.getVelocity().getValueAsDouble()) / 2) - m_shooterLerpTable.get(Subsystems.m_swerveSubsystem.distanceToTarget())) < 100);
+    public boolean m_isAtSpeed() {
+        return Math.abs((m_request.Velocity + m_shooterFollower.getVelocity().getValueAsDouble()) / 2) - m_shooterLerpTable.get(Subsystems.m_swerveSubsystem.distanceToTarget()) < 100;
+    }
     public ShooterSubsystem() {
         m_shooterLeader.getConfigurator().apply(ShooterConstants.k_shooterConfigs);
         m_shooterFollower.setControl(m_follow);

@@ -37,7 +37,9 @@ public class HoodSubsystem extends SubsystemBase{
     private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(DCMotor.getKrakenX44(1),
     k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, Math.toRadians(0), Math.toRadians(42), true, 0);
     
-    public final Trigger m_isOnTarget = new Trigger(() -> (Math.abs(m_request.Position - m_hoodLerpTable.get(Subsystems.m_swerveSubsystem.distanceToTarget())) < 0.5));
+    public boolean m_isOnTarget() {
+        return Math.abs(m_request.Position - m_hoodLerpTable.get(Subsystems.m_swerveSubsystem.distanceToTarget())) < 0.5;
+    }
 
     public HoodSubsystem() {
         for (double[] shotAngle : ShooterConstants.k_scoreHoodAngle){
