@@ -26,7 +26,6 @@ import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import org.wpilib.command2.button.Trigger;
 
 public class ShooterSubsystem extends SubsystemBase{
     private final CANBus k_CANBus = CANBus.systemcore(1);

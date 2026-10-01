@@ -21,7 +21,7 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class SecondaryKicker extends SubsystemBase {
-    private final CANBus k_CANBus = CANBus.systemcore(1);
+    private final CANBus k_CANBus = CANIDConstants.k_canBus1;
 
     private final TalonFX m_secondaryKickerMotor = new TalonFX(CANIDConstants.goUp, k_CANBus);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
