@@ -103,7 +103,6 @@ public class Constants {
   }
   public static class ShooterConstants {
     public static final double k_shooterGearReduction = (67.86);
-    // for every one 67.86 turns of the motor, the turret turns one time.
     
     public static final int k_kickInRPS = 50;
     public static final int k_kickOutRPS = 50;
@@ -120,9 +119,9 @@ public class Constants {
     public static final TalonFXConfiguration k_kickerConfig = new TalonFXConfiguration();
     public static final TalonFXConfiguration k_secondaryKickerConfig = new TalonFXConfiguration();
 
-    public static final double k_hoodG = 0.1;
+    public static final double k_hoodG = 0.0;
     public static final double k_hoodS = 0;
-    public static final double k_hoodP = 0;
+    public static final double k_hoodP = 0.2;
     public static final double k_hoodD = 0;
 
     public static final double k_shooterP = 0.3;
@@ -137,9 +136,11 @@ public class Constants {
     public static final double k_secondaryKickerS = 0.01;
     public static final double k_secondaryKickerV = 0.1195;
 
-    public static final double k_turretS = 10;
+    public static final double k_turretI = 0.0;
     public static final double k_turretP = 0.0;
-    public static final double k_turretD = 0;
+    public static final double k_turretD = 0.0;
+    public static final double k_turretV = 0.0;
+    public static final double k_turretS = 0.0;
     
     public static final Translation3d k_turretOffset = new Translation3d(-5.965, 7.5429, 10.3851);
 
@@ -168,7 +169,7 @@ public class Constants {
     };
 
     public static final double k_staticShotSpeed = 40;
-    public static final double k_staticShotAngle = 0;
+    public static final double k_staticShotAngle = 20;
     public static final double k_hoodMOI = 0.02635296; 
     public static final double k_hoodArmLength = 0.20860766;
     public static final double k_hoodMaxAngle = 90;
@@ -187,13 +188,15 @@ public class Constants {
         k_secondaryKickerConfig.Slot0.kS = k_secondaryKickerS;
         k_secondaryKickerConfig.Slot0.kV = k_secondaryKickerV;
 
-        k_turretConfig.Slot0.kS = k_turretS;
+        k_turretConfig.Slot0.kV = k_turretV;
+        k_turretConfig.Slot0.kI = k_turretI;
         k_turretConfig.Slot0.kP = k_turretP;
         k_turretConfig.Slot0.kD = k_turretD;
+        k_turretConfig.Slot0.kS = k_turretS;
 
-        k_hoodConfig.Slot0.kG = k_hoodG;
+        // k_hoodConfig.Slot0.kG = k_hoodG;
         // k_hoodConfig.Slot0.kS = k_hoodS;
-        // k_hoodConfig.Slot0.kP = k_hoodP;
+        k_hoodConfig.Slot0.kP = k_hoodP;
         // k_hoodConfig.Slot0.kD = k_hoodD;
     }
   }
@@ -264,7 +267,7 @@ public class Constants {
     public static final double k_intakeRollerMOI = 0.093084;
     static {
 
-        
+        k_intakeRollerConfigs.withMotorOutput(k_intakeRollerConfigs.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive));
         k_intakeRollerConfigs.Slot0.kP = k_rollerP;
         k_intakeRollerConfigs.Slot0.kV = k_rollerV;
         k_intakeRollerConfigs.Slot0.kS = k_rollerS;
@@ -323,7 +326,7 @@ public class Constants {
         }
 
         public static Command shoot(){
-            return Commands.either(launch(), aim(), Controls.isReadyToShoot);
+            return Commands.repeatingSequence(Commands.either(launch(), aim(), Controls.isReadyToShoot));
         }
 
         public static Command aim(){

@@ -31,10 +31,12 @@ public class RobotContainer {
 
     public RobotContainer() {
 
-        configureDefaults();
-        configureBindings();
+        // configureDefaults();
+        // configureBindings();
         // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
-        configureAutos();
+        // configureAutos();
+        m_controller.northFace().onTrue(Subsystems.m_hoodSubsystem.staticShoot());
+        m_controller.southFace().onTrue(Subsystems.m_hoodSubsystem.returnHood());
     }
 
     private void configureBindings() {

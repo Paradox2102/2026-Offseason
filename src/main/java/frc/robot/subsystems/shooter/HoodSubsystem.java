@@ -35,7 +35,7 @@ public class HoodSubsystem extends SubsystemBase{
     private final double k_gearRatio = 0.2; // what was I doing with this? this needs to be a models smth
     // The hood's actual angle is the motor's location times the gearRatio (actually divided because it's geared down)
     private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(DCMotor.getKrakenX44(1),
-    k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, Math.toRadians(-90), Math.toRadians(90), true, 0);
+    k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, Math.toRadians(0), Math.toRadians(42), true, 0);
     
     public final Trigger m_isOnTarget = new Trigger(() -> (Math.abs(m_request.Position - m_hoodLerpTable.get(Subsystems.m_swerveSubsystem.distanceToTarget())) < 0.5));
 
