@@ -1,0 +1,54 @@
+[
+	{
+		"m_deadzone": 0.5,
+		"m_isImportant": true,
+		"m_maxAngularVelocity": 5.614,
+		"m_maxVelocity": 2.0,
+		"rotation": -1000,
+		"xPosition": 3.94904565811157,
+		"yPosition": 0.679587125778198
+	},
+	{
+		"m_deadzone": 0.5,
+		"m_isImportant": true,
+		"m_maxAngularVelocity": 10.0,
+		"m_maxVelocity": 5.614,
+		"rotation": -1000,
+		"xPosition": 6.50993299484253,
+		"yPosition": 0.568249225616455
+	},
+	{
+		"m_deadzone": 0.5,
+		"m_maxAngularVelocity": 6.0,
+		"m_maxVelocity": 3.0,
+		"rotation": 18.0,
+		"xPosition": 7.77320718765259,
+		"yPosition": 1.40750062465668
+	},
+	{
+		"m_deadzone": 0.5,
+		"m_maxAngularVelocity": 10.0,
+		"m_maxVelocity": 3.0,
+		"rotation": 18.0,
+		"xPosition": 7.78347444534302,
+		"yPosition": 4.20054149627686
+	},
+	{
+		"m_deadzone": 0.5,
+		"m_isImportant": true,
+		"m_maxAngularVelocity": 10.0,
+		"m_maxVelocity": 5.614,
+		"rotation": -1000,
+		"xPosition": 6.35751962661743,
+		"yPosition": 2.57151556015015
+	},
+	{
+		"m_deadzone": 0.5,
+		"m_isImportant": true,
+		"m_maxAngularVelocity": 10.0,
+		"m_maxVelocity": 5.614416,
+		"rotation": -1000,
+		"xPosition": 3.08811020851135,
+		"yPosition": 2.57140111923218
+	}
+]

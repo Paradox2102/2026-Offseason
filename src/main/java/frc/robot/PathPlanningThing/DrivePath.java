@@ -89,7 +89,7 @@ public class DrivePath extends Command{
      * @param AutoName
      * This is the name of the auto as <b>WITH THE JSON FILE EXTENSION </b> in the PathPlanningThing/Autos folder
      */
-    public DrivePath(String AutoName){
+    public DrivePath(String AutoName, boolean mirror){
         m_jsonMapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
         Path jsonPath = Paths.get("./src/main/java/frc/robot/PathPlanningThing/Autos/" + AutoName).toAbsolutePath();
         String json = "smth";
@@ -111,6 +111,12 @@ public class DrivePath extends Command{
                 System.out.println("whu duh hecky y don't i see this, butt pose");
                 m_pose[i].m_pose = new Pose2d(m_pose[i].xPosition, m_pose[i].yPosition, new Rotation2d(m_pose[i].rotation));
             }
+            }
+
+            if (mirror){
+                for (PathPoseThing i : m_pose) {
+                    i.yPosition = Math.abs(i.yPosition - AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark).getFieldWidth());
+                }
             }
             // System.out.println("this is a string so i can find this in the console " + m_pose[0].m_pose.getX());
         } catch (JsonMappingException e) {System.err.println("m_pose can't be set, mapping error" + e);}

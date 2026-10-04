@@ -8,6 +8,7 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.Trigger;
 
 import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
 
@@ -15,10 +16,10 @@ import org.wpilib.math.geometry.Rectangle2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.math.util.Units;
 import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearVelocity;
 
-import frc.robot.PathPlanningThing.DrivePath;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.subsystems.indexer.IndexerConveyorSubsystem;
@@ -33,6 +34,8 @@ import frc.robot.subsystems.shooter.TurretAimSubsystem;
 import frc.robot.utils.DoubleNumber;
 
 public class Constants {
+
+
     public static class CANIDConstants {
 
         public static final CANBus k_canBus0 = CANBus.systemcore(0);
@@ -90,14 +93,14 @@ public class Constants {
 
     public static class VisionConstants {
 
-        public static final Translation3d backLeftPosition = new Translation3d(-12.2212, 12.6202, 12.3281);
-        public static final Rotation3d backLeftRotation = new Rotation3d();
-        public static final Translation3d backRightPosition = new Translation3d(-11.0169, -13.0384, 11.9732);
-        public static final Rotation3d backRightRotation = new Rotation3d();
-        public static final Translation3d sideLeftPosition = new Translation3d(-3.8793,14.0335, 5.3676);
+        public static final Translation3d backLeftPosition = new Translation3d(Units.inchesToMeters(-12.2212), Units.inchesToMeters(12.6202), Units.inchesToMeters(12.3281));
+        public static final Rotation3d backLeftRotation = new Rotation3d(25, -2.012, 148);
+        public static final Translation3d backRightPosition = new Translation3d(Units.inchesToMeters(-11.0169), Units.inchesToMeters(-13.0384), Units.inchesToMeters(11.9732));
+        public static final Rotation3d backRightRotation = new Rotation3d(25, 11.148, 65);
+        public static final Translation3d sideLeftPosition = new Translation3d(Units.inchesToMeters(-3.8793),Units.inchesToMeters(14.0335), Units.inchesToMeters(5.3676));
         public static final Rotation3d sideLeftRotation = new Rotation3d();
-        public static final Translation3d blueButNotInCornerPos = new Translation3d();
-        public static final Rotation3d blueButNotInCornerRot = new Rotation3d();
+        public static final Translation3d blueButNotInCornerPos = new Translation3d(Units.inchesToMeters(-12.1548), Units.inchesToMeters(-8.6186), Units.inchesToMeters(12.00));
+        public static final Rotation3d blueButNotInCornerRot = new Rotation3d(25, 1.823, 147.168);
 
     }
 
@@ -112,10 +115,10 @@ public class Constants {
   public static class ShooterConstants {
     public static final double k_shooterGearReduction = (67.86);
     
-    public static final int k_kickInRPS = 50;
-    public static final int k_kickOutRPS = 50;
+    public static final int k_kickInRPS = 30;
+    public static final int k_kickOutRPS = 20;
 
-    public static final int k_secondaryKickerRPS = 60;
+    public static final int k_secondaryKickerRPS = 30;
 
     public static final double k_upKickerMOI = 0.00000494 * 2;
     public static final double k_kickerMOI = 0.0000356;
@@ -127,9 +130,9 @@ public class Constants {
     public static final TalonFXConfiguration k_kickerConfig = new TalonFXConfiguration();
     public static final TalonFXConfiguration k_secondaryKickerConfig = new TalonFXConfiguration();
 
-    public static final double k_hoodG = 0.0;
-    public static final double k_hoodS = 0;
-    public static final double k_hoodP = 2.0;
+    public static final double k_hoodG = 10.0;
+    public static final double k_hoodS = 3;
+    public static final double k_hoodP = 20.0;
     public static final double k_hoodD = 0;
 
     public static final double k_shooterP = 0.3;
@@ -145,14 +148,14 @@ public class Constants {
     public static final double k_secondaryKickerV = 0.1195;
 
     public static final double k_turretI = 0.0;
-    public static final double k_turretP = 1.0;
+    public static final double k_turretP = 3.0;
     public static final double k_turretD = 0.0;
     public static final double k_turretV = 0.0;
-    public static final double k_turretS = 100.0;
+    public static final double k_turretS = 0.0;
     
-    public static final Translation3d k_turretOffset = new Translation3d(-5.965, 7.5429, 10.3851);
+    public static final Translation3d k_turretOffset = new Translation3d(Units.inchesToMeters(-5.965), Units.inchesToMeters(7.5429), Units.inchesToMeters(10.3851));
 
-    public static final DoubleNumber k_turretBounds = new DoubleNumber(-500, 500);
+    public static final DoubleNumber k_turretBounds = new DoubleNumber(-250, 250);
     public static final double[][] k_scoreHoodAngle = {
         {0, 0}
     };
@@ -181,29 +184,46 @@ public class Constants {
     public static final double k_hoodMOI = 0.02635296; 
     public static final double k_hoodArmLength = 0.20860766;
     public static final double k_hoodMaxAngle = 90;
+    
+    public static final double k_hoodSupplyLimit = 26;
+    public static final double k_kickerSupplyLimit = 23;
+    public static final double k_secondaryKickerSupplyLimit = 23;
+    public static final double k_shooterSupplyLimit = 37;
+    public static final double k_aimingSupplyLimit = 29;
+
+    public static final CurrentLimitsConfigs k_hoodLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_hoodSupplyLimit);
+    public static final CurrentLimitsConfigs k_kickerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_kickerSupplyLimit);
+    public static final CurrentLimitsConfigs k_secondaryKickerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_secondaryKickerSupplyLimit);
+    public static final CurrentLimitsConfigs k_aimingLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_aimingSupplyLimit);
+    public static final CurrentLimitsConfigs k_shooterLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_shooterSupplyLimit);
 
     static {
+        k_shooterConfigs.withCurrentLimits(k_shooterLimitConfig);
         k_shooterConfigs.Slot0.kP = k_shooterP;
         k_shooterConfigs.Slot0.kS = k_shooterS;
         k_shooterConfigs.Slot0.kV = k_shooterV;
 
+        k_kickerConfig.withCurrentLimits(k_kickerLimitConfig);
         k_kickerConfig.Slot0.kP = k_kickerP;
         k_kickerConfig.Slot0.kS = k_kickerS;
         k_kickerConfig.Slot0.kV = k_kickerV;
 
-        k_secondaryKickerConfig.withMotorOutput(k_secondaryKickerConfig.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive));
+        k_secondaryKickerConfig.withMotorOutput(k_secondaryKickerConfig.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive)).withCurrentLimits(k_secondaryKickerLimitConfig);
         k_secondaryKickerConfig.Slot0.kP = k_secondaryKickerP;
         k_secondaryKickerConfig.Slot0.kS = k_secondaryKickerS;
         k_secondaryKickerConfig.Slot0.kV = k_secondaryKickerV;
 
+        k_turretConfig.withCurrentLimits(k_aimingLimitConfig);
         //k_turretConfig.Slot0.kV = k_turretV;
         //k_turretConfig.Slot0.kI = k_turretI;
         k_turretConfig.Slot0.kP = k_turretP;
         k_turretConfig.Slot0.kD = k_turretD;
         k_turretConfig.Slot0.kS = k_turretS;
 
-        // k_hoodConfig.Slot0.kG = k_hoodG;
-        // k_hoodConfig.Slot0.kS = k_hoodS;
+        k_hoodConfig.withCurrentLimits(k_hoodLimitConfig);
+        k_hoodConfig.withMotorOutput(k_hoodConfig.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive));
+        k_hoodConfig.Slot0.kG = k_hoodG;
+        k_hoodConfig.Slot0.kS = k_hoodS;
         k_hoodConfig.Slot0.kP = k_hoodP;
         // k_hoodConfig.Slot0.kD = k_hoodD;
     }
@@ -254,8 +274,8 @@ public class Constants {
   
 
   public static class IntakeConstants {
-    public static final int k_inRPS = 10;
-    public static final int k_outRPS = -60;
+    public static final int k_inRPS = 40;
+    public static final int k_outRPS = -30;
 
     public static final int k_outPosition = 90;
 
@@ -270,16 +290,23 @@ public class Constants {
     public static final double k_intakeExtensionP = 0;
     public static final double k_intakeExtensionV = 0;
     public static final double k_intakeExtensionD = 0;
-    
+
+    public static final double k_extensionSupplyLimit = 30;
+    public static final double k_rollerSupplyLimit = 25;
+
+    public static final CurrentLimitsConfigs k_extensionLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_extensionSupplyLimit);
+    public static final CurrentLimitsConfigs k_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
+
     
     public static final double k_intakeRollerMOI = 0.093084;
     static {
 
-        k_intakeRollerConfigs.withMotorOutput(k_intakeRollerConfigs.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive));
+        k_intakeRollerConfigs.withMotorOutput(k_intakeRollerConfigs.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive)).withCurrentLimits(k_rollerLimitConfig);
         k_intakeRollerConfigs.Slot0.kP = k_rollerP;
         k_intakeRollerConfigs.Slot0.kV = k_rollerV;
         k_intakeRollerConfigs.Slot0.kS = k_rollerS;
 
+        k_intakeExtensionConfigs.withCurrentLimits(k_extensionLimitConfig);
         k_intakeExtensionConfigs.Slot0.kG = k_intakeExtensionG;
         k_intakeExtensionConfigs.Slot0.kP = k_intakeExtensionP;
         k_intakeExtensionConfigs.Slot0.kV = k_intakeExtensionV;
@@ -289,13 +316,13 @@ public class Constants {
     
     }
     public static class IndexerConstants {
-        public static final int k_rollerInRPS = 80;
-        public static final int k_rollerOutRPS = -45;
+        public static final int k_rollerInRPS = 50;
+        public static final int k_rollerOutRPS = -40;
 
-        public static final int k_conveyorInRPS = 20; // 50
-        public static final int k_conveyorOutRPS = -45;
+        public static final int k_conveyorInRPS = 20;
+        public static final int k_conveyorOutRPS = -40;
 
-        public static final int k_jamThreshold = 5; // should be tuned to not happen too much
+        public static final int k_jamThreshold = 6; // should be tuned to not happen too much
 
         public static final TalonFXConfiguration k_indexerRollerConfigs = new TalonFXConfiguration();
         public static final TalonFXConfiguration k_indexerConveyorConfigs = new TalonFXConfiguration();
@@ -310,13 +337,19 @@ public class Constants {
         public static final double k_conveyorS = 0.1;
         public static final double k_conveyorV = 0.0;
 
+        public static final double k_conveyorSupplyLimit = 18;
+    public static final double k_rollerSupplyLimit = 16;
+
+    public static final CurrentLimitsConfigs k_conveyorLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_conveyorSupplyLimit);
+    public static final CurrentLimitsConfigs k_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
+
         static {
+            k_indexerRollerConfigs.withCurrentLimits(k_rollerLimitConfig);
             k_indexerRollerConfigs.Slot0.kP = k_rollerP;
             k_indexerRollerConfigs.Slot0.kS = k_rollerS;
             k_indexerRollerConfigs.Slot0.kV = k_rollerV;
             
-            
-
+            k_indexerRollerConfigs.withCurrentLimits(k_rollerLimitConfig);
             k_indexerConveyorConfigs.Slot0.kP = k_conveyorP;
             k_indexerConveyorConfigs.Slot0.kS = k_conveyorS;
             k_indexerConveyorConfigs.Slot0.kV = k_conveyorV;
@@ -374,12 +407,12 @@ public class Constants {
 
         }
 
-        public static Command towerSweep() {
-            return Commands.either(Commands.either(
-                Commands.either(new DrivePath("OutpostDepotTowerSweep.json"), new DrivePath("OutpostDepotTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_depotIntermediatePoint),
-                Commands.either(new DrivePath("DepotOutpostTowerSweep.json"), new DrivePath("DepotOutpostTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() < FieldConstants.k_outpostIntermediatePoint),
-                () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_yCenterline),
-            Commands.none(), () -> !Subsystems.m_swerveSubsystem.inTeamAlliance());    
-        }
+        // public static Command towerSweep() {
+        //     return Commands.either(Commands.either(
+        //         Commands.either(new DrivePath("OutpostDepotTowerSweep.json"), new DrivePath("OutpostDepotTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_depotIntermediatePoint),
+        //         Commands.either(new DrivePath("DepotOutpostTowerSweep.json"), new DrivePath("DepotOutpostTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() < FieldConstants.k_outpostIntermediatePoint),
+        //         () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_yCenterline),
+        //     Commands.none(), () -> !Subsystems.m_swerveSubsystem.inTeamAlliance());    
+        // }
     }
 }

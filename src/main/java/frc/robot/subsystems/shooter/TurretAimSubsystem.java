@@ -26,7 +26,7 @@ import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.utils.DoubleNumber;
-// Turret aim gear ratio is 67.86:1
+
 public class TurretAimSubsystem extends SubsystemBase{
     private final CANBus k_CANBus = CANIDConstants.k_canBus1;
 
@@ -38,7 +38,7 @@ public class TurretAimSubsystem extends SubsystemBase{
         return Math.abs(m_request.Position - getTargetRotation()) < 0.5;
     }
 
- private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(Models.singleJointedArmFromPhysicalConstants(DCMotor.getKrakenX60(1), 0.04969116, ShooterConstants.k_shooterGearReduction), DCMotor.getKrakenX60(1), ShooterConstants.k_shooterGearReduction, 0.1, ShooterConstants.k_turretBounds.getMinBound(), ShooterConstants.k_turretBounds.getMaxBound(), false, 0);   
+ private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(Models.singleJointedArmFromPhysicalConstants(DCMotor.getKrakenX60(1), 0.04969116, ShooterConstants.k_shooterGearReduction), DCMotor.getKrakenX60(1), ShooterConstants.k_shooterGearReduction, 0.1, Units.degreesToRadians(ShooterConstants.k_turretBounds.getMinBound()), Units.degreesToRadians(ShooterConstants.k_turretBounds.getMaxBound()), false, 0);   
  public TurretAimSubsystem() {
         m_shooterAzimuth.getConfigurator().apply(ShooterConstants.k_turretConfig);
     }
@@ -51,11 +51,12 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     public Command staticAim() {
         return Commands.run(() -> {
-            m_shooterAzimuth.setControl(m_request.withPosition(0.1 * ShooterConstants.k_shooterGearReduction));    
+            m_shooterAzimuth.setControl(m_request.withPosition(0.1 * ShooterConstants.k_shooterGearReduction)); 
+            System.out.println(m_request.Position);   
         }, this);
     }
 
-    private double getTargetRotation(){ // This should add the turret offset to aiming but I need to check when I get sim up and running.
+    private double getTargetRotation(){ 
         Pose3d hubPose = new Pose3d(Subsystems.m_swerveSubsystem.getSotmHubAimPos()).plus(new Transform3d(ShooterConstants.k_turretOffset, new Rotation3d(0, 0, Subsystems.m_swerveSubsystem.getSotmHubAimPos().getRotation().getRadians())));
 
         var rotationTriangle = new Translation2d(hubPose.getX() - (SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub.getX() : FieldConstants.k_blueHub.getX()), (hubPose.getY() - (SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub.getY() : FieldConstants.k_blueHub.getY())));
@@ -65,7 +66,7 @@ public class TurretAimSubsystem extends SubsystemBase{
         for (int i = -1; i <= 1; i++) {
             bestRotation = (checkBestRotation(bestRotation, targetRotation + (i * (2 * Math.PI)), hubPose.toPose2d()) * ShooterConstants.k_shooterGearReduction);
         }
-        return bestRotation;
+        return Units.radiansToRotations(bestRotation);
     }
 
     private double checkBestRotation(double bestRotation, double testRotation, Pose2d hubPose){
@@ -102,10 +103,10 @@ public class TurretAimSubsystem extends SubsystemBase{
         // apply the new rotor position and velocity to the TalonFX;
         // note that this is rotor position/velocity (before gear ratio), but
         // DCMotorSim returns mechanism position/velocity (after gear ratio)
-        talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getVelocity()));
+        talonFXSim.setRotorVelocity(m_motorSimModel.getVelocity() * 0.15915495);
         talonFXSim.setRawRotorPosition(Units.radiansToRotations(m_motorSimModel.getAngle()));
             
-        SmartDashboard.putNumber("Turret Angle Rotations", Units.radiansToRotations(m_motorSimModel.getAngle()*ShooterConstants.k_shooterGearReduction));
+        SmartDashboard.putNumber("Turret Angle Rotations", Units.radiansToRotations(m_motorSimModel.getAngle() * ShooterConstants.k_shooterGearReduction));
 
     }
 

@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import org.wpilib.smartdashboard.SendableChooser;
 import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
 
 public class SelectAuto {
     
@@ -62,12 +63,17 @@ public class SelectAuto {
     //   })
     //   .withName("Toggle Disable Scrolling")
     //   .ignoringDisable(true));
+    /**
+     * This is a Javadoc Comment that I will write later :P
+     * @param auto_name
+     * @param command
+     */
     public static void addCommand(String auto_name, Command command){
         m_autoSelection.addOption(auto_name, command);
     }
 
     public static Command getSelectedAuto(){
-        return m_autoSelection.getSelected();
+        return m_autoSelection.getSelected().equals(null) ? Commands.runOnce(() -> {System.out.println("No selected Auto");}) : m_autoSelection.getSelected();
     }
 
     /**

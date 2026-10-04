@@ -14,7 +14,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import org.wpilib.math.linalg.Matrix;
 import org.wpilib.math.controller.PIDController;
 import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Rectangle2d;
+// import org.wpilib.math.geometry.Rectangle2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
@@ -34,10 +34,10 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.sysid.SysIdRoutine;
 
-import frc.robot.RobotContainer;
+// import frc.robot.RobotContainer;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.ShooterConstants;
-import frc.robot.Constants.Subsystems;
+// import frc.robot.Constants.Subsystems;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
@@ -64,9 +64,9 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     /** Swerve request to apply during field-centric path following */
     @SuppressWarnings("unused")
     private final SwerveRequest.ApplyFieldVelocity m_pathApplyFieldSpeeds = new SwerveRequest.ApplyFieldVelocity();
-    public final PIDController m_xPID = new PIDController(10, 0, 0);
-    public final PIDController m_yPID = new PIDController(10, 0, 0);
-    public final PIDController m_orientPID = new PIDController(0.5, 0, 0);
+    public final PIDController m_xPID = new PIDController(6, 0, 0);
+    public final PIDController m_yPID = new PIDController(6, 0, 0);
+    public final PIDController m_orientPID = new PIDController(0.1, 0, 0);
 
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
@@ -302,65 +302,65 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         vision.updatePoseEstimation(this);
 
         cachedPose = getState().Pose;
-        alignToTrench();
+        // alignToTrench();
 
     
         m_sotmPose = sotmLookAhead(5, isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
     }
 
-    private void alignToTrench() {
-        if (Math.abs(RobotContainer.m_controller.getLeftY()) > 0.75) {
-            double diff = 0.08;
-            Rectangle2d[] trenches = {
-                FieldConstants.k_blueTrenchLeft,
-                FieldConstants.k_blueTrenchRight,
-                FieldConstants.k_redTrenchLeft,
-                FieldConstants.k_redTrenchRight
-            };
-            Rectangle2d bestTrench = trenches[0];
-            for (Rectangle2d trench : trenches) {
-                if (
-                    cachedPose.getTranslation().getDistance(trench.getCenter().getTranslation())
-                    <=
-                    cachedPose.getTranslation().getDistance(bestTrench.getCenter().getTranslation())
-                ) {
-                    bestTrench = trench;
-                }
-            }
+    // private void alignToTrench() {
+    //     if (Math.abs(RobotContainer.m_controller.getLeftY()) > 0.75) {
+    //         double diff = 0.08;
+    //         Rectangle2d[] trenches = {
+    //             FieldConstants.k_blueTrenchLeft,
+    //             FieldConstants.k_blueTrenchRight,
+    //             FieldConstants.k_redTrenchLeft,
+    //             FieldConstants.k_redTrenchRight
+    //         };
+    //         Rectangle2d bestTrench = trenches[0];
+    //         for (Rectangle2d trench : trenches) {
+    //             if (
+    //                 cachedPose.getTranslation().getDistance(trench.getCenter().getTranslation())
+    //                 <=
+    //                 cachedPose.getTranslation().getDistance(bestTrench.getCenter().getTranslation())
+    //             ) {
+    //                 bestTrench = trench;
+    //             }
+    //         }
             
             
-            // TODO: Fix degrees to be within -180 and 180 (normalize)
-            if (
-                (
-                    cachedPose.getRotation().getDegrees() < 15 
-                    ||
-                    cachedPose.getRotation().getDegrees() > 345
-                ) || (
-                    cachedPose.getRotation().getDegrees() < 165
-                    &&
-                    cachedPose.getRotation().getDegrees() > 195
-                )
-            ) {
-                if (bestTrench.contains(cachedPose.getTranslation())) {
-                    Pose2d targetPose;
-                    if (Subsystems.m_intakeExtension.isIntakeRetracted()) {
-                        targetPose = new Pose2d(
-                            cachedPose.getX(),
-                            bestTrench.getCenter().getY() + diff,
-                            cachedPose.getRotation()
-                        );
-                    } else {
-                        targetPose = new Pose2d(
-                            cachedPose.getX(),
-                            bestTrench.getCenter().getY() - diff,
-                            cachedPose.getRotation()
-                        );
-                    }
-                    drive(new ChassisVelocities(getChassisSpeeds().vx, (cachedPose.getY() - targetPose.getY()), 0));
-                }
-            };
-        }
-    }
+    //         // TODO: Fix degrees to be within -180 and 180 (normalize)
+    //         if (
+    //             (
+    //                 cachedPose.getRotation().getDegrees() < 15 
+    //                 ||
+    //                 cachedPose.getRotation().getDegrees() > 345
+    //             ) || (
+    //                 cachedPose.getRotation().getDegrees() < 165
+    //                 &&
+    //                 cachedPose.getRotation().getDegrees() > 195
+    //             )
+    //         ) {
+    //             if (bestTrench.contains(cachedPose.getTranslation())) {
+    //                 Pose2d targetPose;
+    //                 if (Subsystems.m_intakeExtension.isIntakeRetracted()) {
+    //                     targetPose = new Pose2d(
+    //                         cachedPose.getX(),
+    //                         bestTrench.getCenter().getY() + diff,
+    //                         cachedPose.getRotation()
+    //                     );
+    //                 } else {
+    //                     targetPose = new Pose2d(
+    //                         cachedPose.getX(),
+    //                         bestTrench.getCenter().getY() - diff,
+    //                         cachedPose.getRotation()
+    //                     );
+    //                 }
+    //                 drive(new ChassisVelocities(getChassisSpeeds().vx, (cachedPose.getY() - targetPose.getY()), 0));
+    //             }
+    //         };
+    //     }
+    // }
 
     private void setupPhotonVision() {
         vision = new Vision(() -> getPose(), new Field2d());

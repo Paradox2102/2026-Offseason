@@ -342,10 +342,10 @@ public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadFi
               VisionConstants.backRightPosition,
               VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
 
-    SIDE_LEFT("side_left",
-             VisionConstants.sideLeftRotation,
-             VisionConstants.sideLeftPosition,
-             VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
+    // SIDE_LEFT("side_left",
+    //          VisionConstants.sideLeftRotation,
+    //          VisionConstants.sideLeftPosition,
+    //          VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
 
     SIDE_RIGHT("side_right",
               VisionConstants.blueButNotInCornerRot,

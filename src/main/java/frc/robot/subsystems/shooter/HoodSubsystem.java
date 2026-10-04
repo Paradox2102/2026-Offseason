@@ -31,16 +31,17 @@ public class HoodSubsystem extends SubsystemBase{
 
     private final InterpolatingDoubleTreeMap m_hoodLerpTable = new InterpolatingDoubleTreeMap();
 
-    private final double k_gearRatio = 0.2; // what was I doing with this? this needs to be a models smth
+    private final double k_gearRatio = 1; // what was I doing with this? this needs to be a models smth
     // The hood's actual angle is the motor's location times the gearRatio (actually divided because it's geared down)
     private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(DCMotor.getKrakenX44(1),
-    k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, Math.toRadians(0), Math.toRadians(42), true, 0);
+    k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, Math.toRadians(0), Math.toRadians(42), true, 0.1);
     
     public boolean m_isOnTarget() {
         return Math.abs(m_request.Position - m_hoodLerpTable.get(Subsystems.m_swerveSubsystem.distanceToTarget())) < 0.5;
     }
 
     public HoodSubsystem() {
+        
         for (double[] shotAngle : ShooterConstants.k_scoreHoodAngle){
             m_hoodLerpTable.put(shotAngle[0], shotAngle[1]);
         }
@@ -88,7 +89,7 @@ public class HoodSubsystem extends SubsystemBase{
 
    talonFXSim.setSupplyVoltage(RobotController.getBatteryVoltage());
 
-   m_motorSimModel.setInputVoltage(m_hoodMotor.getMotorVoltage().getValueAsDouble());
+   m_motorSimModel.setInputVoltage(talonFXSim.getMotorVoltage());
    m_motorSimModel.update(0.020);
 
    talonFXSim.setRawRotorPosition(Units.radiansToRotations(m_motorSimModel.getAngle()) * k_gearRatio);
