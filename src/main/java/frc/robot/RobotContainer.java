@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import org.wpilib.smartdashboard.SmartDashboard;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -12,6 +11,8 @@ import org.wpilib.command2.Command;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
 import org.wpilib.command2.button.RobotModeTriggers;
+import org.wpilib.telemetry.Telemetry;
+import org.wpilib.telemetry.TelemetryTable;
 
 import frc.robot.Constants.Controls;
 import frc.robot.Constants.Subsystems;
@@ -28,12 +29,13 @@ public class RobotContainer {
     // private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric()
     //         .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-    private final Telemetry logger = new Telemetry(SwerveSubsystem.MaxSpeed);
+    // private final Telemetry logger = new Telemetry(SwerveSubsystem.MaxSpeed);
 
     public static final CommandGamepad m_controller = new CommandGamepad(0);
     @SuppressWarnings("unused")
     private final CommandJoystick m_joystick = new CommandJoystick(1);
     
+    public static TelemetryTable m_telemetry = Telemetry.getTable();
 
     public RobotContainer() {
 
@@ -42,7 +44,7 @@ public class RobotContainer {
         // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
         configureAutos();
         // m_controller.southFace().whileTrue(Subsystems.m_hoodSubsystem.staticShoot()).whileFalse(Subsystems.m_hoodSubsystem.returnHood());
-        // m_controller.southFace().onTrue(Subsystems.m_turretAimSubsystem.staticAim());
+        m_controller.faceDown().onTrue(Subsystems.m_turretAimSubsystem.staticAim());
     }
 
     private void configureBindings() {
@@ -56,7 +58,7 @@ public class RobotContainer {
 
         //m_controller.southFace().whileTrue()
         
-        Subsystems.m_swerveSubsystem.registerTelemetry(logger::telemeterize);
+        // Subsystems.m_swerveSubsystem.registerTelemetry(logger::telemeterize);
     }
 
     private void configureDefaults() {
@@ -86,7 +88,7 @@ public class RobotContainer {
         SelectAuto.addCommand("RightDoubleSweep", Autos.doubleSwipe(true));
         SelectAuto.addCommand("LeftDoubleSweep", Autos.doubleSwipe(false));
 
-        SmartDashboard.putData("Auto Selection", SelectAuto.m_autoSelection);
+        m_telemetry.log("Auto Selection", SelectAuto.m_autoSelection);
     }
 
     public Command getAutonomousCommand() {

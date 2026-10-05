@@ -2,13 +2,14 @@ package frc.robot.PathPlanningThing;
 
 import java.io.File;
 import java.nio.file.Paths;
-import org.wpilib.smartdashboard.SendableChooser;
+
+import org.wpilib.tunable.Selectable;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 
 public class SelectAuto {
     
-    public static SendableChooser<Command> m_autoSelection = new SendableChooser<>();
+    public static Selectable<Command> m_autoSelection = new Selectable<Command>();
     // private static String m_previousAutoSelection = m_autoSelection.getSelected();
 
     /**
@@ -59,7 +60,7 @@ public class SelectAuto {
 
     //   SmartDashboard.putData(Commands.runOnce(() -> {
     //     m_isScrolling = !m_isScrolling;
-    //     LedPatterns.m_disabledPattern = LEDPattern.steps(Map.of(0, Color.kRed, 0.16, Color.kBlue, 0.33, new Color(1.0f, 0.35f, 0.0f),0.49, Color.kRed, 0.66, Color.kBlue, 0.83, new Color(1.0f, 0.35f, 0.0f))).scrollAtAbsoluteSpeed(m_isScrolling ? LightConstants.k_disabledVelocity : MetersPerSecond.of(0), LightConstants.k_ledSpacing);
+    //     LedPatterns.m_disabledPattern = LEDPattern.steps(Map.of(0, Color.RED, 0.16, Color.BLUE, 0.33, new Color(1.0f, 0.35f, 0.0f),0.49, Color.RED, 0.66, Color.BLUE, 0.83, new Color(1.0f, 0.35f, 0.0f))).scrollAtAbsoluteVelocity(m_isScrolling ? LightConstants.k_disabledVelocity : MetersPerSecond.of(0), LightConstants.k_ledSpacing);
     //   })
     //   .withName("Toggle Disable Scrolling")
     //   .ignoringDisable(true));
@@ -69,7 +70,7 @@ public class SelectAuto {
      * @param command
      */
     public static void addCommand(String auto_name, Command command){
-        m_autoSelection.addOption(auto_name, command);
+        m_autoSelection.add(auto_name, command);
     }
 
     public static Command getSelectedAuto(){

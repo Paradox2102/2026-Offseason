@@ -2,7 +2,6 @@ package frc.robot.subsystems.shooter;
 
 import java.util.function.DoubleSupplier;
 
-import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -15,6 +14,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
+import frc.robot.RobotContainer;
 
 import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
 import org.wpilib.math.system.DCMotor;
@@ -22,16 +22,14 @@ import org.wpilib.math.system.Models;
 import org.wpilib.math.util.Units;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.FlywheelSim;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class ShooterSubsystem extends SubsystemBase{
-    private final CANBus k_CANBus = CANBus.systemcore(1);
 
-    private final TalonFX m_shooterLeader = new TalonFX(CANIDConstants.shooterLeader, k_CANBus);
-    private final TalonFX m_shooterFollower = new TalonFX(CANIDConstants.shooterFollower, k_CANBus);
+    private final TalonFX m_shooterLeader = new TalonFX(CANIDConstants.shooterLeader, CANIDConstants.k_canBus1);
+    private final TalonFX m_shooterFollower = new TalonFX(CANIDConstants.shooterFollower, CANIDConstants.k_canBus1);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
     private final Follower m_follow = new Follower(CANIDConstants.shooterFollower, MotorAlignmentValue.Opposed);
 
@@ -103,7 +101,7 @@ public class ShooterSubsystem extends SubsystemBase{
         talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getAngularVelocity()) * k_gearRatio);
             
         //Multipled by 0.159 to convert rad/s to rps
-        SmartDashboard.putNumber("Shooter Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
+        RobotContainer.m_telemetry.log("Shooter Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
 
 
     }

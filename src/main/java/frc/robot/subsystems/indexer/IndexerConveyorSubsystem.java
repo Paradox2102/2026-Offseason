@@ -10,6 +10,7 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import frc.robot.RobotContainer;
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.IndexerConstants;
 
@@ -18,7 +19,6 @@ import org.wpilib.math.system.Models;
 import org.wpilib.math.util.Units;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.FlywheelSim;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
@@ -78,7 +78,7 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
         talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getAngularVelocity()) * k_gearRatio);
             
         //Multipled by 0.159 to convert rad/s to rps
-        SmartDashboard.putNumber("Indexer Conveyor Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
+        RobotContainer.m_telemetry.log("Indexer Conveyor Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
 
     }
 }

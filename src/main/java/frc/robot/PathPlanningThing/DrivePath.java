@@ -13,8 +13,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.wpilib.vision.apriltag.AprilTagFieldLayout;
-import org.wpilib.vision.apriltag.AprilTagFields;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
@@ -22,9 +20,10 @@ import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.math.util.Units;
 import org.wpilib.driverstation.Alliance;
 import org.wpilib.driverstation.MatchState;
-import org.wpilib.smartdashboard.SmartDashboard;
+import org.wpilib.fields.Fields;
 import org.wpilib.command2.Command;
 
+import frc.robot.RobotContainer;
 import frc.robot.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
   
@@ -115,7 +114,7 @@ public class DrivePath extends Command{
 
             if (mirror){
                 for (PathPoseThing i : m_pose) {
-                    i.yPosition = Math.abs(i.yPosition - AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark).getFieldWidth());
+                    i.yPosition = Math.abs(i.yPosition - Fields.DEFAULT_FIELD.width);
                 }
             }
             // System.out.println("this is a string so i can find this in the console " + m_pose[0].m_pose.getX());
@@ -186,7 +185,7 @@ public class DrivePath extends Command{
     public void execute() {
         checkClosest();
         DriveToPose();
-        SmartDashboard.putNumber("Auto Index", m_point);
+        RobotContainer.m_telemetry.log("Auto Index", m_point);
     }
     private void checkClosest(){
         var importantPose = nextImportantPose();
@@ -228,20 +227,20 @@ public class DrivePath extends Command{
         Translation2d targetTranslation2d = m_pose[m_point].m_translation;
 
         Pose2d robotPose = m_swerveSubsystem.getPose();
-        AprilTagFieldLayout field = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+        Fields field = Fields.DEFAULT_FIELD;
         double x;
         double y;
         
         if (m_pose[m_point].rotation != -1000){
-            x = Math.clamp(m_swerveSubsystem.m_xPID.calculate(robotPose.getX(), Math.abs(targetPose.getX() - (isRedAlliance() ? field.getFieldLength() : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
-            y = Math.clamp(m_swerveSubsystem.m_yPID.calculate(robotPose.getY(), Math.abs(targetPose.getY() - (isRedAlliance() ? field.getFieldWidth() : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
-            SmartDashboard.putNumber("x pose", Math.abs(targetPose.getX() - (isRedAlliance() ? field.getFieldLength() : 0)));
-            SmartDashboard.putNumber("y pose", Math.abs(targetPose.getY() - (isRedAlliance() ? field.getFieldWidth() : 0)));
+            x = Math.clamp(m_swerveSubsystem.m_xPID.calculate(robotPose.getX(), Math.abs(targetPose.getX() - (isRedAlliance() ? field.length : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
+            y = Math.clamp(m_swerveSubsystem.m_yPID.calculate(robotPose.getY(), Math.abs(targetPose.getY() - (isRedAlliance() ? field.width : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
+            RobotContainer.m_telemetry.log("x pose", Math.abs(targetPose.getX() - (isRedAlliance() ? field.length : 0)));
+            RobotContainer.m_telemetry.log("y pose", Math.abs(targetPose.getY() - (isRedAlliance() ? field.width : 0)));
         }else{
-            x = Math.clamp(m_swerveSubsystem.m_xPID.calculate(robotPose.getX(), Math.abs(targetTranslation2d.getX() - (isRedAlliance() ? field.getFieldLength() : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
-            y = Math.clamp(m_swerveSubsystem.m_yPID.calculate(robotPose.getY(), Math.abs(targetTranslation2d.getY() - (isRedAlliance() ? field.getFieldWidth() : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
-            SmartDashboard.putNumber("x pose", Math.abs(targetTranslation2d.getX() - (isRedAlliance() ? field.getFieldLength() : 0)));
-            SmartDashboard.putNumber("y pose", Math.abs(targetTranslation2d.getY() - (isRedAlliance() ? field.getFieldWidth() : 0)));
+            x = Math.clamp(m_swerveSubsystem.m_xPID.calculate(robotPose.getX(), Math.abs(targetTranslation2d.getX() - (isRedAlliance() ? field.length : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
+            y = Math.clamp(m_swerveSubsystem.m_yPID.calculate(robotPose.getY(), Math.abs(targetTranslation2d.getY() - (isRedAlliance() ? field.width : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
+            RobotContainer.m_telemetry.log("x pose", Math.abs(targetTranslation2d.getX() - (isRedAlliance() ? field.length : 0)));
+            RobotContainer.m_telemetry.log("y pose", Math.abs(targetTranslation2d.getY() - (isRedAlliance() ? field.width : 0)));
         }
         
         if (m_commandedRotation.isPresent()){
@@ -308,15 +307,15 @@ public class DrivePath extends Command{
 
     @Override
     public boolean isFinished() {
-        SmartDashboard.putNumber("maxPoints", m_pose.length - 1);
+        RobotContainer.m_telemetry.log("maxPoints", m_pose.length - 1);
         
         Pose2d targetPose = m_pose[m_point].m_pose;
         Translation2d targetTranslation2d = m_pose[m_point].m_translation;
-        AprilTagFieldLayout field = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+        Fields field = Fields.DEFAULT_FIELD;
 
         if (targetPose != null){
             
-            targetPose = new Pose2d(Math.abs(targetPose.getX() - (isRedAlliance() ? field.getFieldLength() : 0)), Math.abs(targetPose.getY() - (isRedAlliance() ? field.getFieldWidth() : 0)), new Rotation2d(targetPose.getRotation().getRotations() * (isRedAlliance() ? -1 : 1)));
+            targetPose = new Pose2d(Math.abs(targetPose.getX() - (isRedAlliance() ? field.length : 0)), Math.abs(targetPose.getY() - (isRedAlliance() ? field.width : 0)), new Rotation2d(targetPose.getRotation().getRotations() * (isRedAlliance() ? -1 : 1)));
             if (m_swerveSubsystem.getPose().getTranslation().getDistance(targetPose.getTranslation()) < m_pose[m_point].m_deadzone){
                 
                 try {
@@ -339,7 +338,7 @@ public class DrivePath extends Command{
                 return false;
             }
         }else{
-            targetTranslation2d = new Translation2d(Math.abs(targetTranslation2d.getX() - (isRedAlliance() ? field.getFieldLength() : 0)), Math.abs(targetTranslation2d.getY() - (isRedAlliance() ? field.getFieldWidth() : 0)));
+            targetTranslation2d = new Translation2d(Math.abs(targetTranslation2d.getX() - (isRedAlliance() ? field.length : 0)), Math.abs(targetTranslation2d.getY() - (isRedAlliance() ? field.width : 0)));
 
             if (m_swerveSubsystem.getPose().getTranslation().getDistance(targetTranslation2d) < m_pose[m_point].m_deadzone){
                 if (m_point >= m_pose.length - 1){

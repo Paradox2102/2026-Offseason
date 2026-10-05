@@ -13,7 +13,6 @@ import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.math.util.Units;
 import org.wpilib.simulation.SingleJointedArmSim;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.system.RobotController;
 
 import com.ctre.phoenix6.CANBus;
@@ -24,6 +23,7 @@ import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.utils.DoubleNumber;
 
@@ -106,7 +106,7 @@ public class TurretAimSubsystem extends SubsystemBase{
         talonFXSim.setRotorVelocity(m_motorSimModel.getVelocity() * 0.15915495);
         talonFXSim.setRawRotorPosition(Units.radiansToRotations(m_motorSimModel.getAngle()));
             
-        SmartDashboard.putNumber("Turret Angle Rotations", Units.radiansToRotations(m_motorSimModel.getAngle() * ShooterConstants.k_shooterGearReduction));
+        RobotContainer.m_telemetry.log("Turret Angle Rotations", Units.radiansToRotations(m_motorSimModel.getAngle() * ShooterConstants.k_shooterGearReduction));
 
     }
 

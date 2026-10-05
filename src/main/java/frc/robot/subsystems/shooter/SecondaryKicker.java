@@ -9,13 +9,13 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.RobotContainer;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.math.util.Units;
 import org.wpilib.system.RobotController;
 import org.wpilib.simulation.FlywheelSim;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
@@ -67,7 +67,7 @@ public class SecondaryKicker extends SubsystemBase {
         talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getAngularVelocity()) * k_gearRatio);
             
         
-        SmartDashboard.putNumber("Upward Kicker Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
+        RobotContainer.m_telemetry.log("Upward Kicker Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
 
     }
 }

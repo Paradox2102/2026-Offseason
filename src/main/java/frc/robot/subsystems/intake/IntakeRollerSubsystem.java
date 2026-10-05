@@ -8,6 +8,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import frc.robot.RobotContainer;
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.IntakeConstants;
 
@@ -16,7 +17,6 @@ import org.wpilib.math.util.Units;
 import org.wpilib.math.controller.BangBangController;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.simulation.FlywheelSim;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.system.RobotController;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
@@ -82,7 +82,7 @@ public class IntakeRollerSubsystem extends SubsystemBase {
         talonFXSim.setRotorAcceleration(m_motorSimModel.getAngularAcceleration() * k_gearRatio);
         talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getAngularVelocity()) * k_gearRatio);
             
-        SmartDashboard.putNumber("Intake Roller Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
+        RobotContainer.m_telemetry.log("Intake Roller Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
 
     }
 }

@@ -18,10 +18,10 @@ import org.wpilib.driverstation.RobotState;
 import org.wpilib.hardware.led.LEDPattern;
 import org.wpilib.system.Timer;
 import org.wpilib.driverstation.Alliance;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.util.Color;
 
 import frc.robot.Constants.LightConstants;
+import frc.robot.RobotContainer;
 
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
@@ -109,7 +109,7 @@ public class LightSubsystem extends SubsystemBase {
         m_shift ++;
     }
     public void putShiftTime(double shift) {
-      SmartDashboard.putNumber("Time Until Shift", round(shift - m_timer.get()));
+      RobotContainer.m_telemetry.log("Time Until Shift", round(shift - m_timer.get()));
     }
     public double round(double number) {
       double biigerNumber = Math.floor(number * 10);
@@ -171,18 +171,18 @@ public class LightSubsystem extends SubsystemBase {
       m_pattern.applyTo(m_ledBuffer);
   }
   public LightSubsystem() {
-    SmartDashboard.putData(Commands.runOnce(() -> {
-        m_isOn = !m_isOn;
-      })
-      .withName("Toggle Lights")
-      .ignoringDisable(true));
+    // SmartDashboard.putData(Commands.runOnce(() -> {
+    //     m_isOn = !m_isOn;
+    //   })
+    //   .withName("Toggle Lights")
+    //   .ignoringDisable(true));
 
-      SmartDashboard.putData(Commands.runOnce(() -> {
-        m_isScrolling = !m_isScrolling;
-        LedPatterns.m_disabledPattern = LEDPattern.steps(Map.of(0, Color.RED, 0.16, Color.BLUE, 0.33, new Color(1.0f, 0.35f, 0.0f),0.49, Color.RED, 0.66, Color.BLUE, 0.83, new Color(1.0f, 0.35f, 0.0f))).scrollAtAbsoluteVelocity(m_isScrolling ? LightConstants.k_disabledVelocity : MetersPerSecond.of(0), LightConstants.k_ledSpacing);
-      })
-      .withName("Toggle Disable Scrolling")
-      .ignoringDisable(true));
+      // RobotContainer.m_telemetry.(Commands.runOnce(() -> {
+      //   m_isScrolling = !m_isScrolling;
+      //   LedPatterns.m_disabledPattern = LEDPattern.steps(Map.of(0, Color.RED, 0.16, Color.BLUE, 0.33, new Color(1.0f, 0.35f, 0.0f),0.49, Color.RED, 0.66, Color.BLUE, 0.83, new Color(1.0f, 0.35f, 0.0f))).scrollAtAbsoluteVelocity(m_isScrolling ? LightConstants.k_disabledVelocity : MetersPerSecond.of(0), LightConstants.k_ledSpacing);
+      // })
+      // .withName("Toggle Disable Scrolling")
+      // .ignoringDisable(true));
     m_led.setLength(LightConstants.k_lightAmount);
     m_led.setData(m_ledBuffer);
 
@@ -212,7 +212,7 @@ public class LightSubsystem extends SubsystemBase {
     
     m_led.setData(m_ledBuffer);
 
-    SmartDashboard.putBoolean("Won Auto?", getWonAuto());
+    RobotContainer.m_telemetry.log("Won Auto?", getWonAuto());
   }
   /**
    * Using the current shift, estimated through a timer, It will return if the alliance hub is currently active.

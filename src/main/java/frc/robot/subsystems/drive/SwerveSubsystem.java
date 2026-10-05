@@ -24,7 +24,7 @@ import org.wpilib.math.numbers.N3;
 import org.wpilib.driverstation.Alliance;
 import org.wpilib.driverstation.MatchState;
 import org.wpilib.driverstation.RobotState;
-// import org.wpilib.driverstation.DriverStation.Alliance;
+// import org.wpilib.driverstation.Alliance;
 import org.wpilib.smartdashboard.Field2d;
 import org.wpilib.system.Notifier;
 import org.wpilib.system.RobotController;
@@ -55,7 +55,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     private boolean m_tauntIsRight = false;
 
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
-    private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
+    private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.ZERO;
     /* Red alliance sees forward as 180 degrees (toward blue alliance wall) */
     private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
     /* Keep track if we've ever applied the operator perspective before or not */
@@ -290,7 +290,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
             */
         if (!m_hasAppliedOperatorPerspective || RobotState.isDisabled()) {
             MatchState.getAlliance().ifPresent(allianceColor -> {
-                setOperatorPerspectiveForward(
+                setOperatorForwardDirection(
                     allianceColor == Alliance.RED
                         ? kRedAlliancePerspectiveRotation
                         : kBlueAlliancePerspectiveRotation
@@ -356,7 +356,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     //                         cachedPose.getRotation()
     //                     );
     //                 }
-    //                 drive(new ChassisVelocities(getChassisSpeeds().vx, (cachedPose.getY() - targetPose.getY()), 0));
+    //                 drive(new ChassisVelocities(getChassisVelocities().vx, (cachedPose.getY() - targetPose.getY()), 0));
     //             }
     //         };
     //     }
@@ -523,7 +523,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         return MatchState.getAlliance() == Optional.of(Alliance.RED) ? true : false;
     }
 
-    public ChassisVelocities getChassisSpeeds() {
+    public ChassisVelocities getChassisVelocities() {
         return getState().Velocity;
     }
 }

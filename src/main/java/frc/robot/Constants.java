@@ -6,13 +6,13 @@ import static org.wpilib.units.Units.MetersPerSecond;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.Trigger;
+import org.wpilib.hardware.bus.CANPort;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
 
-import org.wpilib.math.geometry.Rectangle2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.geometry.Translation3d;
@@ -38,11 +38,11 @@ public class Constants {
 
     public static class CANIDConstants {
 
-        public static final CANBus k_canBus0 = CANBus.systemcore(0);
-        public static final CANBus k_canBus1 = CANBus.systemcore(1);
-        public static final CANBus k_canBus2 = CANBus.systemcore(2);
-        public static final CANBus k_canBus3 = CANBus.systemcore(3);
-        public static final CANBus k_canBus4 = CANBus.systemcore(4);
+        public static final CANBus k_canBus0 = new CANBus(CANPort.CAN_D0);
+        public static final CANBus k_canBus1 = new CANBus(CANPort.CAN_D1);
+        public static final CANBus k_canBus2 = new CANBus(CANPort.CAN_D2);
+        public static final CANBus k_canBus3 = new CANBus(CANPort.CAN_D3);
+        public static final CANBus k_canBus4 = new CANBus(CANPort.CAN_D4);
 
         public static final int gyro = 0;
 
@@ -73,6 +73,7 @@ public class Constants {
         public static final int shooterFollower = 43;
         public static final int shooterAzimuth = 44;
         public static final int goUp = 45;
+
     }    
 
     public static class Subsystems {
@@ -132,7 +133,7 @@ public class Constants {
 
     public static final double k_hoodG = 10.0;
     public static final double k_hoodS = 3;
-    public static final double k_hoodP = 20.0;
+    public static final double k_hoodP = 0.1;
     public static final double k_hoodD = 0;
 
     public static final double k_shooterP = 0.3;
@@ -148,7 +149,7 @@ public class Constants {
     public static final double k_secondaryKickerV = 0.1195;
 
     public static final double k_turretI = 0.0;
-    public static final double k_turretP = 3.0;
+    public static final double k_turretP = 0.0;
     public static final double k_turretD = 0.0;
     public static final double k_turretV = 0.0;
     public static final double k_turretS = 0.0;
@@ -157,22 +158,56 @@ public class Constants {
 
     public static final DoubleNumber k_turretBounds = new DoubleNumber(-250, 250);
     public static final double[][] k_scoreHoodAngle = {
-        {0, 0}
+        {1.125, 0},
+      {1.25, 0},
+      {1.5, 10},
+      {1.75, 12.5},
+      {2, 15},
+      {2.25, 17.5},
+      {2.5, 19},
+      {2.75, 21},
+      {3, 22},
+      {4, 22},
+      {4.5, 23},
+      {5, 25},
+      {10, 35}
     };
 
     public static final double[][] k_scoreShotSpeeds = {
-        {0, 0}
+        {1.125, 40},
+      {2.25, 45},
+      {2.75, 47},
+      {3.25, 50},
+      {4, 55},
+      {4.75, 60}
     };
 
     public static final double[][] k_scoreShotTimes = {
         {0, 0}
     };
     public static final double[][] k_passHoodAngle = {
-        {0, 0}
+      {1.125, 0},
+      {1.25, 0},
+      {1.5, 10},
+      {1.75, 12.5},
+      {2, 15},
+      {2.25, 17.5},
+      {2.5, 19},
+      {2.75, 21},
+      {3, 22},
+      {4, 22},
+      {4.5, 23},
+      {5, 25},
+      {10, 35}
     };
 
     public static final double[][] k_passShotSpeeds = {
-        {0, 0}
+        {1.125, 40},
+      {2.25, 45},
+      {2.75, 47},
+      {3.25, 50},
+      {4, 55},
+      {4.75, 60}
     };
 
     public static final double[][] k_passShotTimes = {
@@ -250,25 +285,25 @@ public class Constants {
     public static final double k_depotIntermediatePoint = 5.940;
     public static final double k_outpostIntermediatePoint = 1.0;
     
-    public static final Rectangle2d k_blueTrenchLeft = new Rectangle2d(
-        new Translation2d(2.5, 8),
-        new Translation2d(6.6, 6.8)
-    );
+    // public static final Rectangle2d k_blueTrenchLeft = new Rectangle2d(
+    //     new Translation2d(2.5, 8),
+    //     new Translation2d(6.6, 6.8)
+    // );
 
-    public static final Rectangle2d k_blueTrenchRight = new Rectangle2d(
-        new Translation2d(2.5, 1.3),
-        new Translation2d(6.6, 0)
-    );
+    // public static final Rectangle2d k_blueTrenchRight = new Rectangle2d(
+    //     new Translation2d(2.5, 1.3),
+    //     new Translation2d(6.6, 0)
+    // );
 
-    public static final Rectangle2d k_redTrenchLeft = new Rectangle2d(
-        new Translation2d(14, 8),
-        new Translation2d(10.2, 6.8)
-    );
+    // public static final Rectangle2d k_redTrenchLeft = new Rectangle2d(
+    //     new Translation2d(14, 8),
+    //     new Translation2d(10.2, 6.8)
+    // );
 
-    public static final Rectangle2d k_redTrenchRight = new Rectangle2d(
-        new Translation2d(14, 1.3),
-        new Translation2d(10.2, 0)
-    );
+    // public static final Rectangle2d k_redTrenchRight = new Rectangle2d(
+    //     new Translation2d(14, 1.3),
+    //     new Translation2d(10.2, 0)
+    // );
   }
 
   

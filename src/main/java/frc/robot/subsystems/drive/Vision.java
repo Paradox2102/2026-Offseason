@@ -4,11 +4,11 @@ import static org.wpilib.units.Units.Microseconds;
 import static org.wpilib.units.Units.Milliseconds;
 import static org.wpilib.units.Units.Seconds;
 
-import org.wpilib.vision.apriltag.AprilTagFieldLayout;
-import org.wpilib.vision.apriltag.AprilTagFields;
 import org.wpilib.math.linalg.Matrix;
 import org.wpilib.math.linalg.VecBuilder;
-import org.wpilib.driverstation.Alert;
+import org.wpilib.util.Alert;
+import org.wpilib.fields.Field;
+import org.wpilib.fields.Fields;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
@@ -47,7 +47,9 @@ public class Vision {
     /**
    * April Tag Field Layout of the year.
    */
-public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark);
+public static final Fields fieldLayout = Fields.FRC_2026_REBUILT_ANDY_MARK;
+
+public static final Field aprilTagField = fieldLayout.loadField();
   /**
    * Ambiguity defined as a value between (0,1). Used in {@link Vision#filterPose}.
    */
@@ -83,7 +85,7 @@ public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadFi
     if (Robot.isSimulation())
     {
       visionSim = new VisionSystemSim("Vision");
-      visionSim.addAprilTags(fieldLayout);
+      visionSim.addAprilTags(aprilTagField);
 
       for (Cameras c : Cameras.values())
       {
@@ -104,7 +106,7 @@ public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadFi
    */
   public static Pose2d getAprilTagPose(int aprilTag, Transform2d robotOffset)
   {
-    Optional<Pose3d> aprilTagPose3d = fieldLayout.getTagPose(aprilTag);
+    Optional<Pose3d> aprilTagPose3d = aprilTagField.getTagPose(aprilTag);
     if (aprilTagPose3d.isPresent())
     {
       return aprilTagPose3d.get().toPose2d().transformBy(robotOffset);
@@ -232,7 +234,7 @@ public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadFi
    */
   public double getDistanceFromAprilTag(int id)
   {
-    Optional<Pose3d> tag = fieldLayout.getTagPose(id);
+    Optional<Pose3d> tag = aprilTagField.getTagPose(id);
     return tag.map(pose3d -> PhotonUtils.getDistanceToPose(currentPose.get(), pose3d.toPose2d())).orElse(-1.0);
   }
 
@@ -316,9 +318,9 @@ public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadFi
     List<Pose2d> poses = new ArrayList<>();
     for (PhotonTrackedTarget target : targets)
     {
-      if (fieldLayout.getTagPose(target.getFiducialId()).isPresent())
+      if (aprilTagField.getTagPose(target.getFiducialId()).isPresent())
       {
-        Pose2d targetPose = fieldLayout.getTagPose(target.getFiducialId()).get().toPose2d();
+        Pose2d targetPose = aprilTagField.getTagPose(target.getFiducialId()).get().toPose2d();
         poses.add(targetPose);
       }
     }
@@ -412,14 +414,14 @@ public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadFi
     Cameras(String name, Rotation3d robotToCamRotation, Translation3d robotToCamTranslation,
             Matrix<N3, N1> singleTagStdDevs, Matrix<N3, N1> multiTagStdDevsMatrix)
     {
-      latencyAlert = new Alert("'" + name + "' Camera is experiencing high latency.", Alert.Level.LOW);
+      latencyAlert = new Alert(name, "Camera is experiencing high latency.", Alert.Level.LOW);
 
       camera = new PhotonCamera(name);
 
       // https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html
       robotToCamTransform = new Transform3d(robotToCamTranslation, robotToCamRotation);
 
-      poseEstimator = new PhotonPoseEstimator(Vision.fieldLayout,
+      poseEstimator = new PhotonPoseEstimator(Vision.aprilTagField,
                                               // PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,  TODO - This has been removed from the constructor but needs to be addressed elsewhere
                                               robotToCamTransform);
       // poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY); TODO - Supposedly no longer needed but need to investigate what is replacing it.
