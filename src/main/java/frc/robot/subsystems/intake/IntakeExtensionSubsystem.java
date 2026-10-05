@@ -25,7 +25,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     private static final double k_intakeMaxExtension = 20.0;//TODO: tune in sim
     private static final double k_elevatorDrimRadius = 0.038091; // If something is wrong then this is the first thing to check. Idk if I did this right
     private static final double k_elevatorMass = 5.401715051809;
-    private final CANBus k_CANBus = CANIDConstants.k_canBus2;
+    private final CANBus k_CANBus = CANIDConstants.k_canBus4;
 
     private final TalonFX m_intakeExtensionLeader = new TalonFX(CANIDConstants.intakeExtensionLeader, k_CANBus);
     private final TalonFX m_intakeExtensionFollower = new TalonFX(CANIDConstants.intakeExtensionFollower, k_CANBus); 
