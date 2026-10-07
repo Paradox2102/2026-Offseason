@@ -39,12 +39,12 @@ public class RobotContainer {
 
     public RobotContainer() {
 
-        configureDefaults();
-        configureBindings();
+        // configureDefaults();
+        // configureBindings();
         // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
-        configureAutos();
+        // configureAutos();
         // m_controller.southFace().whileTrue(Subsystems.m_hoodSubsystem.staticShoot()).whileFalse(Subsystems.m_hoodSubsystem.returnHood());
-        m_controller.faceDown().onTrue(Subsystems.m_turretAimSubsystem.staticAim());
+        // m_controller.faceDown().onTrue(Subsystems.m_turretAimSubsystem.staticAim());
     }
 
     private void configureBindings() {
@@ -73,16 +73,16 @@ public class RobotContainer {
             )
         );
 
-        Subsystems.m_indexerConveyor.setDefaultCommand(Subsystems.m_indexerConveyor.run(true));
-        Subsystems.m_indexerRollerSubsystem.setDefaultCommand(Subsystems.m_indexerRollerSubsystem.run(true));
-        Subsystems.m_kickerSubsystem.setDefaultCommand(Subsystems.m_kickerSubsystem.run(false));
-        Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.returnHood());
+        // Subsystems.m_indexerConveyor.setDefaultCommand(Subsystems.m_indexerConveyor.run(true));
+        // Subsystems.m_indexerRollerSubsystem.setDefaultCommand(Subsystems.m_indexerRollerSubsystem.run(true));
+        // Subsystems.m_kickerSubsystem.setDefaultCommand(Subsystems.m_kickerSubsystem.run(false));
+        // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.returnHood());
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
-        final var idle = new SwerveRequest.Idle();
-        RobotModeTriggers.disabled().whileTrue(
-            Subsystems.m_swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true)
-        );
+        // final var idle = new SwerveRequest.Idle();
+        // RobotModeTriggers.disabled().whileTrue(
+        //     Subsystems.m_swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true)
+        // );
     }
     private void configureAutos(){
         SelectAuto.addCommand("RightDoubleSweep", Autos.doubleSwipe(true));

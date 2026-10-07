@@ -38,11 +38,11 @@ public class Constants {
 
     public static class CANIDConstants {
 
-        public static final CANBus k_canBus0 = new CANBus(CANPort.CAN_D0);
-        public static final CANBus k_canBus1 = new CANBus(CANPort.CAN_D1);
-        public static final CANBus k_canBus2 = new CANBus(CANPort.CAN_D2);
-        public static final CANBus k_canBus3 = new CANBus(CANPort.CAN_D3);
-        public static final CANBus k_canBus4 = new CANBus(CANPort.CAN_D4);
+        public static final CANBus k_canBus0 = new CANBus(CANPort.CAN_S0);
+        public static final CANBus k_canBus1 = new CANBus(CANPort.CAN_S1);
+        public static final CANBus k_canBus2 = new CANBus(CANPort.CAN_S2);
+        public static final CANBus k_canBus3 = new CANBus(CANPort.CAN_S3);
+        public static final CANBus k_canBus4 = new CANBus(CANPort.CAN_S4);
 
         public static final int gyro = 0;
 

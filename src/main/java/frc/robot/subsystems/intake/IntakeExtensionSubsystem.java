@@ -51,6 +51,10 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         }
     }
 
+    @Override
+    public void periodic() {
+        System.out.println(m_intakeExtensionLeader.getPosition().getValueAsDouble());
+    }
     public Command retractIntake() {
         return Commands.run(() -> {
             m_intakeExtensionLeader.setControl(m_request.withPosition(0));

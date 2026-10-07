@@ -108,7 +108,7 @@ public class TunerConstants {
 
     public static final SwerveDrivetrainConstants DrivetrainConstants = new SwerveDrivetrainConstants()
             .withPigeon2Id(kPigeonId)
-            .withPigeon2Configs(pigeonConfigs);
+            .withPigeon2Configs(pigeonConfigs).withNetwork(kCANBus);
 
     private static final SwerveModuleConstantsFactory<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> ConstantCreator =
         new SwerveModuleConstantsFactory<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>()
