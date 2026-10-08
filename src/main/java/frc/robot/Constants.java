@@ -94,14 +94,14 @@ public class Constants {
 
     public static class VisionConstants {
 
-        public static final Translation3d backLeftPosition = new Translation3d(Units.inchesToMeters(-12.2212), Units.inchesToMeters(12.6202), Units.inchesToMeters(12.3281));
-        public static final Rotation3d backLeftRotation = new Rotation3d(25, -2.012, 148);
-        public static final Translation3d backRightPosition = new Translation3d(Units.inchesToMeters(-11.0169), Units.inchesToMeters(-13.0384), Units.inchesToMeters(11.9732));
-        public static final Rotation3d backRightRotation = new Rotation3d(25, 11.148, 65);
-        public static final Translation3d sideLeftPosition = new Translation3d(Units.inchesToMeters(-3.8793),Units.inchesToMeters(14.0335), Units.inchesToMeters(5.3676));
-        public static final Rotation3d sideLeftRotation = new Rotation3d();
-        public static final Translation3d blueButNotInCornerPos = new Translation3d(Units.inchesToMeters(-12.1548), Units.inchesToMeters(-8.6186), Units.inchesToMeters(12.00));
-        public static final Rotation3d blueButNotInCornerRot = new Rotation3d(25, 1.823, 147.168);
+        public static final Translation3d frontRightPosition = new Translation3d(Units.inchesToMeters(-12.2212), Units.inchesToMeters(12.6202), Units.inchesToMeters(12.3281));
+        public static final Rotation3d frontRightRotation = new Rotation3d(25, -2.012, 148);
+        public static final Translation3d sideLeftPosition = new Translation3d(Units.inchesToMeters(-11.0169), Units.inchesToMeters(-13.0384), Units.inchesToMeters(11.9732));
+        public static final Rotation3d sideLeftRotation = new Rotation3d(25, 11.148, 65);
+        //public static final Translation3d sideLeftPosition = new Translation3d(Units.inchesToMeters(-3.8793),Units.inchesToMeters(14.0335), Units.inchesToMeters(5.3676));
+        //public static final Rotation3d sideLeftRotation = new Rotation3d();
+        public static final Translation3d frontLeftPos = new Translation3d(Units.inchesToMeters(-12.1548), Units.inchesToMeters(-8.6186), Units.inchesToMeters(12.00));
+        public static final Rotation3d frontLeftRot = new Rotation3d(25, 1.823, 147.168);
 
     }
 
