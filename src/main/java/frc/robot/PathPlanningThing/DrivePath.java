@@ -18,6 +18,7 @@ import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.math.util.Units;
+import org.wpilib.telemetry.Telemetry;
 import org.wpilib.driverstation.Alliance;
 import org.wpilib.driverstation.MatchState;
 import org.wpilib.fields.Fields;
@@ -185,7 +186,7 @@ public class DrivePath extends Command{
     public void execute() {
         checkClosest();
         DriveToPose();
-        RobotContainer.m_telemetry.log("Auto Index", m_point);
+        Telemetry.log("Auto Index", m_point);
     }
     private void checkClosest(){
         var importantPose = nextImportantPose();
@@ -234,13 +235,13 @@ public class DrivePath extends Command{
         if (m_pose[m_point].rotation != -1000){
             x = Math.clamp(m_swerveSubsystem.m_xPID.calculate(robotPose.getX(), Math.abs(targetPose.getX() - (isRedAlliance() ? field.length : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
             y = Math.clamp(m_swerveSubsystem.m_yPID.calculate(robotPose.getY(), Math.abs(targetPose.getY() - (isRedAlliance() ? field.width : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
-            RobotContainer.m_telemetry.log("x pose", Math.abs(targetPose.getX() - (isRedAlliance() ? field.length : 0)));
-            RobotContainer.m_telemetry.log("y pose", Math.abs(targetPose.getY() - (isRedAlliance() ? field.width : 0)));
+            Telemetry.log("x pose", Math.abs(targetPose.getX() - (isRedAlliance() ? field.length : 0)));
+            Telemetry.log("y pose", Math.abs(targetPose.getY() - (isRedAlliance() ? field.width : 0)));
         }else{
             x = Math.clamp(m_swerveSubsystem.m_xPID.calculate(robotPose.getX(), Math.abs(targetTranslation2d.getX() - (isRedAlliance() ? field.length : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
             y = Math.clamp(m_swerveSubsystem.m_yPID.calculate(robotPose.getY(), Math.abs(targetTranslation2d.getY() - (isRedAlliance() ? field.width : 0))), -m_pose[m_point].m_maxVelocity, m_pose[m_point].m_maxVelocity);
-            RobotContainer.m_telemetry.log("x pose", Math.abs(targetTranslation2d.getX() - (isRedAlliance() ? field.length : 0)));
-            RobotContainer.m_telemetry.log("y pose", Math.abs(targetTranslation2d.getY() - (isRedAlliance() ? field.width : 0)));
+            Telemetry.log("x pose", Math.abs(targetTranslation2d.getX() - (isRedAlliance() ? field.length : 0)));
+            Telemetry.log("y pose", Math.abs(targetTranslation2d.getY() - (isRedAlliance() ? field.width : 0)));
         }
         
         if (m_commandedRotation.isPresent()){
@@ -307,7 +308,7 @@ public class DrivePath extends Command{
 
     @Override
     public boolean isFinished() {
-        RobotContainer.m_telemetry.log("maxPoints", m_pose.length - 1);
+        Telemetry.log("maxPoints", m_pose.length - 1);
         
         Pose2d targetPose = m_pose[m_point].m_pose;
         Translation2d targetTranslation2d = m_pose[m_point].m_translation;

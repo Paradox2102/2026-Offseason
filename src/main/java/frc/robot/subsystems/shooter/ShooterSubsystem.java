@@ -22,6 +22,7 @@ import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.math.util.Units;
 import org.wpilib.system.RobotController;
+import org.wpilib.telemetry.Telemetry;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
@@ -102,7 +103,7 @@ public class ShooterSubsystem extends SubsystemBase{
         talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getAngularVelocity()) * k_gearRatio);
             
         //Multipled by 0.159 to convert rad/s to rps
-        RobotContainer.m_telemetry.log("Shooter Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
+        Telemetry.log("Shooter Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
 
 
     }

@@ -16,6 +16,7 @@ import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.math.util.Units;
 import org.wpilib.system.RobotController;
+import org.wpilib.telemetry.Telemetry;
 import org.wpilib.simulation.FlywheelSim;
 
 import org.wpilib.command2.Command;
@@ -39,12 +40,12 @@ public class IndexerRollerSubsystem extends SubsystemBase {
         STILL
     };
     private targetDirection m_runningDirection = targetDirection.STILL;
-    public Trigger isJammed = new Trigger(() -> {
-        if (m_runningDirection == targetDirection.STILL)
-            return false;
+    // public Trigger isJammed = new Trigger(() -> {
+    //     if (m_runningDirection == targetDirection.STILL)
+    //         return false;
         
-        return (Math.abs(m_indexerRollerMotor.getVelocity().getValueAsDouble() - (m_runningDirection == targetDirection.IN ? IndexerConstants.k_conveyorInRPS : IndexerConstants.k_conveyorOutRPS)) < IndexerConstants.k_jamThreshold);
-    }).onTrue(Commands.run(() -> {m_indexerRollerMotor.setControl(m_request.withVelocity(m_runningDirection == targetDirection.IN ? IndexerConstants.k_rollerOutRPS : IndexerConstants.k_rollerInRPS));}, this));
+    //     return (Math.abs(m_indexerRollerMotor.getVelocity().getValueAsDouble() - (m_runningDirection == targetDirection.IN ? IndexerConstants.k_conveyorInRPS : IndexerConstants.k_conveyorOutRPS)) < IndexerConstants.k_jamThreshold);
+    // }).onTrue(Commands.run(() -> {m_indexerRollerMotor.setControl(m_request.withVelocity(m_runningDirection == targetDirection.IN ? IndexerConstants.k_rollerOutRPS : IndexerConstants.k_rollerInRPS));}, this));
 
 
     public IndexerRollerSubsystem() {
@@ -67,7 +68,7 @@ public class IndexerRollerSubsystem extends SubsystemBase {
     public Command testRun(){
         return Commands.runEnd(() -> {
             
-            m_indexerRollerMotor.setThrottle(0.6);
+            m_indexerRollerMotor.setThrottle(0.8);
         }, () -> m_indexerRollerMotor.setControl(new StaticBrake()), this);
     }
 
@@ -93,7 +94,7 @@ public class IndexerRollerSubsystem extends SubsystemBase {
         talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getAngularVelocity()) * k_gearRatio);
             
         //Multipled by 0.159 to convert rad/s to rps
-        RobotContainer.m_telemetry.log("Indexer Roller Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
+        Telemetry.log("Indexer Roller Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
 
     }
 }

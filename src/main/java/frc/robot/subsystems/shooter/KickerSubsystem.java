@@ -16,6 +16,7 @@ import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.math.util.Units;
 import org.wpilib.system.RobotController;
+import org.wpilib.telemetry.Telemetry;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
@@ -74,6 +75,6 @@ public class KickerSubsystem extends SubsystemBase {
         talonFXSim.setRotorAcceleration(m_motorSimModel.getAngularAcceleration() * k_gearRatio);
         talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getAngularVelocity()) * k_gearRatio);
             
-        RobotContainer.m_telemetry.log("Kicker Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
+        Telemetry.log("Kicker Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
     }
 }

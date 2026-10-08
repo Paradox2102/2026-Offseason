@@ -131,9 +131,9 @@ public class Constants {
     public static final TalonFXConfiguration k_kickerConfig = new TalonFXConfiguration();
     public static final TalonFXConfiguration k_secondaryKickerConfig = new TalonFXConfiguration();
 
-    public static final double k_hoodG = 10.0;
-    public static final double k_hoodS = 3;
-    public static final double k_hoodP = 0.1;
+    public static final double k_hoodG = 0.0;
+    public static final double k_hoodS = 0;
+    public static final double k_hoodP = 0.05;
     public static final double k_hoodD = 0;
 
     public static final double k_shooterP = 0.3;
@@ -257,8 +257,8 @@ public class Constants {
 
         k_hoodConfig.withCurrentLimits(k_hoodLimitConfig);
         k_hoodConfig.withMotorOutput(k_hoodConfig.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive));
-        k_hoodConfig.Slot0.kG = k_hoodG;
-        k_hoodConfig.Slot0.kS = k_hoodS;
+        // k_hoodConfig.Slot0.kG = k_hoodG;
+        // k_hoodConfig.Slot0.kS = k_hoodS;
         k_hoodConfig.Slot0.kP = k_hoodP;
         // k_hoodConfig.Slot0.kD = k_hoodD;
     }

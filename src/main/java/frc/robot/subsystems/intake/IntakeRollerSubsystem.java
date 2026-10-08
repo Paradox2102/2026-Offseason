@@ -19,6 +19,7 @@ import org.wpilib.math.controller.BangBangController;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.system.RobotController;
+import org.wpilib.telemetry.Telemetry;
 import org.wpilib.units.measure.Velocity;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
@@ -89,7 +90,7 @@ public class IntakeRollerSubsystem extends SubsystemBase {
         talonFXSim.setRotorAcceleration(m_motorSimModel.getAngularAcceleration() * k_gearRatio);
         talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getAngularVelocity()) * k_gearRatio);
             
-        RobotContainer.m_telemetry.log("Intake Roller Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
+        Telemetry.log("Intake Roller Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
 
     }
 }

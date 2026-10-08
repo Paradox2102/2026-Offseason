@@ -17,6 +17,7 @@ import org.wpilib.driverstation.MatchState;
 import org.wpilib.driverstation.RobotState;
 import org.wpilib.hardware.led.LEDPattern;
 import org.wpilib.system.Timer;
+import org.wpilib.telemetry.Telemetry;
 import org.wpilib.driverstation.Alliance;
 import org.wpilib.util.Color;
 
@@ -109,7 +110,7 @@ public class LightSubsystem extends SubsystemBase {
         m_shift ++;
     }
     public void putShiftTime(double shift) {
-      RobotContainer.m_telemetry.log("Time Until Shift", round(shift - m_timer.get()));
+      Telemetry.log("Time Until Shift", round(shift - m_timer.get()));
     }
     public double round(double number) {
       double biigerNumber = Math.floor(number * 10);
@@ -212,7 +213,7 @@ public class LightSubsystem extends SubsystemBase {
     
     m_led.setData(m_ledBuffer);
 
-    RobotContainer.m_telemetry.log("Won Auto?", getWonAuto());
+    Telemetry.log("Won Auto?", getWonAuto());
   }
   /**
    * Using the current shift, estimated through a timer, It will return if the alliance hub is currently active.

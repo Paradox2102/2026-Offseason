@@ -14,6 +14,7 @@ import org.wpilib.math.system.Models;
 import org.wpilib.math.util.Units;
 import org.wpilib.simulation.SingleJointedArmSim;
 import org.wpilib.system.RobotController;
+import org.wpilib.telemetry.Telemetry;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -106,7 +107,7 @@ public class TurretAimSubsystem extends SubsystemBase{
         talonFXSim.setRotorVelocity(m_motorSimModel.getVelocity() * 0.15915495);
         talonFXSim.setRawRotorPosition(Units.radiansToRotations(m_motorSimModel.getAngle()));
             
-        RobotContainer.m_telemetry.log("Turret Angle Rotations", Units.radiansToRotations(m_motorSimModel.getAngle() * ShooterConstants.k_shooterGearReduction));
+        Telemetry.log("Turret Angle Rotations", Units.radiansToRotations(m_motorSimModel.getAngle() * ShooterConstants.k_shooterGearReduction));
 
     }
 

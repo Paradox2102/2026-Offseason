@@ -38,8 +38,6 @@ public class RobotContainer {
     @SuppressWarnings("unused")
     private final CommandJoystick m_joystick = new CommandJoystick(1);
     
-    public static TelemetryTable m_telemetry = Telemetry.getTable();
-
     public RobotContainer() {
 
         configureDefaults();
@@ -105,7 +103,7 @@ public class RobotContainer {
         SelectAuto.addCommand("RightDoubleSweep", Autos.doubleSwipe(true));
         SelectAuto.addCommand("LeftDoubleSweep", Autos.doubleSwipe(false));
 
-        m_telemetry.log("Auto Selection", SelectAuto.m_autoSelection);
+        Telemetry.log("Auto Selection", SelectAuto.m_autoSelection);
     }
 
     public Command getAutonomousCommand() {

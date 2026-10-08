@@ -18,6 +18,7 @@ import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.util.Units;
 import org.wpilib.system.RobotController;
+import org.wpilib.telemetry.Telemetry;
 import org.wpilib.simulation.SingleJointedArmSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
@@ -95,7 +96,7 @@ public class HoodSubsystem extends SubsystemBase{
    talonFXSim.setRawRotorPosition(Units.radiansToRotations(m_motorSimModel.getAngle()) * k_gearRatio);
    talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getVelocity()) * k_gearRatio);
 
-   RobotContainer.m_telemetry.log("Hood motor position", Units.radiansToDegrees(m_motorSimModel.getAngle()));
+   Telemetry.log("Hood motor position", Units.radiansToDegrees(m_motorSimModel.getAngle()));
 
     }
 }
