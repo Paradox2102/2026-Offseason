@@ -79,7 +79,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
                 .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
                 .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-
+            // TODO: Remember this is open loop
     
     private final SwerveRequest.ApplyFieldVelocity m_velocityDrive = new SwerveRequest.ApplyFieldVelocity()
     .withDriveRequestType(DriveRequestType.Velocity);
@@ -149,7 +149,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     /* The SysId routine to test */
     private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
     
-    private Vision vision;
+    // private Vision vision;
     
     private InterpolatingDoubleTreeMap m_shotTimeInt = new InterpolatingDoubleTreeMap();
     private Pose2d m_sotmPose = new Pose2d();
@@ -172,10 +172,11 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        setupPhotonVision();
+        // setupPhotonVision();
         for(double[] values : ShooterConstants.k_scoreShotTimes){
             m_shotTimeInt.put(values[0], values[1]);
         }
+        getState().Pose = new Pose2d(0, 0,new Rotation2d(Math.PI));
     }
 
     /**
@@ -200,10 +201,11 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        setupPhotonVision();
+        // setupPhotonVision();
         for(double[] values : ShooterConstants.k_scoreShotTimes){
             m_shotTimeInt.put(values[0], values[1]);
         }
+        getState().Pose = new Pose2d(0, 0,new Rotation2d(Math.PI));
         
     }
 
@@ -237,10 +239,11 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        setupPhotonVision();
+        // setupPhotonVision();
         for(double[] values : ShooterConstants.k_scoreShotTimes){
             m_shotTimeInt.put(values[0], values[1]);
         }
+        getState().Pose = new Pose2d(0, 0,new Rotation2d((3/4) * Math.PI));
     }
 
 
@@ -299,7 +302,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
             });
         }
 
-        vision.updatePoseEstimation(this);
+        // vision.updatePoseEstimation(this);
 
         cachedPose = getState().Pose;
         // alignToTrench();
@@ -362,9 +365,9 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     //     }
     // }
 
-    private void setupPhotonVision() {
-        vision = new Vision(() -> getPose(), new Field2d());
-    }
+    // private void setupPhotonVision() {
+    //     vision = new Vision(() -> getPose(), new Field2d());
+    // }
 
     private void startSimThread() {
         m_lastSimTime = Utils.getCurrentTimeSeconds();

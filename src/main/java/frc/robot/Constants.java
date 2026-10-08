@@ -317,12 +317,12 @@ public class Constants {
     public static final TalonFXConfiguration k_intakeRollerConfigs = new TalonFXConfiguration();
     public static final TalonFXConfiguration k_intakeExtensionConfigs = new TalonFXConfiguration();
 
-    public static final double k_rollerP = 0.0;
+    public static final double k_rollerP = 0.1;
     public static final double k_rollerS = 0.0;
     public static final double k_rollerV = 0.0;
 
     public static final double k_intakeExtensionG = 0;
-    public static final double k_intakeExtensionP = 0;
+    public static final double k_intakeExtensionP = 0.01;
     public static final double k_intakeExtensionV = 0;
     public static final double k_intakeExtensionD = 0;
 
@@ -373,7 +373,7 @@ public class Constants {
         public static final double k_conveyorV = 0.0;
 
         public static final double k_conveyorSupplyLimit = 18;
-    public static final double k_rollerSupplyLimit = 16;
+    public static final double k_rollerSupplyLimit = 25;
 
     public static final CurrentLimitsConfigs k_conveyorLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_conveyorSupplyLimit);
     public static final CurrentLimitsConfigs k_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);

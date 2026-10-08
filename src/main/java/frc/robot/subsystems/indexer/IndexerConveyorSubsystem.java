@@ -24,7 +24,7 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class IndexerConveyorSubsystem extends SubsystemBase {
-    private final CANBus k_CANBus = CANIDConstants.k_canBus3;
+    private final CANBus k_CANBus = CANIDConstants.k_canBus1;
     private final TalonFX m_indexerConveyorLeader = new TalonFX(CANIDConstants.indexerConveyorLeader, k_CANBus);
     private final TalonFX m_indexerConveyorFollower = new TalonFX(CANIDConstants.indexerConveyorFollower, k_CANBus);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
@@ -53,6 +53,13 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
             }, () -> {
                 m_indexerConveyorFollower.setControl(m_brake);
             }, this); 
+    }
+
+    public Command testRun(){
+        return Commands.runEnd(() -> {
+            
+            m_indexerConveyorLeader.setThrottle(0.9);
+        }, () -> m_indexerConveyorLeader.setControl(new StaticBrake()), this);
     }
     
     

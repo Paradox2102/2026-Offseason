@@ -2,6 +2,7 @@ package frc.robot.subsystems.shooter;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -21,7 +22,7 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class SecondaryKicker extends SubsystemBase {
-    private final CANBus k_CANBus = CANIDConstants.k_canBus1;
+    private final CANBus k_CANBus = CANIDConstants.k_canBus3;
 
     private final TalonFX m_secondaryKickerMotor = new TalonFX(CANIDConstants.goUp, k_CANBus);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
@@ -45,6 +46,12 @@ public class SecondaryKicker extends SubsystemBase {
             m_secondaryKickerMotor.setControl(m_request.withVelocity(ShooterConstants.k_secondaryKickerRPS));
         }, () -> {m_secondaryKickerMotor.setThrottle(0);}, this); }
     
+    public Command testRun(){
+        return Commands.runEnd(() -> {
+            m_secondaryKickerMotor.setThrottle(1.0);
+        }, () -> m_secondaryKickerMotor.setControl(new StaticBrake()), this);
+    }
+
     @Override
     public void simulationPeriodic() {
     var talonFXSim = m_secondaryKickerMotor.getSimState();

@@ -9,12 +9,14 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import frc.robot.Robot;
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.IntakeConstants;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
+import org.wpilib.telemetry.Telemetry;
 import org.wpilib.simulation.ElevatorSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
@@ -22,7 +24,7 @@ import org.wpilib.command2.SubsystemBase;
 import org.wpilib.framework.RobotBase;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
-    private static final double k_intakeMaxExtension = 20.0;//TODO: tune in sim
+    private static final double k_intakeMaxExtension = 4.0703125;
     private static final double k_elevatorDrimRadius = 0.038091; // If something is wrong then this is the first thing to check. Idk if I did this right
     private static final double k_elevatorMass = 5.401715051809;
     private final CANBus k_CANBus = CANIDConstants.k_canBus4;
@@ -31,7 +33,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     private final TalonFX m_intakeExtensionFollower = new TalonFX(CANIDConstants.intakeExtensionFollower, k_CANBus); 
 
     private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
-    private final Follower m_follow = new Follower(CANIDConstants.intakeExtensionLeader, MotorAlignmentValue.Aligned);
+    private final Follower m_follow = new Follower(CANIDConstants.intakeExtensionLeader, MotorAlignmentValue.Opposed);
 
     private final double k_gearRatio = 2.8;
     private final ElevatorSim m_motorSimModel = new ElevatorSim(
@@ -44,6 +46,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
         m_intakeExtensionFollower.setControl(m_follow);
 
+        m_intakeExtensionLeader.setPosition(0);
+
         if (Utils.isSimulation()){
             var talonFXSim = m_intakeExtensionLeader.getSimState();
             talonFXSim.Orientation = ChassisReference.CounterClockwise_Positive;
@@ -53,7 +57,15 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        System.out.println(m_intakeExtensionLeader.getPosition().getValueAsDouble());
+        
+        Telemetry.log("Intake Extension Position", m_intakeExtensionLeader.getPosition(true).getValueAsDouble());
+    }
+
+    public Command forceRetractIntake(){
+        return Commands.startEnd(() -> m_intakeExtensionLeader.setThrottle(-0.5), () ->{
+            m_intakeExtensionLeader.setThrottle(0);
+            m_intakeExtensionLeader.setPosition(0);
+        });
     }
     public Command retractIntake() {
         return Commands.run(() -> {

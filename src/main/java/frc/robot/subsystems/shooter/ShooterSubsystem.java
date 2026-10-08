@@ -2,6 +2,7 @@ package frc.robot.subsystems.shooter;
 
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -27,9 +28,9 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class ShooterSubsystem extends SubsystemBase{
-
-    private final TalonFX m_shooterLeader = new TalonFX(CANIDConstants.shooterLeader, CANIDConstants.k_canBus1);
-    private final TalonFX m_shooterFollower = new TalonFX(CANIDConstants.shooterFollower, CANIDConstants.k_canBus1);
+    private final CANBus k_CANBus = CANIDConstants.k_canBus3;
+    private final TalonFX m_shooterLeader = new TalonFX(CANIDConstants.shooterLeader, k_CANBus);
+    private final TalonFX m_shooterFollower = new TalonFX(CANIDConstants.shooterFollower, k_CANBus);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
     private final Follower m_follow = new Follower(CANIDConstants.shooterFollower, MotorAlignmentValue.Opposed);
 
@@ -42,7 +43,7 @@ public class ShooterSubsystem extends SubsystemBase{
 
 
     public boolean m_isAtSpeed() {
-        return Math.abs((m_request.Velocity + m_shooterFollower.getVelocity().getValueAsDouble()) / 2) - m_shooterLerpTable.get(Subsystems.m_swerveSubsystem.distanceToTarget()) < 100;
+        return Math.abs((m_shooterLeader.getVelocity().getValueAsDouble() + m_shooterFollower.getVelocity().getValueAsDouble()) / 2) - m_request.Velocity < 3;
     }
     public ShooterSubsystem() {
         m_shooterLeader.getConfigurator().apply(ShooterConstants.k_shooterConfigs);
@@ -71,8 +72,8 @@ public class ShooterSubsystem extends SubsystemBase{
     }
 
     public Command staticShoot(){
-        return Commands.runEnd(() -> { // TODO: Remove Magic Number
-            m_shooterLeader.setControl(m_request.withVelocity(20));
+        return Commands.runEnd(() -> {
+            m_shooterLeader.setControl(m_request.withVelocity(60));
         }, () -> {
             m_shooterLeader.setThrottle(0);
         }, this);

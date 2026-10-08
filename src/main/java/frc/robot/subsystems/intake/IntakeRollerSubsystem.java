@@ -3,6 +3,7 @@ package frc.robot.subsystems.intake;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.StaticBrake;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -18,6 +19,7 @@ import org.wpilib.math.controller.BangBangController;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.system.RobotController;
+import org.wpilib.units.measure.Velocity;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
@@ -32,6 +34,8 @@ public class IntakeRollerSubsystem extends SubsystemBase {
     private final BangBangController k_bangBang = new BangBangController();
 
     private final double k_gearRatio = 0.5;
+
+    private final VelocityVoltage m_request = new VelocityVoltage(0);
 
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
         Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), IntakeConstants.k_intakeRollerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
@@ -54,6 +58,9 @@ public class IntakeRollerSubsystem extends SubsystemBase {
             m_intakeRollerMotor.configNeutralMode(NeutralModeValue.Brake);
             m_intakeRollerMotor.setControl(k_brakeRequest);
         }, this);
+    }
+    public Command testRun(){
+        return Commands.runEnd(() -> m_intakeRollerMotor.setThrottle(0.3), () -> m_intakeRollerMotor.setControl(k_brakeRequest), this);
     }
 
     public Command stop(){
