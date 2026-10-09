@@ -53,6 +53,10 @@ public class SecondaryKicker extends SubsystemBase {
         }, () -> m_secondaryKickerMotor.setControl(new StaticBrake()), this);
     }
 
+       public Command runFull(){
+        return Commands.run(() -> m_secondaryKickerMotor.setThrottle(1), this);
+    }
+
     @Override
     public void simulationPeriodic() {
     var talonFXSim = m_secondaryKickerMotor.getSimState();

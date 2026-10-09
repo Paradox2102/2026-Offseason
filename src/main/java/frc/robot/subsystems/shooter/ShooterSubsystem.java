@@ -33,7 +33,7 @@ public class ShooterSubsystem extends SubsystemBase{
     private final TalonFX m_shooterLeader = new TalonFX(CANIDConstants.shooterLeader, k_CANBus);
     private final TalonFX m_shooterFollower = new TalonFX(CANIDConstants.shooterFollower, k_CANBus);
     private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
-    private final Follower m_follow = new Follower(CANIDConstants.shooterFollower, MotorAlignmentValue.Opposed);
+    private final Follower m_follow = new Follower(CANIDConstants.shooterLeader, MotorAlignmentValue.Opposed);
 
     private final InterpolatingDoubleTreeMap m_shooterLerpTable = new InterpolatingDoubleTreeMap();
 
@@ -74,12 +74,16 @@ public class ShooterSubsystem extends SubsystemBase{
 
     public Command staticShoot(){
         return Commands.runEnd(() -> {
-            m_shooterLeader.setControl(m_request.withVelocity(60));
+
+            m_shooterLeader.setControl(m_request.withVelocity(80));
         }, () -> {
             m_shooterLeader.setThrottle(0);
         }, this);
     }
 
+    public Command shootFull(){
+        return Commands.run(() -> m_shooterLeader.setThrottle(0.8), this);
+    }
 
     @Override
     public void simulationPeriodic() {

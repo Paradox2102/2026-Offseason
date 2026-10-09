@@ -13,6 +13,7 @@ import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
 import org.wpilib.command2.button.RobotModeTriggers;
+import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.telemetry.TelemetryTable;
@@ -49,28 +50,25 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
-        // m_controller.faceDown().whileTrue(Commands.parallel(
-        //     Subsystems.m_shooterSubsystem.staticShoot(),
-        //     Commands.repeatingSequence(Commands.either(Commands.parallel(
-        //         Subsystems.m_indexerConveyor.testRun(),
-        //         Subsystems.m_indexerRollerSubsystem.testRun(),
-        //         Subsystems.m_kickerSubsystem.testRun(),
-        //         Subsystems.m_secondaryKicker.testRun()
-        //     ), Commands.none(), () -> Subsystems.m_shooterSubsystem.m_isAtSpeed()))
-        // ));
 
-        m_controller.faceDown().whileTrue(Subsystems.m_intakeRoller.testRun());
+        m_controller.leftBumper().onTrue(Subsystems.m_intakeExtension.extendIntake());
+        m_controller.leftTrigger().whileTrue(Subsystems.m_intakeRoller.testRun(true));
 
-        // m_controller.faceLeft().whileTrue(Subsystems.m_intakeExtension.forceRetractIntake());
-        // m_controller.faceDown().onTrue(Subsystems.m_intakeExtension.extendIntake()).onFalse(Subsystems.m_intakeExtension.retractIntake());
-        // m_controller.leftTrigger().onTrue(Controls.extendIntake()).onFalse(Subsystems.m_intakeRoller.stop());
-        // m_controller.rightTrigger().whileTrue(Controls.shoot());
-        // m_controller.leftBumper().onTrue(Controls.towerSweep());
-        // m_controller.rightBumper().whileTrue(Controls.staticLaunch());
+        m_controller.rightTrigger().whileTrue(Commands.parallel(
+            Subsystems.m_shooterSubsystem.staticShoot(),
+            Commands.repeatingSequence(Commands.either(Commands.parallel(
+                Subsystems.m_indexerConveyor.testRun(),
+                Subsystems.m_kickerSubsystem.testRun(),
+                Subsystems.m_secondaryKicker.testRun(),
+                Subsystems.m_indexerRollerSubsystem.testRun(true)
+            ), Commands.none(), () -> Subsystems.m_shooterSubsystem.m_isAtSpeed()))
+        ));
 
-        //m_controller.southFace().whileTrue()
-        
-        // Subsystems.m_swerveSubsystem.registerTelemetry(logger::telemeterize);
+        m_controller.rightBumper().whileTrue(Commands.parallel(Subsystems.m_intakeRoller.testRun(false), Subsystems.m_indexerRollerSubsystem.testRun(false)));
+        m_controller.faceLeft().whileTrue(Subsystems.m_indexerRollerSubsystem.testRun(true));
+        m_controller.faceUp().onTrue(Commands.run(() -> Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(SwerveSubsystem.isRedAlliance() ? 0 : 180)))));
+    
+        m_controller.faceDown().onTrue(Subsystems.m_hoodSubsystem.staticShoot());
     }
 
     private void configureDefaults() {
@@ -79,9 +77,9 @@ public class RobotContainer {
         Subsystems.m_swerveSubsystem.setDefaultCommand(
             // m_swerveSubsystem will execute this command periodically
             Subsystems.m_swerveSubsystem.applyRequest(() ->
-                Subsystems.m_swerveSubsystem.getDrive().withVelocityX(m_controller.getLeftY() * SwerveSubsystem.MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-m_controller.getLeftX() * SwerveSubsystem.MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-m_controller.getRightX() * SwerveSubsystem.MaxAngularRate) // Drive counterclockwise with negative X (left)
+                Subsystems.m_swerveSubsystem.getDrive().withVelocityX((m_controller.getLeftY() * Math.abs(m_controller.getLeftY())) * SwerveSubsystem.MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY((m_controller.getLeftX() * Math.abs(m_controller.getLeftX())) * SwerveSubsystem.MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate((-m_controller.getRightX() * Math.abs(m_controller.getRightX())) * SwerveSubsystem.MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
         // SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -89,7 +87,7 @@ public class RobotContainer {
         // Subsystems.m_swerveSubsystem.setDefaultCommand(Subsystems.m_swerveSubsystem.applyRequest(() -> point.withModuleDirection(new Rotation2d(-m_controller.getLeftY(), -m_controller.getLeftX()))));
 
         // Subsystems.m_indexerConveyor.setDefaultCommand(Subsystems.m_indexerConveyor.run(true));
-        // Subsystems.m_indexerRollerSubsystem.setDefaultCommand(Subsystems.m_indexerRollerSubsystem.run(true));
+        // Subsystems.m_indexerRollerSubsystem.setDefaultCommand(Subsystems.m_indexerRollerSubsystem.testRun(true));
         // Subsystems.m_kickerSubsystem.setDefaultCommand(Subsystems.m_kickerSubsystem.run(false));
         // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.returnHood());
         // Idle while the robot is disabled. This ensures the configured

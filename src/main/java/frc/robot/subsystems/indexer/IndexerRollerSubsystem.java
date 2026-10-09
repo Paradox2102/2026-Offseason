@@ -65,10 +65,10 @@ public class IndexerRollerSubsystem extends SubsystemBase {
             m_indexerRollerMotor.setControl(m_request.withVelocity( in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerInRPS));
         }, () -> m_runningDirection = targetDirection.STILL, this); }
     
-    public Command testRun(){
+    public Command testRun(boolean in){
         return Commands.runEnd(() -> {
             
-            m_indexerRollerMotor.setThrottle(0.8);
+            m_indexerRollerMotor.setThrottle(1 * (in ? 1 : -1));
         }, () -> m_indexerRollerMotor.setControl(new StaticBrake()), this);
     }
 

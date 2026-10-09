@@ -133,7 +133,7 @@ public class Constants {
 
     public static final double k_hoodG = 0.0;
     public static final double k_hoodS = 0;
-    public static final double k_hoodP = 0.05;
+    public static final double k_hoodP = 0.1;
     public static final double k_hoodD = 0;
 
     public static final double k_shooterP = 0.3;
@@ -256,7 +256,7 @@ public class Constants {
         k_turretConfig.Slot0.kS = k_turretS;
 
         k_hoodConfig.withCurrentLimits(k_hoodLimitConfig);
-        k_hoodConfig.withMotorOutput(k_hoodConfig.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive));
+        k_hoodConfig.withMotorOutput(k_hoodConfig.MotorOutput.clone().withInverted(InvertedValue.CounterClockwise_Positive));
         // k_hoodConfig.Slot0.kG = k_hoodG;
         // k_hoodConfig.Slot0.kS = k_hoodS;
         k_hoodConfig.Slot0.kP = k_hoodP;
@@ -322,7 +322,7 @@ public class Constants {
     public static final double k_rollerV = 0.0;
 
     public static final double k_intakeExtensionG = 0;
-    public static final double k_intakeExtensionP = 0.01;
+    public static final double k_intakeExtensionP = 0.1;
     public static final double k_intakeExtensionV = 0;
     public static final double k_intakeExtensionD = 0;
 
@@ -417,7 +417,7 @@ public class Constants {
         public static Command launch() {
             return Commands.parallel(
                 aim(),
-                Subsystems.m_indexerConveyor.run(true),
+                // Subsystems.m_indexerConveyor.run(true),
                 Subsystems.m_indexerRollerSubsystem.run(true),
                 Subsystems.m_secondaryKicker.run(),
                 Subsystems.m_kickerSubsystem.run(true)
@@ -427,7 +427,7 @@ public class Constants {
         public static Command staticLaunch() {
             return Commands.parallel(
                 staticAim(),
-                Subsystems.m_indexerConveyor.run(true),
+                // Subsystems.m_indexerConveyor.run(true),
                 Subsystems.m_indexerRollerSubsystem.run(true),
                 Subsystems.m_secondaryKicker.run(),
                 Subsystems.m_kickerSubsystem.run(true)

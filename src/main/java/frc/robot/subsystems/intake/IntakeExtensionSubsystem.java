@@ -16,6 +16,7 @@ import frc.robot.Constants.IntakeConstants;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
+import org.wpilib.system.Timer;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.simulation.ElevatorSim;
 import org.wpilib.command2.Command;
@@ -24,7 +25,7 @@ import org.wpilib.command2.SubsystemBase;
 import org.wpilib.framework.RobotBase;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
-    private static final double k_intakeMaxExtension = 4.0703125;
+    private static final double k_intakeMaxExtension = 4.06;
     private static final double k_elevatorDrimRadius = 0.038091; // If something is wrong then this is the first thing to check. Idk if I did this right
     private static final double k_elevatorMass = 5.401715051809;
     private final CANBus k_CANBus = CANIDConstants.k_canBus4;
@@ -41,10 +42,13 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
       DCMotor.getKrakenX60Foc(2), k_elevatorMass, k_elevatorDrimRadius, k_gearRatio),
        DCMotor.getKrakenX60Foc(2), 0.0, k_intakeMaxExtension, false, 0);
 
-
+    private final Timer m_stallTimer = new Timer();
+    private final double k_stallTimerThreshold = 0.15;
+    
     public IntakeExtensionSubsystem() {
         m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
         m_intakeExtensionFollower.setControl(m_follow);
+        m_stallTimer.start();
 
         m_intakeExtensionLeader.setPosition(0);
 
@@ -62,23 +66,30 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     }
 
     public Command forceRetractIntake(){
-        return Commands.startEnd(() -> m_intakeExtensionLeader.setThrottle(-0.5), () ->{
+        return Commands.startEnd(() -> m_intakeExtensionLeader.setThrottle(-1), () ->{
             m_intakeExtensionLeader.setThrottle(0);
             m_intakeExtensionLeader.setPosition(0);
         });
     }
+    
     public Command retractIntake() {
-        return Commands.run(() -> {
-            m_intakeExtensionLeader.setControl(m_request.withPosition(0));
-        }, this).until(() -> isIntakeRetracted());
+        return Commands.startRun(() -> {
+            m_stallTimer.reset();
+            m_intakeExtensionLeader.setThrottle(0.7);
+        }, () -> {
+            if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
+                m_stallTimer.reset();
+        }, this).until(() -> m_stallTimer.get() > k_stallTimerThreshold).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
+
     public Command extendIntake() {
-        return Commands.runOnce(() -> {
-            m_intakeExtensionLeader.setControl(m_request.withPosition(IntakeConstants.k_outPosition));
-            if (RobotBase.isSimulation()){
-                
-            }
-        }, this);
+        return Commands.startRun(() -> {
+            m_stallTimer.reset();
+            m_intakeExtensionLeader.setThrottle(0.7);
+        }, () -> {
+            if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
+                m_stallTimer.reset();
+        }, this).until(() -> m_stallTimer.get() > k_stallTimerThreshold).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
     public boolean isIntakeRetracted(){

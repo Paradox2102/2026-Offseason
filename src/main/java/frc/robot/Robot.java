@@ -7,6 +7,7 @@ package frc.robot;
 import com.ctre.phoenix6.HootAutoReplay;
 
 import frc.robot.Constants.Subsystems;
+import frc.robot.subsystems.drive.SwerveSubsystem;
 
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
@@ -106,6 +107,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
+        Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(SwerveSubsystem.isRedAlliance() ? 0 : 180)));
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
         if (m_autonomousCommand != null) {
