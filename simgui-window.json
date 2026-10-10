@@ -8,15 +8,15 @@
     "style": "0",
     "userScaling": "100",
     "width": "1280",
-    "xpos": "-1",
-    "ypos": "-1"
+    "xpos": "320",
+    "ypos": "156"
   }},
   "Table": {"0xED901DC8,2": {"RefScale": "10"}},
   "Window": {
     "DS": {
       "Collapsed": "0",
       "Pos": "5,540",
-      "Size": "230,122"
+      "Size": "140,140"
     },
     "Debug##Default": {
       "Collapsed": "0",
@@ -31,7 +31,7 @@
     "Joysticks": {
       "Collapsed": "0",
       "Pos": "250,465",
-      "Size": "616,65"
+      "Size": "616,155"
     },
     "NetworkTables": {
       "Collapsed": "0",
@@ -61,7 +61,7 @@
     "Timing": {
       "Collapsed": "0",
       "Pos": "5,150",
-      "Size": "249,119"
+      "Size": "249,147"
     }
   }
 }

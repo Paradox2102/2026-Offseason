@@ -327,7 +327,7 @@ public class Constants {
     public static final double k_intakeExtensionD = 0;
 
     public static final double k_extensionSupplyLimit = 30;
-    public static final double k_rollerSupplyLimit = 25;
+    public static final double k_rollerSupplyLimit = 30;
 
     public static final CurrentLimitsConfigs k_extensionLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_extensionSupplyLimit);
     public static final CurrentLimitsConfigs k_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);

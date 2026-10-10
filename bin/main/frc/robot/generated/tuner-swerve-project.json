@@ -14,8 +14,8 @@
         "SelectedMotorType": null
       },
       "SteerMotor": {
-        "Id": 1,
-        "Name": "Talon FX vers. C (Device ID 1)",
+        "Id": 2,
+        "Name": "Talon FX vers. C (Device ID 2)",
         "Model": "Talon FX vers. C",
         "CANbus": "can_s2",
         "CANbusFriendly": "",
@@ -27,8 +27,8 @@
         }
       },
       "DriveMotor": {
-        "Id": 2,
-        "Name": "Talon FX vers. C (Device ID 2)",
+        "Id": 1,
+        "Name": "Talon FX vers. C (Device ID 1)",
         "Model": "Talon FX vers. C",
         "CANbus": "can_s2",
         "CANbusFriendly": "",
@@ -46,10 +46,10 @@
       "DriveMotorSelectionState": 1,
       "SteerMotorSelectionState": 1,
       "SteerEncoderSelectionState": 1,
-      "IsModuleValidationComplete": false,
-      "ValidatedSteerId": -1,
-      "ValidatedDriveId": -1,
-      "ValidatedEncoderId": -1
+      "IsModuleValidationComplete": true,
+      "ValidatedSteerId": 2,
+      "ValidatedDriveId": 1,
+      "ValidatedEncoderId": 9
     },
     {
       "ModuleName": "Front Right",
@@ -63,8 +63,8 @@
         "SelectedMotorType": null
       },
       "SteerMotor": {
-        "Id": 3,
-        "Name": "Talon FX vers. C (Device ID 3)",
+        "Id": 4,
+        "Name": "Talon FX vers. C (Device ID 4)",
         "Model": "Talon FX vers. C",
         "CANbus": "can_s2",
         "CANbusFriendly": "",
@@ -76,8 +76,8 @@
         }
       },
       "DriveMotor": {
-        "Id": 4,
-        "Name": "Talon FX vers. C (Device ID 4)",
+        "Id": 3,
+        "Name": "Talon FX vers. C (Device ID 3)",
         "Model": "Talon FX vers. C",
         "CANbus": "can_s2",
         "CANbusFriendly": "",
@@ -95,10 +95,10 @@
       "DriveMotorSelectionState": 1,
       "SteerMotorSelectionState": 1,
       "SteerEncoderSelectionState": 1,
-      "IsModuleValidationComplete": false,
-      "ValidatedSteerId": -1,
-      "ValidatedDriveId": -1,
-      "ValidatedEncoderId": -1
+      "IsModuleValidationComplete": true,
+      "ValidatedSteerId": 4,
+      "ValidatedDriveId": 3,
+      "ValidatedEncoderId": 10
     },
     {
       "ModuleName": "Back Left",
@@ -112,8 +112,8 @@
         "SelectedMotorType": null
       },
       "SteerMotor": {
-        "Id": 5,
-        "Name": "Talon FX vers. C (Device ID 5)",
+        "Id": 6,
+        "Name": "Talon FX vers. C (Device ID 6)",
         "Model": "Talon FX vers. C",
         "CANbus": "can_s2",
         "CANbusFriendly": "",
@@ -125,8 +125,8 @@
         }
       },
       "DriveMotor": {
-        "Id": 6,
-        "Name": "Talon FX vers. C (Device ID 6)",
+        "Id": 5,
+        "Name": "Talon FX vers. C (Device ID 5)",
         "Model": "Talon FX vers. C",
         "CANbus": "can_s2",
         "CANbusFriendly": "",
@@ -144,10 +144,10 @@
       "DriveMotorSelectionState": 1,
       "SteerMotorSelectionState": 1,
       "SteerEncoderSelectionState": 1,
-      "IsModuleValidationComplete": false,
-      "ValidatedSteerId": -1,
-      "ValidatedDriveId": -1,
-      "ValidatedEncoderId": -1
+      "IsModuleValidationComplete": true,
+      "ValidatedSteerId": 6,
+      "ValidatedDriveId": 5,
+      "ValidatedEncoderId": 11
     },
     {
       "ModuleName": "Back Right",
@@ -161,8 +161,8 @@
         "SelectedMotorType": null
       },
       "SteerMotor": {
-        "Id": 7,
-        "Name": "Talon FX vers. C (Device ID 7)",
+        "Id": 8,
+        "Name": "Talon FX vers. C (Device ID 8)",
         "Model": "Talon FX vers. C",
         "CANbus": "can_s2",
         "CANbusFriendly": "",
@@ -174,8 +174,8 @@
         }
       },
       "DriveMotor": {
-        "Id": 8,
-        "Name": "Talon FX vers. C (Device ID 8)",
+        "Id": 7,
+        "Name": "Talon FX vers. C (Device ID 7)",
         "Model": "Talon FX vers. C",
         "CANbus": "can_s2",
         "CANbusFriendly": "",
@@ -193,10 +193,10 @@
       "DriveMotorSelectionState": 1,
       "SteerMotorSelectionState": 1,
       "SteerEncoderSelectionState": 1,
-      "IsModuleValidationComplete": false,
-      "ValidatedSteerId": -1,
-      "ValidatedDriveId": -1,
-      "ValidatedEncoderId": -1
+      "IsModuleValidationComplete": true,
+      "ValidatedSteerId": 8,
+      "ValidatedDriveId": 7,
+      "ValidatedEncoderId": 12
     }
   ],
   "SwerveOptions": {

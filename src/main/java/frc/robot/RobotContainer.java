@@ -15,6 +15,7 @@ import org.wpilib.command2.button.CommandJoystick;
 import org.wpilib.command2.button.RobotModeTriggers;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.util.Units;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.telemetry.TelemetryTable;
 
@@ -66,8 +67,9 @@ public class RobotContainer {
 
         m_controller.rightTrigger().whileTrue(Commands.parallel(Subsystems.m_intakeRoller.testRun(false), Subsystems.m_indexerRollerSubsystem.testRun(false)));
         m_controller.faceLeft().whileTrue(Subsystems.m_indexerRollerSubsystem.testRun(true));
-        m_controller.faceUp().onTrue(Commands.run(() -> Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(SwerveSubsystem.isRedAlliance() ? 0 : 180)))));
-    
+        m_joystick.getHID().button(5).onTrue(Commands.runOnce(() -> Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(Units.degreesToRadians(SwerveSubsystem.isRedAlliance() ? 0 : 180))))));
+        
+        m_controller.dpadUp().onTrue(Subsystems.m_intakeExtension.retractIntake());
         // m_controller.faceDown().whileTrue(Commands.parallel(
         //     Subsystems.m_shooterSubsystem.staticShoot(),
         //     Subsystems.m_hoodSubsystem.staticShoot(),

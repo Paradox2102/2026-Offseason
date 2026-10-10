@@ -14,6 +14,7 @@ import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.math.util.Units;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.networktables.StructArrayPublisher;
 import org.wpilib.networktables.StructPublisher;
@@ -107,7 +108,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(SwerveSubsystem.isRedAlliance() ? 0 : 180)));
+        Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(Units.degreesToRadians(SwerveSubsystem.isRedAlliance() ? 0 : 180))));
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
         if (m_autonomousCommand != null) {
