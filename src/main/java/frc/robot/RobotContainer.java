@@ -57,10 +57,10 @@ public class RobotContainer {
 
         m_controller.rightBumper().whileTrue(Commands.parallel(
             Subsystems.m_shooterSubsystem.staticShoot(),
-            Commands.repeatingSequence(Commands.either(Commands.parallel(
-                Subsystems.m_indexerConveyor.testRun(),
+            Subsystems.m_indexerConveyor.testRun(),
                 Subsystems.m_kickerSubsystem.testRun(),
                 Subsystems.m_secondaryKicker.testRun(),
+            Commands.repeatingSequence(Commands.either(Commands.parallel(
                 Subsystems.m_indexerRollerSubsystem.testRun(true)
             ), Commands.none(), () -> Subsystems.m_shooterSubsystem.m_isAtSpeed()))
         ));

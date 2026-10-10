@@ -75,7 +75,7 @@ public class ShooterSubsystem extends SubsystemBase{
     public Command staticShoot(){
         return Commands.runEnd(() -> {
 
-            m_shooterLeader.setControl(m_request.withVelocity(80));
+            m_shooterLeader.setControl(m_request.withVelocity(47));
         }, () -> {
             m_shooterLeader.setThrottle(0);
         }, this);

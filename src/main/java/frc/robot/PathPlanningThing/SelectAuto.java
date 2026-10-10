@@ -4,6 +4,9 @@ import java.io.File;
 import java.nio.file.Paths;
 
 import org.wpilib.tunable.Selectable;
+
+import frc.robot.Constants.Subsystems;
+
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 
@@ -75,6 +78,16 @@ public class SelectAuto {
 
     public static Command getSelectedAuto(){
         return m_autoSelection.getSelected().equals(null) ? Commands.runOnce(() -> {System.out.println("No selected Auto");}) : m_autoSelection.getSelected();
+        // return Commands.sequence(Subsystems.m_intakeExtension.extendIntake(), Commands.parallel(
+        //     Subsystems.m_shooterSubsystem.staticShoot(),
+        //                     Subsystems.m_indexerConveyor.testRun(),
+        //         Subsystems.m_kickerSubsystem.testRun(),
+        //         Subsystems.m_secondaryKicker.testRun(),
+        //     Commands.repeatingSequence(Commands.either(Commands.parallel(
+
+        //         Subsystems.m_indexerRollerSubsystem.testRun(true)
+        //     ), Commands.none(), () -> Subsystems.m_shooterSubsystem.m_isAtSpeed()))
+        // ));
     }
 
     /**

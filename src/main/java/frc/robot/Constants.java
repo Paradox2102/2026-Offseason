@@ -12,6 +12,7 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation2d;
@@ -26,6 +27,7 @@ import frc.robot.subsystems.indexer.IndexerConveyorSubsystem;
 import frc.robot.subsystems.indexer.IndexerRollerSubsystem;
 import frc.robot.subsystems.intake.IntakeExtensionSubsystem;
 import frc.robot.subsystems.intake.IntakeRollerSubsystem;
+import frc.robot.subsystems.lights.LightSubsystem;
 import frc.robot.subsystems.shooter.SecondaryKicker;
 import frc.robot.subsystems.shooter.HoodSubsystem;
 import frc.robot.subsystems.shooter.KickerSubsystem;
@@ -87,6 +89,7 @@ public class Constants {
         public static final SecondaryKicker m_secondaryKicker = new SecondaryKicker();
         public static final IndexerConveyorSubsystem m_indexerConveyor = new IndexerConveyorSubsystem();
         public static final IndexerRollerSubsystem m_indexerRollerSubsystem = new IndexerRollerSubsystem();
+        public static final LightSubsystem m_lightSubsystem = new LightSubsystem();
         static {
             m_swerveSubsystem = TunerConstants.createDrivetrain();
         }
@@ -335,7 +338,7 @@ public class Constants {
     
     public static final double k_intakeRollerMOI = 0.093084;
     static {
-
+        // k_intakeRollerConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         k_intakeRollerConfigs.withMotorOutput(k_intakeRollerConfigs.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive)).withCurrentLimits(k_rollerLimitConfig);
         k_intakeRollerConfigs.Slot0.kP = k_rollerP;
         k_intakeRollerConfigs.Slot0.kV = k_rollerV;

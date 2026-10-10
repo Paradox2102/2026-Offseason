@@ -71,7 +71,7 @@ public class LightSubsystem extends SubsystemBase {
       m_endTime = endTime;
       System.out.println(String.format("ShiftCommand (%b, %f, %d)", odd, endTime, shift));
       if (shift != 5){
-        new Trigger(() -> m_timer.get() > m_endTime - 3.0).onTrue(new SetPattern(Color.BLUE, true));
+        // new Trigger(() -> m_timer.get() > m_endTime - 3.0).onTrue(new SetPattern(Color.BLUE, true));
       }
     }
     
@@ -86,7 +86,7 @@ public class LightSubsystem extends SubsystemBase {
       // if(getColor() == Color.PURPLE){
       //   m_pattern = LedPatterns.m_prideFlag;
       // } else {
-        applyPattern(m_color, false);
+        // applyPattern(m_color, false);
       // }  
     }
     
@@ -150,27 +150,27 @@ public class LightSubsystem extends SubsystemBase {
     }
   }
 
-  public class SetPattern extends Command {
-    private Color m_color;
-    private boolean m_blinking;
-    public SetPattern(Color color, boolean blinking) {
-      m_color = color;
-      m_blinking = blinking;
-    }
-    @Override
-    public void initialize() {
-      applyPattern(m_color, m_blinking);
-    }
-  }
-  public void applyPattern(Color color, boolean blinking) {
-    m_pattern = LEDPattern.solid(color);
-      if (blinking) {
-        m_pattern = m_pattern.blink(k_blinkMagnitude);
-        System.out.println("Setting Pattern to Blinking");
-      }
-      System.out.println("applying pattern to LED");
-      m_pattern.applyTo(m_ledBuffer);
-  }
+  // public class SetPattern extends Command {
+  //   private Color m_color;
+  //   private boolean m_blinking;
+  //   public SetPattern(Color color, boolean blinking) {
+  //     m_color = color;
+  //     m_blinking = blinking;
+  //   }
+  //   @Override
+  //   public void initialize() {
+  //     // applyPattern(m_color, m_blinking);
+  //   }
+  // }
+  // public void applyPattern(Color color, boolean blinking) {
+  //   m_pattern = LEDPattern.solid(color);
+  //     if (blinking) {
+  //       m_pattern = m_pattern.blink(k_blinkMagnitude);
+  //       System.out.println("Setting Pattern to Blinking");
+  //     }
+  //     System.out.println("applying pattern to LED");
+  //     m_pattern.applyTo(m_ledBuffer);
+  // }
   public LightSubsystem() {
     // SmartDashboard.putData(Commands.runOnce(() -> {
     //     m_isOn = !m_isOn;
