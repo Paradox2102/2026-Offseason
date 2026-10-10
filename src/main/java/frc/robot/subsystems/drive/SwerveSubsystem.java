@@ -29,6 +29,7 @@ import org.wpilib.smartdashboard.Field2d;
 import org.wpilib.system.Notifier;
 import org.wpilib.system.RobotController;
 import org.wpilib.system.Timer;
+import org.wpilib.telemetry.Telemetry;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.Subsystem;
@@ -301,6 +302,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 m_hasAppliedOperatorPerspective = true;
             });
         }
+
+        Telemetry.log("GyroAngle", getState().Pose.getRotation().getDegrees());
 
         // vision.updatePoseEstimation(this);
 
