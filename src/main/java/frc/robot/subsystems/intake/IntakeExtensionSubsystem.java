@@ -47,6 +47,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     
     public IntakeExtensionSubsystem() {
         m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
+        // A Phoenix 6 follower does not take the leader's configs; without this it has no supply current limit.
+        m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
         m_intakeExtensionFollower.setControl(m_follow);
         m_stallTimer.start();
 
