@@ -47,6 +47,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     
     public IntakeExtensionSubsystem() {
         m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
+        m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
         m_intakeExtensionFollower.setControl(m_follow);
         m_stallTimer.start();
 

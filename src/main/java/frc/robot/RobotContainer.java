@@ -13,6 +13,7 @@ import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
 import org.wpilib.command2.button.RobotModeTriggers;
+import org.wpilib.math.filter.SlewRateLimiter;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.telemetry.Telemetry;
@@ -84,11 +85,12 @@ public class RobotContainer {
     private void configureDefaults() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
+        var rateLimiter = new SlewRateLimiter(0.25);
         Subsystems.m_swerveSubsystem.setDefaultCommand(
             // m_swerveSubsystem will execute this command periodically
             Subsystems.m_swerveSubsystem.applyRequest(() ->
-                Subsystems.m_swerveSubsystem.getDrive().withVelocityX((m_controller.getLeftY() * Math.abs(m_controller.getLeftY())) * SwerveSubsystem.MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY((m_controller.getLeftX() * Math.abs(m_controller.getLeftX())) * SwerveSubsystem.MaxSpeed) // Drive left with negative X (left)
+                Subsystems.m_swerveSubsystem.getDrive().withVelocityX(rateLimiter.calculate(m_controller.getLeftY() * Math.abs(m_controller.getLeftY())) * SwerveSubsystem.MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(rateLimiter.calculate(m_controller.getLeftX() * Math.abs(m_controller.getLeftX())) * SwerveSubsystem.MaxSpeed) // Drive left with negative X (left)
                     .withRotationalRate((-m_controller.getRightX() * Math.abs(m_controller.getRightX())) * SwerveSubsystem.MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
