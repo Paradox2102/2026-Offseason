@@ -64,11 +64,6 @@ public class TunerConstants {
                 // Supply current limits can be larger than the breaker current rating.
                 .withSupplyCurrentLimit(Amps.of(50))
                 .withSupplyCurrentLimitEnable(true)
-        )
-        // Teleop drive uses OpenLoopVoltage, so the voltage ramp is the one that applies.
-        .withOpenLoopRamps(
-            new OpenLoopRampsConfigs()
-                .withVoltageOpenLoopRampPeriod(0.25)
         );
 
     private static final TalonFXConfiguration steerInitialConfigs = new TalonFXConfiguration()
