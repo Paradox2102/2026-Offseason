@@ -61,7 +61,7 @@ public class IntakeRollerSubsystem extends SubsystemBase {
         }, this);
     }
     public Command testRun(boolean in){
-        return Commands.runEnd(() -> m_intakeRollerMotor.setThrottle(0.7 * (in ? 1 : -1)), () -> m_intakeRollerMotor.setControl(k_brakeRequest), this);
+        return Commands.runEnd(() -> m_intakeRollerMotor.setThrottle(0.9 * (in ? 1 : -1)), () -> m_intakeRollerMotor.setControl(k_brakeRequest), this);
     }
 
     public Command stop(){

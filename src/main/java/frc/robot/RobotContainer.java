@@ -54,7 +54,7 @@ public class RobotContainer {
         m_controller.leftBumper().onTrue(Subsystems.m_intakeExtension.extendIntake());
         m_controller.leftTrigger().whileTrue(Subsystems.m_intakeRoller.testRun(true));
 
-        m_controller.rightTrigger().whileTrue(Commands.parallel(
+        m_controller.rightBumper().whileTrue(Commands.parallel(
             Subsystems.m_shooterSubsystem.staticShoot(),
             Commands.repeatingSequence(Commands.either(Commands.parallel(
                 Subsystems.m_indexerConveyor.testRun(),
@@ -64,11 +64,21 @@ public class RobotContainer {
             ), Commands.none(), () -> Subsystems.m_shooterSubsystem.m_isAtSpeed()))
         ));
 
-        m_controller.rightBumper().whileTrue(Commands.parallel(Subsystems.m_intakeRoller.testRun(false), Subsystems.m_indexerRollerSubsystem.testRun(false)));
+        m_controller.rightTrigger().whileTrue(Commands.parallel(Subsystems.m_intakeRoller.testRun(false), Subsystems.m_indexerRollerSubsystem.testRun(false)));
         m_controller.faceLeft().whileTrue(Subsystems.m_indexerRollerSubsystem.testRun(true));
         m_controller.faceUp().onTrue(Commands.run(() -> Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(SwerveSubsystem.isRedAlliance() ? 0 : 180)))));
     
-        m_controller.faceDown().onTrue(Subsystems.m_hoodSubsystem.staticShoot());
+        // m_controller.faceDown().whileTrue(Commands.parallel(
+        //     Subsystems.m_shooterSubsystem.staticShoot(),
+        //     Subsystems.m_hoodSubsystem.staticShoot(),
+        //     Commands.repeatingSequence(
+        //         Commands.either(Commands.parallel(
+        //             Subsystems.m_indexerConveyor.testRun(),
+        //         Subsystems.m_kickerSubsystem.testRun(),
+        //         Subsystems.m_secondaryKicker.testRun()
+        //         ), Commands.none(), () -> Subsystems.m_shooterSubsystem.m_isAtSpeed() && Subsystems.m_hoodSubsystem.m_isOnTarget())
+        //     )
+        // ));
     }
 
     private void configureDefaults() {

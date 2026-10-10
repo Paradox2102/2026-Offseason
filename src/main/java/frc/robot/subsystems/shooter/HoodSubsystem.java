@@ -39,7 +39,7 @@ public class HoodSubsystem extends SubsystemBase{
     k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, Math.toRadians(0), Math.toRadians(42), true, 0.1);
     
     public boolean m_isOnTarget() {
-        return Math.abs(m_request.Position - m_hoodLerpTable.get(Subsystems.m_swerveSubsystem.distanceToTarget())) < 0.5;
+        return Math.abs(m_hoodMotor.getPosition().getValueAsDouble() - m_request.Position) < 0.1;
     }
 
     public HoodSubsystem() {

@@ -75,7 +75,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     public Command retractIntake() {
         return Commands.startRun(() -> {
             m_stallTimer.reset();
-            m_intakeExtensionLeader.setThrottle(0.7);
+            m_intakeExtensionLeader.setThrottle(0.5);
         }, () -> {
             if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
                 m_stallTimer.reset();
@@ -85,7 +85,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     public Command extendIntake() {
         return Commands.startRun(() -> {
             m_stallTimer.reset();
-            m_intakeExtensionLeader.setThrottle(0.7);
+            m_intakeExtensionLeader.setThrottle(0.5);
         }, () -> {
             if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
                 m_stallTimer.reset();
