@@ -48,6 +48,10 @@ public class Constants {
 
         public static final int gyro = 0;
 
+        // The PDH is alone on CAN_S0 with CAN ID 21 (REV default is 1)
+        public static final CANPort k_pdhPort = CANPort.CAN_S0;
+        public static final int pdh = 21;
+
         public static final int fl_drive = 1;
         public static final int fl_steer = 2;
         public static final int fr_drive = 3;
