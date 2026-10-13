@@ -17,6 +17,7 @@ import org.wpilib.system.RobotController;
 import org.wpilib.telemetry.Telemetry;
 
 import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
@@ -24,19 +25,21 @@ import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
-import frc.robot.RobotContainer;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.utils.DoubleNumber;
+import frc.robot.utils.ParadoxTalon;
 
 public class TurretAimSubsystem extends SubsystemBase{
     private final CANBus k_CANBus = CANIDConstants.k_canBus1;
 
-    private final TalonFX m_shooterAzimuth = new TalonFX(CANIDConstants.shooterAzimuth, k_CANBus);
+    public final PositionVoltage m_positionRequest = new PositionVoltage(0);
+    public final CoastOut m_coastRequest = new CoastOut();
+
+    private final ParadoxTalon m_shooterAzimuth = new ParadoxTalon(CANIDConstants.shooterAzimuth, k_CANBus, m_coastRequest, 0.1);
     
-    public final PositionVoltage m_request = new PositionVoltage(0);
 
     public boolean m_isOnTarget() {
-        return Math.abs(m_request.Position - getTargetRotation()) < 0.5;
+        return Math.abs(m_positionRequest.Position - getTargetRotation()) < 0.5;
     }
 
  private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(Models.singleJointedArmFromPhysicalConstants(DCMotor.getKrakenX60(1), 0.04969116, ShooterConstants.k_shooterGearReduction), DCMotor.getKrakenX60(1), ShooterConstants.k_shooterGearReduction, 0.1, Units.degreesToRadians(ShooterConstants.k_turretBounds.getMinBound()), Units.degreesToRadians(ShooterConstants.k_turretBounds.getMaxBound()), false, 0);   
@@ -46,14 +49,15 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     public Command rotateToTarget() {
         return Commands.run(() -> {
-            m_shooterAzimuth.setControl(m_request.withPosition(getTargetRotation()));    
+            m_shooterAzimuth.setRequest(m_positionRequest.withPosition(getTargetRotation()));
+            m_shooterAzimuth.applyRequest();
         }, this);
     }
 
     public Command staticAim() {
         return Commands.run(() -> {
-            m_shooterAzimuth.setControl(m_request.withPosition(0.1 * ShooterConstants.k_shooterGearReduction)); 
-            System.out.println(m_request.Position);   
+            m_shooterAzimuth.setRequest(m_positionRequest.withPosition(0.1 * ShooterConstants.k_shooterGearReduction)); 
+            m_shooterAzimuth.applyRequest();
         }, this);
     }
 

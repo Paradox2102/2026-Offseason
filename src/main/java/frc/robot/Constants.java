@@ -12,7 +12,6 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation2d;
@@ -119,10 +118,10 @@ public class Constants {
   public static class ShooterConstants {
     public static final double k_shooterGearReduction = (67.86);
     
-    public static final int k_kickInRPS = 30;
-    public static final int k_kickOutRPS = 20;
+    public static final double k_kickInRPS = 30;
+    public static final double k_kickOutRPS = 20;
 
-    public static final int k_secondaryKickerRPS = 30;
+    public static final double k_secondaryKickerRPS = 30;
 
     public static final double k_upKickerMOI = 0.00000494 * 2;
     public static final double k_kickerMOI = 0.0000356;
@@ -312,10 +311,10 @@ public class Constants {
   
 
   public static class IntakeConstants {
-    public static final int k_inRPS = 40;
-    public static final int k_outRPS = -30;
+    public static final double k_inRPS = 40;
+    public static final double k_outRPS = -30;
 
-    public static final int k_outPosition = 90;
+    public static final double k_outPosition = 90;
 
     public static final TalonFXConfiguration k_intakeRollerConfigs = new TalonFXConfiguration();
     public static final TalonFXConfiguration k_intakeExtensionConfigs = new TalonFXConfiguration();
@@ -354,11 +353,11 @@ public class Constants {
     
     }
     public static class IndexerConstants {
-        public static final int k_rollerInRPS = 50;
-        public static final int k_rollerOutRPS = -40;
+        public static final double k_rollerInRPS = 50;
+        public static final double k_rollerOutRPS = -40;
 
-        public static final int k_conveyorInRPS = 20;
-        public static final int k_conveyorOutRPS = -40;
+        public static final double k_conveyorInRPS = 20;
+        public static final double k_conveyorOutRPS = -40;
 
         public static final int k_jamThreshold = 6; // should be tuned to not happen too much
 
@@ -400,7 +399,7 @@ public class Constants {
         public static final Trigger isReadyToShoot = new Trigger(() -> (Subsystems.m_hoodSubsystem.m_isOnTarget() && Subsystems.m_shooterSubsystem.m_isAtSpeed() && Subsystems.m_turretAimSubsystem.m_isOnTarget()));
         public static final Command extendIntake() {
             return Commands.sequence(
-                Subsystems.m_intakeExtension.extendIntake(),
+                Subsystems.m_intakeExtension.moveIntake(IntakeExtensionSubsystem.targetPosition.OUT),
                 Subsystems.m_intakeRoller.run(true));
         }
 
@@ -438,7 +437,7 @@ public class Constants {
         }
         public static Command staticAim(){
             return Commands.parallel(
-                Subsystems.m_hoodSubsystem.staticShoot(),
+                Subsystems.m_hoodSubsystem.staticPitch(),
                 Subsystems.m_shooterSubsystem.staticShoot(),
                 Subsystems.m_turretAimSubsystem.staticAim()
             );

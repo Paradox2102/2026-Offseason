@@ -4,9 +4,9 @@ import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -14,8 +14,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.ShooterConstants;
-import frc.robot.Constants.Subsystems;
-import frc.robot.RobotContainer;
+import frc.robot.utils.ParadoxTalon;
 
 import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
 import org.wpilib.math.system.DCMotor;
@@ -29,11 +28,14 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class ShooterSubsystem extends SubsystemBase{
+
+    private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withSlot(0);
+    private final Follower m_followRequest = new Follower(CANIDConstants.shooterLeader, MotorAlignmentValue.Opposed);
+    private final CoastOut m_coastRequest = new CoastOut();
+
     private final CANBus k_CANBus = CANIDConstants.k_canBus3;
-    private final TalonFX m_shooterLeader = new TalonFX(CANIDConstants.shooterLeader, k_CANBus);
-    private final TalonFX m_shooterFollower = new TalonFX(CANIDConstants.shooterFollower, k_CANBus);
-    private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
-    private final Follower m_follow = new Follower(CANIDConstants.shooterLeader, MotorAlignmentValue.Opposed);
+    private final ParadoxTalon m_shooterLeader = new ParadoxTalon(CANIDConstants.shooterLeader, k_CANBus, m_coastRequest, 0.1);
+    private final ParadoxTalon m_shooterFollower = new ParadoxTalon(CANIDConstants.shooterFollower, k_CANBus, m_followRequest, 0.1);
 
     private final InterpolatingDoubleTreeMap m_shooterLerpTable = new InterpolatingDoubleTreeMap();
 
@@ -44,12 +46,10 @@ public class ShooterSubsystem extends SubsystemBase{
 
 
     public boolean m_isAtSpeed() {
-        return Math.abs((m_shooterLeader.getVelocity().getValueAsDouble() + m_shooterFollower.getVelocity().getValueAsDouble()) / 2) - m_request.Velocity < 3;
+        return Math.abs((m_shooterLeader.getVelocity().getValueAsDouble() + m_shooterFollower.getVelocity().getValueAsDouble()) / 2) - m_velocityRequest.Velocity < 3;
     }
     public ShooterSubsystem() {
         m_shooterLeader.getConfigurator().apply(ShooterConstants.k_shooterConfigs);
-        m_shooterFollower.setControl(m_follow);
-
         m_shooterLeader.configNeutralMode(NeutralModeValue.Coast);
         
 
@@ -66,18 +66,21 @@ public class ShooterSubsystem extends SubsystemBase{
 
     public Command shoot(DoubleSupplier distanceToTarget) {
         return Commands.runEnd(() -> {               
-            m_shooterLeader.setControl(m_request.withVelocity(m_shooterLerpTable.get(distanceToTarget.getAsDouble())));
+            m_shooterLeader.setRequest(m_velocityRequest.withVelocity(m_shooterLerpTable.get(distanceToTarget.getAsDouble())));
+            m_shooterLeader.applyRequest();
         }, () -> {
-            m_shooterLeader.setThrottle(0);
+            m_shooterLeader.setRequest(m_coastRequest);
+            m_shooterLeader.applyRequest();
         }, this);
     }
 
     public Command staticShoot(){
         return Commands.runEnd(() -> {
-
-            m_shooterLeader.setControl(m_request.withVelocity(47));
+            m_shooterLeader.setRequest(m_velocityRequest.withVelocity(47));
+            m_shooterLeader.applyRequest();
         }, () -> {
-            m_shooterLeader.setThrottle(0);
+            m_shooterLeader.setRequest(m_coastRequest);
+            m_shooterLeader.applyRequest();
         }, this);
     }
 

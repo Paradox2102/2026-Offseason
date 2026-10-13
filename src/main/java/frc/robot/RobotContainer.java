@@ -7,6 +7,9 @@ package frc.robot;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import choreo.auto.AutoChooser;
+import choreo.auto.AutoChooserOpMode;
+
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.Subsystem;
@@ -21,9 +24,7 @@ import org.wpilib.telemetry.TelemetryTable;
 
 import frc.robot.Constants.Controls;
 import frc.robot.Constants.Subsystems;
-import frc.robot.PathPlanningThing.SelectAuto;
 import frc.robot.subsystems.drive.SwerveSubsystem;
-import frc.robot.utils.Autos;
 public class RobotContainer {
     
 
@@ -52,24 +53,24 @@ public class RobotContainer {
 
     private void configureBindings() {
 
-        m_controller.leftBumper().onTrue(Subsystems.m_intakeExtension.extendIntake());
-        m_controller.leftTrigger().whileTrue(Subsystems.m_intakeRoller.testRun(true));
+        // m_controller.leftBumper().onTrue(Subsystems.m_intakeExtension.extendIntake());
+        // m_controller.leftTrigger().whileTrue(Subsystems.m_intakeRoller.testRun(true));
 
-        m_controller.rightBumper().whileTrue(Commands.parallel(
-            Subsystems.m_shooterSubsystem.staticShoot(),
-            Subsystems.m_indexerConveyor.testRun(),
-                Subsystems.m_kickerSubsystem.testRun(),
-                Subsystems.m_secondaryKicker.testRun(),
-            Commands.repeatingSequence(Commands.either(Commands.parallel(
-                Subsystems.m_indexerRollerSubsystem.testRun(true)
-            ), Commands.none(), () -> Subsystems.m_shooterSubsystem.m_isAtSpeed()))
-        ));
+        // m_controller.rightBumper().whileTrue(Commands.parallel(
+        //     Subsystems.m_shooterSubsystem.staticShoot(),
+        //     Subsystems.m_indexerConveyor.testRun(),
+        //         Subsystems.m_kickerSubsystem.testRun(),
+        //         Subsystems.m_secondaryKicker.testRun(),
+        //     Commands.repeatingSequence(Commands.either(Commands.parallel(
+        //         Subsystems.m_indexerRollerSubsystem.testRun(true)
+        //     ), Commands.none(), () -> Subsystems.m_shooterSubsystem.m_isAtSpeed()))
+        // ));
 
-        m_controller.rightTrigger().whileTrue(Commands.parallel(Subsystems.m_intakeRoller.testRun(false), Subsystems.m_indexerRollerSubsystem.testRun(false)));
-        m_controller.faceLeft().whileTrue(Subsystems.m_indexerRollerSubsystem.testRun(true));
-        m_joystick.getHID().button(5).onTrue(Commands.runOnce(() -> Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(Units.degreesToRadians(SwerveSubsystem.isRedAlliance() ? 0 : 180))))));
+        // m_controller.rightTrigger().whileTrue(Commands.parallel(Subsystems.m_intakeRoller.testRun(false), Subsystems.m_indexerRollerSubsystem.testRun(false)));
+        // m_controller.faceLeft().whileTrue(Subsystems.m_indexerRollerSubsystem.testRun(true));
+        // m_joystick.getHID().button(5).onTrue(Commands.runOnce(() -> Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(Units.degreesToRadians(SwerveSubsystem.isRedAlliance() ? 0 : 180))))));
         
-        m_controller.dpadUp().onTrue(Subsystems.m_intakeExtension.retractIntake());
+        // m_controller.dpadUp().onTrue(Subsystems.m_intakeExtension.retractIntake());
         // m_controller.faceDown().whileTrue(Commands.parallel(
         //     Subsystems.m_shooterSubsystem.staticShoot(),
         //     Subsystems.m_hoodSubsystem.staticShoot(),
@@ -110,14 +111,14 @@ public class RobotContainer {
         // );
     }
     private void configureAutos(){
-        SelectAuto.addCommand("RightDoubleSweep", Autos.doubleSwipe(true));
-        SelectAuto.addCommand("LeftDoubleSweep", Autos.doubleSwipe(false));
+        // SelectAuto.addCommand("RightDoubleSweep", Autos.doubleSwipe(true));
+        // SelectAuto.addCommand("LeftDoubleSweep", Autos.doubleSwipe(false));
 
-        Telemetry.log("Auto Selection", SelectAuto.m_autoSelection);
+        // Telemetry.log("Auto Selection", SelectAuto.m_autoSelection);
     }
 
     public Command getAutonomousCommand() {
         /* Run the routine selected from the auto chooser */
-        return SelectAuto.getSelectedAuto();
+        return Commands.none();
     }
 }

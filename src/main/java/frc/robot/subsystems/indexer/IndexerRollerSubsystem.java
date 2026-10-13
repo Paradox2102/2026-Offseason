@@ -4,13 +4,12 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import frc.robot.RobotContainer;
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.IndexerConstants;
+import frc.robot.utils.ParadoxTalon;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
@@ -22,24 +21,25 @@ import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import org.wpilib.command2.button.Trigger;
 
 public class IndexerRollerSubsystem extends SubsystemBase {
+    private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withSlot(0);
+    private final StaticBrake m_brakeRequest = new StaticBrake();
     private final CANBus k_CANBus = CANIDConstants.k_canBus1;
-    private final TalonFX m_indexerRollerMotor = new TalonFX(CANIDConstants.indexerRoller, k_CANBus);
-    private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
+    private final ParadoxTalon m_indexerRollerMotor = new ParadoxTalon(CANIDConstants.indexerRoller, k_CANBus, m_brakeRequest, 0.1);
+    
 
     private final double k_gearRatio = 0.31;
 
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
         Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), IndexerConstants.k_indexerRollerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
 
-    private enum targetDirection {
-        IN,
-        OUT,
-        STILL
-    };
-    private targetDirection m_runningDirection = targetDirection.STILL;
+    // private enum targetDirection {
+    //     IN,
+    //     OUT,
+    //     STILL
+    // };
+    // private targetDirection m_runningDirection = targetDirection.STILL;
     // public Trigger isJammed = new Trigger(() -> {
     //     if (m_runningDirection == targetDirection.STILL)
     //         return false;
@@ -60,16 +60,24 @@ public class IndexerRollerSubsystem extends SubsystemBase {
     public Command run(boolean in) {
         return Commands.runEnd(() -> {   
 
-            m_runningDirection = in ? targetDirection.IN : targetDirection.OUT;
-            
-            m_indexerRollerMotor.setControl(m_request.withVelocity( in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerInRPS));
-        }, () -> m_runningDirection = targetDirection.STILL, this); }
+            // m_runningDirection = in ? targetDirection.IN : targetDirection.OUT;
+
+            m_indexerRollerMotor.setRequest(m_velocityRequest.withVelocity( in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerInRPS));
+            m_indexerRollerMotor.applyRequest();
+        }, () -> {
+            m_indexerRollerMotor.setRequest(m_brakeRequest);
+            m_indexerRollerMotor.applyRequest();
+            // m_runningDirection = targetDirection.STILL;
+        }, this); }
     
-    public Command testRun(boolean in){
+    public Command runPower(boolean in){
         return Commands.runEnd(() -> {
             
             m_indexerRollerMotor.setThrottle(1 * (in ? 1 : -1));
-        }, () -> m_indexerRollerMotor.setControl(new StaticBrake()), this);
+        }, () -> {
+            m_indexerRollerMotor.setRequest(m_brakeRequest);
+            m_indexerRollerMotor.applyRequest();
+        }, this);
     }
 
     @Override

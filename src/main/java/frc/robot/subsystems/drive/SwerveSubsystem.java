@@ -28,10 +28,10 @@ import org.wpilib.driverstation.RobotState;
 import org.wpilib.smartdashboard.Field2d;
 import org.wpilib.system.Notifier;
 import org.wpilib.system.RobotController;
-import org.wpilib.system.Timer;
+// import org.wpilib.system.Timer;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.command2.Command;
-import org.wpilib.command2.Commands;
+// import org.wpilib.command2.Commands;
 import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.sysid.SysIdRoutine;
 
@@ -53,7 +53,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     private static final double kSimLoopPeriod = 0.004; // 4 ms
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
-    private boolean m_tauntIsRight = false;
+    // private boolean m_tauntIsRight = false;
 
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
     private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.ZERO;
@@ -82,7 +82,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
             // TODO: Remember this is open loop
     
-    private final SwerveRequest.ApplyFieldVelocity m_velocityDrive = new SwerveRequest.ApplyFieldVelocity()
+    private final SwerveRequest.ApplyFieldVelocity m_velocityDrive = new SwerveRequest.ApplyFieldVelocity().withDesaturateWheelVelocities(true)
     .withDriveRequestType(DriveRequestType.Velocity);
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -150,7 +150,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     /* The SysId routine to test */
     private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
     
-    // private Vision vision;
+    private Vision vision;
     
     private InterpolatingDoubleTreeMap m_shotTimeInt = new InterpolatingDoubleTreeMap();
     private Pose2d m_sotmPose = new Pose2d();
@@ -173,7 +173,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        // setupPhotonVision();
+        setupPhotonVision();
         for(double[] values : ShooterConstants.k_scoreShotTimes){
             m_shotTimeInt.put(values[0], values[1]);
         }
@@ -202,7 +202,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        // setupPhotonVision();
+        setupPhotonVision();
         for(double[] values : ShooterConstants.k_scoreShotTimes){
             m_shotTimeInt.put(values[0], values[1]);
         }
@@ -240,7 +240,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        // setupPhotonVision();
+        setupPhotonVision();
         for(double[] values : ShooterConstants.k_scoreShotTimes){
             m_shotTimeInt.put(values[0], values[1]);
         }
@@ -304,8 +304,12 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         }
 
         Telemetry.log("GyroAngle", getState().Pose.getRotation().getDegrees());
+        Telemetry.log("FrontLeftModulePosition", getModule(0).getEncoder().getAbsolutePosition());
+        Telemetry.log("frontRightPosition", getModule(1).getEncoder().getAbsolutePosition());
+        Telemetry.log("BackLeftModulePosition", getModule(2).getEncoder().getAbsolutePosition());
+        Telemetry.log("BackrightModulePosition", getModule(3).getEncoder().getAbsolutePosition());
 
-        // vision.updatePoseEstimation(this);
+        vision.updatePoseEstimation(this);
 
         cachedPose = getState().Pose;
         // alignToTrench();
@@ -368,9 +372,9 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     //     }
     // }
 
-    // private void setupPhotonVision() {
-    //     vision = new Vision(() -> getPose(), new Field2d());
-    // }
+    private void setupPhotonVision() {
+        vision = new Vision(() -> getPose(), new Field2d());
+    }
 
     private void startSimThread() {
         m_lastSimTime = Utils.getCurrentTimeSeconds();
@@ -435,17 +439,17 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         return super.samplePoseAt(timestampSeconds);    // TODO - Pretty sure the conversion is no longer needed. Should verify.
     }
 
-    public Command taunt() {
-        Timer timer = new Timer();
-        timer.start();
+    // public Command taunt() {
+    //     Timer timer = new Timer();
+    //     timer.start();
 
-        return Commands.run(() -> {
-            if (Math.floor(timer.get() * 5) % 2 == (m_tauntIsRight ? 1 : 0)) {
-                m_tauntIsRight = !m_tauntIsRight;
-                drive(new ChassisVelocities(0, 0, (m_tauntIsRight ? 2 : -2)));
-            }
-        }, this);
-    }
+    //     return Commands.run(() -> {
+    //         if (Math.floor(timer.get() * 5) % 2 == (m_tauntIsRight ? 1 : 0)) {
+    //             m_tauntIsRight = !m_tauntIsRight;
+    //             drive(new ChassisVelocities(0, 0, (m_tauntIsRight ? 2 : -2)));
+    //         }
+    //     }, this);
+    // }
 
     public double distanceToTarget() {
         return m_sotmPose.getTranslation().getDistance(isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
@@ -501,25 +505,25 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     }
     /**
      * Drives the robot!
-     * 
-     * @param velocity This is the field oriented velocity!
+     * This runs field oriented and changes forward based upon the alliance, you don't need to compensate for alliances in your code.
+     * @param velocity Field Oriented Velocity.
      */
     public void drive(ChassisVelocities velocity) {
-        setControl(m_velocityDrive.withVelocity(velocity));
+        setControl(drive.withVelocityX(velocity.vx).withVelocityY(velocity.vy).withRotationalRate(velocity.omega));
     }
-    /**
-     * Drives the Robot!
-     * @param translation This is the X and Y Velocity
-     * @param rotation This is the rotational velocity
-     * @param fieldRelative This one is kinda self explanitory, use your brain.
-     */
-    public void drive(Translation2d translation, double rotation, boolean fieldRelative) {
-        ChassisVelocities velocity = fieldRelative ? new ChassisVelocities(translation.getX(), translation.getY(), rotation) : 
-        // ChassisVelocities.fromRobotRelativeSpeeds(new ChassisVelocities(translation.getX(), translation.getY(), rotation), getPose().getRotation());
-        (new ChassisVelocities(translation.getX(), translation.getY(), rotation)).toRobotRelative(getPose().getRotation());
-        setControl(m_velocityDrive.withVelocity(velocity));
+    // /**
+    //  * Drives the Robot!
+    //  * @param translation This is the X and Y Velocity
+    //  * @param rotation This is the rotational velocity
+    //  * @param fieldRelative This one is kinda self explanitory, use your brain.
+    //  */
+    // public void drive(Translation2d translation, double rotation, boolean fieldRelative) {
+    //     ChassisVelocities velocity = fieldRelative ? new ChassisVelocities(translation.getX(), translation.getY(), rotation) : 
+    //     // ChassisVelocities.fromRobotRelativeSpeeds(new ChassisVelocities(translation.getX(), translation.getY(), rotation), getPose().getRotation());
+    //     (new ChassisVelocities(translation.getX(), translation.getY(), rotation)).toRobotRelative(getPose().getRotation());
+    //     setControl(m_velocityDrive.withVelocity(velocity));
         
-    } 
+    // } 
 
     public SwerveRequest.FieldCentric getDrive() {
         return drive;

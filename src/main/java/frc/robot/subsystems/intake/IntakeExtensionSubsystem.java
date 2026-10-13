@@ -4,14 +4,14 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import frc.robot.Robot;
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.utils.ParadoxTalon;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
@@ -22,7 +22,6 @@ import org.wpilib.simulation.ElevatorSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import org.wpilib.framework.RobotBase;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
     private static final double k_intakeMaxExtension = 4.06;
@@ -30,11 +29,14 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     private static final double k_elevatorMass = 5.401715051809;
     private final CANBus k_CANBus = CANIDConstants.k_canBus4;
 
-    private final TalonFX m_intakeExtensionLeader = new TalonFX(CANIDConstants.intakeExtensionLeader, k_CANBus);
-    private final TalonFX m_intakeExtensionFollower = new TalonFX(CANIDConstants.intakeExtensionFollower, k_CANBus); 
+    private final PositionVoltage m_positionRequest = new PositionVoltage(0).withSlot(0);
+    private final Follower m_followRequest = new Follower(CANIDConstants.intakeExtensionLeader, MotorAlignmentValue.Opposed);
+    private final StaticBrake m_brakeRequest = new StaticBrake();
+    
+    private final ParadoxTalon m_intakeExtensionLeader = new ParadoxTalon(CANIDConstants.intakeExtensionLeader, k_CANBus, m_brakeRequest, 0.1);
+    private final ParadoxTalon m_intakeExtensionFollower = new ParadoxTalon(CANIDConstants.intakeExtensionFollower, k_CANBus, m_brakeRequest, 0.1); 
 
-    private final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
-    private final Follower m_follow = new Follower(CANIDConstants.intakeExtensionLeader, MotorAlignmentValue.Opposed);
+    
 
     private final double k_gearRatio = 2.8;
     private final ElevatorSim m_motorSimModel = new ElevatorSim(
@@ -45,11 +47,20 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     private final Timer m_stallTimer = new Timer();
     private final double k_stallTimerThreshold = 0.15;
     
+    public static enum targetPosition {
+        IN(0),
+        OUT(4.06);
+
+        double position;
+        targetPosition(double target){
+            position = target;
+        }
+    }
+
     public IntakeExtensionSubsystem() {
         m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
-        // A Phoenix 6 follower does not take the leader's configs; without this it has no supply current limit.
         m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
-        m_intakeExtensionFollower.setControl(m_follow);
+        m_intakeExtensionFollower.setControl(m_followRequest);
         m_stallTimer.start();
 
         m_intakeExtensionLeader.setPosition(0);
@@ -67,6 +78,17 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         Telemetry.log("Intake Extension Position", m_intakeExtensionLeader.getPosition(true).getValueAsDouble());
     }
 
+    public Command moveIntake(targetPosition position){
+        return Commands.run(() -> {
+            m_intakeExtensionLeader.setRequest(m_positionRequest.withPosition(position.position));
+            m_intakeExtensionLeader.applyRequest();
+        }, this).until(() -> isIntakeAtTarget(position)).finallyDo(() -> m_intakeExtensionLeader.setRequest(m_brakeRequest));
+    }
+
+    public Command crush(){
+        return Commands.repeatingSequence(moveIntake(targetPosition.IN), moveIntake(targetPosition.OUT));
+    }
+
     public Command forceRetractIntake(){
         return Commands.startEnd(() -> m_intakeExtensionLeader.setThrottle(-1), () ->{
             m_intakeExtensionLeader.setThrottle(0);
@@ -74,7 +96,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         });
     }
     
-    public Command retractIntake() {
+    public Command retractIntakePower() {
         return Commands.startRun(() -> {
             m_stallTimer.reset();
             m_intakeExtensionLeader.setThrottle(-0.5);
@@ -84,7 +106,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         }, this).until(() -> m_stallTimer.get() > k_stallTimerThreshold).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
-    public Command extendIntake() {
+    public Command extendIntakePower() {
         return Commands.startRun(() -> {
             m_stallTimer.reset();
             m_intakeExtensionLeader.setThrottle(0.5);
@@ -94,8 +116,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         }, this).until(() -> m_stallTimer.get() > k_stallTimerThreshold).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
-    public boolean isIntakeRetracted(){
-        return m_intakeExtensionLeader.getPosition().getValueAsDouble() < 0;
+    public boolean isIntakeAtTarget(targetPosition target){
+        return (Math.abs(m_intakeExtensionLeader.getPosition().getValueAsDouble() - m_intakeExtensionFollower.getPosition().getValueAsDouble()) / 2) - target.position < 0.1;
     }
 
     @Override

@@ -2,15 +2,14 @@ package frc.robot.subsystems.shooter;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.controls.StaticBrake;
+import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.ShooterConstants;
-import frc.robot.RobotContainer;
+import frc.robot.utils.ParadoxTalon;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
@@ -25,8 +24,10 @@ import org.wpilib.command2.SubsystemBase;
 public class KickerSubsystem extends SubsystemBase {
     private final CANBus k_CANBus = CANIDConstants.k_canBus3;
 
-    private final TalonFX m_kickerMotor = new TalonFX(CANIDConstants.kicker, k_CANBus);
-    private final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
+    private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withSlot(0);
+    private final CoastOut m_coastRequest = new CoastOut();
+
+    private final ParadoxTalon m_kickerMotor = new ParadoxTalon(CANIDConstants.kicker, k_CANBus, m_velocityRequest, 0.1);
 
     private final double k_gearRatio = 1;
 
@@ -43,15 +44,22 @@ public class KickerSubsystem extends SubsystemBase {
         }
     }
     public Command run(boolean in) {
-        return Commands.run(() -> {
-            m_kickerMotor.setControl(m_request.withVelocity(in ? ShooterConstants.k_kickInRPS : ShooterConstants.k_kickOutRPS));
+        return Commands.runEnd(() -> {
+            m_kickerMotor.setRequest(m_velocityRequest.withVelocity(in ? ShooterConstants.k_kickInRPS : ShooterConstants.k_kickOutRPS));
+            m_kickerMotor.applyRequest();
+        }, () -> {
+            m_kickerMotor.setRequest(m_coastRequest);
+            m_kickerMotor.applyRequest();
         }, this); }
 
-        public Command testRun(){
+        public Command runPower(){
         return Commands.runEnd(() -> {
             
             m_kickerMotor.setThrottle(0.9);
-        }, () -> m_kickerMotor.setControl(new StaticBrake()), this);
+        }, () -> {
+            m_kickerMotor.setRequest(m_coastRequest);
+            m_kickerMotor.applyRequest();
+        }, this);
     }
 
     @Override
