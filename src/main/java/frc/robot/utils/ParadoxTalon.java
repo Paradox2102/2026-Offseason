@@ -23,19 +23,5 @@ public class ParadoxTalon extends TalonFX {
         setControl(request);
     }
  
-    private void applyRequest(){
-        setControl(m_request);
-    }
-    /**
-     * returns the request used to get the motor
-     */
-    public ControlRequest getRequest(){
-        return m_request;
-    }
-
-    public void setRequest(ControlRequest newRequest, boolean applyRequest){
-        m_request = (newRequest);
-        if (applyRequest)
-            applyRequest();
-    }
+    
 }

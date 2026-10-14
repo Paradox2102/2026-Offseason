@@ -46,9 +46,9 @@ public class SecondaryKicker extends SubsystemBase {
     public Command run() {
         return Commands.runEnd(() -> {
                    
-            m_secondaryKickerMotor.setRequest(m_velocityRequest.withVelocity(ShooterConstants.k_secondaryKickerRPS), true);
+            m_secondaryKickerMotor.setControl(m_velocityRequest.withVelocity(ShooterConstants.k_secondaryKickerRPS));
         }, () -> {
-            m_secondaryKickerMotor.setRequest(m_coastRequest, true);
+            m_secondaryKickerMotor.setControl(m_coastRequest);
         }, this); }
     
     public Command runPower(){

@@ -80,8 +80,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     public Command moveIntake(targetPosition position){
         return Commands.run(() -> {
-            m_intakeExtensionLeader.setRequest(m_positionRequest.withPosition(position.position), true);
-        }, this).until(() -> isIntakeAtTarget(position)).finallyDo(() -> m_intakeExtensionLeader.setRequest(m_brakeRequest, true));
+            m_intakeExtensionLeader.setControl(m_positionRequest.withPosition(position.position));
+        }, this).until(() -> isIntakeAtTarget(position)).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest));
     }
 
     public Command crush(){
