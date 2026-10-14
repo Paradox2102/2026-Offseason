@@ -1,4 +1,7 @@
 {
-  "NTProvider": {"types": {"\/DriverStation": "DriverStation"}},
+  "NTProvider": {"types": {
+    "\/DriverStation": "DriverStation",
+    "\/Telemetry\/VisionSystemSim-Vision\/Sim Field": "Field2d"
+  }},
   "NetworkTables Info": {"visible": true}
 }

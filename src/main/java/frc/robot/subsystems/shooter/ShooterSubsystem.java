@@ -66,21 +66,17 @@ public class ShooterSubsystem extends SubsystemBase{
 
     public Command shoot(DoubleSupplier distanceToTarget) {
         return Commands.runEnd(() -> {               
-            m_shooterLeader.setRequest(m_velocityRequest.withVelocity(m_shooterLerpTable.get(distanceToTarget.getAsDouble())));
-            m_shooterLeader.applyRequest();
+            m_shooterLeader.setRequest(m_velocityRequest.withVelocity(m_shooterLerpTable.get(distanceToTarget.getAsDouble())), true);
         }, () -> {
-            m_shooterLeader.setRequest(m_coastRequest);
-            m_shooterLeader.applyRequest();
+            m_shooterLeader.setRequest(m_coastRequest, true);
         }, this);
     }
 
     public Command staticShoot(){
         return Commands.runEnd(() -> {
-            m_shooterLeader.setRequest(m_velocityRequest.withVelocity(47));
-            m_shooterLeader.applyRequest();
+            m_shooterLeader.setRequest(m_velocityRequest.withVelocity(47), true);
         }, () -> {
-            m_shooterLeader.setRequest(m_coastRequest);
-            m_shooterLeader.applyRequest();
+            m_shooterLeader.setRequest(m_coastRequest, true);
         }, this);
     }
 

@@ -62,11 +62,9 @@ public class IndexerRollerSubsystem extends SubsystemBase {
 
             // m_runningDirection = in ? targetDirection.IN : targetDirection.OUT;
 
-            m_indexerRollerMotor.setRequest(m_velocityRequest.withVelocity( in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerInRPS));
-            m_indexerRollerMotor.applyRequest();
+            m_indexerRollerMotor.setRequest(m_velocityRequest.withVelocity( in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerInRPS), true);
         }, () -> {
-            m_indexerRollerMotor.setRequest(m_brakeRequest);
-            m_indexerRollerMotor.applyRequest();
+            m_indexerRollerMotor.setRequest(m_brakeRequest, true);
             // m_runningDirection = targetDirection.STILL;
         }, this); }
     
@@ -75,8 +73,7 @@ public class IndexerRollerSubsystem extends SubsystemBase {
             
             m_indexerRollerMotor.setThrottle(1 * (in ? 1 : -1));
         }, () -> {
-            m_indexerRollerMotor.setRequest(m_brakeRequest);
-            m_indexerRollerMotor.applyRequest();
+            m_indexerRollerMotor.setRequest(m_brakeRequest, true);
         }, this);
     }
 
