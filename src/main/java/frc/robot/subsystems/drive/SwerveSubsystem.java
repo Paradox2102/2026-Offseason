@@ -153,7 +153,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     private Vision vision;
     
     private InterpolatingDoubleTreeMap m_shotTimeInt = new InterpolatingDoubleTreeMap();
-    private Pose2d m_sotmPose = new Pose2d();
+    private static Pose2d m_sotmPose = new Pose2d();
 
     /**
      * Constructs a CTRE SwerveDrivetrain using the specified constants.
@@ -451,7 +451,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     //     }, this);
     // }
 
-    public double distanceToTarget() {
+    public static double distanceToTarget() {
         return m_sotmPose.getTranslation().getDistance(isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
     }
 

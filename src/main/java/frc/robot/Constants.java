@@ -3,9 +3,6 @@ package frc.robot;
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 
-import org.wpilib.command2.Command;
-import org.wpilib.command2.Commands;
-import org.wpilib.command2.button.Trigger;
 import org.wpilib.hardware.bus.CANPort;
 
 import com.ctre.phoenix6.CANBus;
@@ -312,7 +309,7 @@ public class Constants {
 
   public static class IntakeConstants {
     public static final double k_inRPS = 40;
-    public static final double k_outRPS = -30;
+    public static final double k_outRPS = 30;
 
     public static final double k_outPosition = 90;
 
@@ -386,70 +383,11 @@ public class Constants {
             k_indexerRollerConfigs.Slot0.kS = k_rollerS;
             k_indexerRollerConfigs.Slot0.kV = k_rollerV;
             
-            k_indexerRollerConfigs.withCurrentLimits(k_rollerLimitConfig);
+            k_indexerConveyorConfigs.withCurrentLimits(k_rollerLimitConfig);
             k_indexerConveyorConfigs.Slot0.kP = k_conveyorP;
             k_indexerConveyorConfigs.Slot0.kS = k_conveyorS;
             k_indexerConveyorConfigs.Slot0.kV = k_conveyorV;
             
         }
   }
-
- 
-    public static class Controls {
-        public static final Trigger isReadyToShoot = new Trigger(() -> (Subsystems.m_hoodSubsystem.m_isOnTarget() && Subsystems.m_shooterSubsystem.m_isAtSpeed() && Subsystems.m_turretAimSubsystem.m_isOnTarget()));
-        public static final Command extendIntake() {
-            return Commands.sequence(
-                Subsystems.m_intakeExtension.moveIntake(IntakeExtensionSubsystem.targetPosition.OUT),
-                Subsystems.m_intakeRoller.run(true));
-        }
-
-        public static Command shoot(){
-            return Commands.repeatingSequence(Commands.either(launch(), aim(), Controls.isReadyToShoot));
-        }
-
-        public static Command aim(){
-            return Commands.parallel(
-                Subsystems.m_hoodSubsystem.pitchHood(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
-                Subsystems.m_shooterSubsystem.shoot(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
-                Subsystems.m_turretAimSubsystem.rotateToTarget()
-            );
-
-        }
-
-        public static Command launch() {
-            return Commands.parallel(
-                aim(),
-                // Subsystems.m_indexerConveyor.run(true),
-                Subsystems.m_indexerRollerSubsystem.run(true),
-                Subsystems.m_secondaryKicker.run(),
-                Subsystems.m_kickerSubsystem.run(true)
-                );
-        }
-
-        public static Command staticLaunch() {
-            return Commands.parallel(
-                staticAim(),
-                // Subsystems.m_indexerConveyor.run(true),
-                Subsystems.m_indexerRollerSubsystem.run(true),
-                Subsystems.m_secondaryKicker.run(),
-                Subsystems.m_kickerSubsystem.run(true)
-                );
-        }
-        public static Command staticAim(){
-            return Commands.parallel(
-                Subsystems.m_hoodSubsystem.staticPitch(),
-                Subsystems.m_shooterSubsystem.staticShoot(),
-                Subsystems.m_turretAimSubsystem.staticAim()
-            );
-
-        }
-
-        // public static Command towerSweep() {
-        //     return Commands.either(Commands.either(
-        //         Commands.either(new DrivePath("OutpostDepotTowerSweep.json"), new DrivePath("OutpostDepotTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_depotIntermediatePoint),
-        //         Commands.either(new DrivePath("DepotOutpostTowerSweep.json"), new DrivePath("DepotOutpostTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() < FieldConstants.k_outpostIntermediatePoint),
-        //         () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_yCenterline),
-        //     Commands.none(), () -> !Subsystems.m_swerveSubsystem.inTeamAlliance());    
-        // }
-    }
 }

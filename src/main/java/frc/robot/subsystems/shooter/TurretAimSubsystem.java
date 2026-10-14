@@ -38,8 +38,8 @@ public class TurretAimSubsystem extends SubsystemBase{
     private final ParadoxTalon m_shooterAzimuth = new ParadoxTalon(CANIDConstants.shooterAzimuth, k_CANBus, m_coastRequest, 0.1);
     
 
-    public boolean m_isOnTarget() {
-        return Math.abs(m_positionRequest.Position - getTargetRotation()) < 0.5;
+    public boolean isOnTarget() {
+        return Math.abs(m_shooterAzimuth.getPosition().getValueAsDouble() - getTargetRotation()) < 0.5;
     }
 
  private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(Models.singleJointedArmFromPhysicalConstants(DCMotor.getKrakenX60(1), 0.04969116, ShooterConstants.k_shooterGearReduction), DCMotor.getKrakenX60(1), ShooterConstants.k_shooterGearReduction, 0.1, Units.degreesToRadians(ShooterConstants.k_turretBounds.getMinBound()), Units.degreesToRadians(ShooterConstants.k_turretBounds.getMaxBound()), false, 0);   

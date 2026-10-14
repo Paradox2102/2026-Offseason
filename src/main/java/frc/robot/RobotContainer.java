@@ -16,15 +16,17 @@ import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
 import org.wpilib.command2.button.RobotModeTriggers;
+import org.wpilib.command2.button.Trigger;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.util.Units;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.telemetry.TelemetryTable;
 
-import frc.robot.Constants.Controls;
 import frc.robot.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
+import frc.robot.subsystems.intake.IntakeExtensionSubsystem;
+import frc.robot.subsystems.intake.IntakeExtensionSubsystem.TargetPosition;
 public class RobotContainer {
     
 
@@ -45,13 +47,31 @@ public class RobotContainer {
 
         configureDefaults();
         configureBindings();
-        // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
         // configureAutos();
-        // m_controller.southFace().whileTrue(Subsystems.m_hoodSubsystem.staticShoot()).whileFalse(Subsystems.m_hoodSubsystem.returnHood());
-        // m_controller.faceDown().onTrue(Subsystems.m_turretAimSubsystem.staticAim());
     }
 
     private void configureBindings() {
+
+        Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_turretAimSubsystem.isOnTarget() && Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed());
+
+        m_controller.leftTrigger().whileTrue(Commands.sequence(
+            Subsystems.m_intakeExtension.moveIntake(TargetPosition.OUT),
+            Subsystems.m_intakeRoller.run(true)
+        ));
+
+        m_controller.rightTrigger().whileTrue(Commands.parallel( // Shooter bindings not properly set-up, don't have shooter yet :P
+            Subsystems.m_shooterSubsystem.shoot(() -> SwerveSubsystem.distanceToTarget()),
+            Subsystems.m_hoodSubsystem.pitchHood(() -> SwerveSubsystem.distanceToTarget())
+        ));
+
+        isReadyToShoot.whileTrue(Commands.parallel(
+            Subsystems.m_indexerRollerSubsystem.run(true),
+            Subsystems.m_indexerConveyor.run(true),
+            Subsystems.m_kickerSubsystem.run(true),
+            Subsystems.m_secondaryKicker.run()
+        ));
+
+
 
         // m_controller.leftBumper().onTrue(Subsystems.m_intakeExtension.extendIntake());
         // m_controller.leftTrigger().whileTrue(Subsystems.m_intakeRoller.testRun(true));

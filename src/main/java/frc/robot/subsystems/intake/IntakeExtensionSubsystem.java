@@ -47,12 +47,12 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     private final Timer m_stallTimer = new Timer();
     private final double k_stallTimerThreshold = 0.15;
     
-    public static enum targetPosition {
+    public static enum TargetPosition {
         IN(0),
         OUT(4.06);
 
         double position;
-        targetPosition(double target){
+        TargetPosition(double target){
             position = target;
         }
     }
@@ -78,14 +78,14 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         Telemetry.log("Intake Extension Position", m_intakeExtensionLeader.getPosition(true).getValueAsDouble());
     }
 
-    public Command moveIntake(targetPosition position){
+    public Command moveIntake(TargetPosition position){
         return Commands.run(() -> {
             m_intakeExtensionLeader.setControl(m_positionRequest.withPosition(position.position));
         }, this).until(() -> isIntakeAtTarget(position)).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest));
     }
 
     public Command crush(){
-        return Commands.repeatingSequence(moveIntake(targetPosition.IN), moveIntake(targetPosition.OUT));
+        return Commands.repeatingSequence(moveIntake(TargetPosition.IN), moveIntake(TargetPosition.OUT));
     }
 
     public Command forceRetractIntake(){
@@ -115,8 +115,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         }, this).until(() -> m_stallTimer.get() > k_stallTimerThreshold).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
-    public boolean isIntakeAtTarget(targetPosition target){
-        return (Math.abs(m_intakeExtensionLeader.getPosition().getValueAsDouble() - m_intakeExtensionFollower.getPosition().getValueAsDouble()) / 2) - target.position < 0.1;
+    public boolean isIntakeAtTarget(TargetPosition target){
+        return (Math.abs(m_intakeExtensionLeader.getPosition().getValueAsDouble() + m_intakeExtensionFollower.getPosition().getValueAsDouble()) / 2) - target.position < 0.1;
     }
 
     @Override

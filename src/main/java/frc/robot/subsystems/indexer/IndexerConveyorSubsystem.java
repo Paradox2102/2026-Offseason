@@ -67,7 +67,7 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
     }
     
     public void setSpeed(List<ParadoxTalon> motors, List<Double> speeds){
-        for (int i = 0; i < motors.size() - 1; i++) {
+        for (int i = 0; i < motors.size(); i++) {
             motors.get(i).setControl(m_velocityRequest.withVelocity(speeds.get(i)));
         }
     }

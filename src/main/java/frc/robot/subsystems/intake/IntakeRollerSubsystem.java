@@ -52,7 +52,9 @@ public class IntakeRollerSubsystem extends SubsystemBase {
         return Commands.runEnd(() -> {
             m_intakeRollerMotor.setControl(m_coastRequest);
            m_intakeRollerMotor.configNeutralMode(NeutralModeValue.Coast);
-            m_intakeRollerMotor.setThrottle(k_bangBang.calculate(m_intakeRollerMotor.getVelocity(true).getValueAsDouble(), in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS));
+        
+           m_intakeRollerMotor.setThrottle((in ? 1 : -1)  *k_bangBang.calculate(m_intakeRollerMotor.getVelocity(true).getValueAsDouble(), in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS));
+        
         }, () -> {
             m_intakeRollerMotor.configNeutralMode(NeutralModeValue.Brake);
             m_intakeRollerMotor.setControl(m_brakeRequest);

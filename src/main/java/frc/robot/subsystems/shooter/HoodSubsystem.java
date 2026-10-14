@@ -37,7 +37,7 @@ public class HoodSubsystem extends SubsystemBase{
     private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(DCMotor.getKrakenX44(1),
     k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, Math.toRadians(0), Math.toRadians(42), true, 0.1);
     
-    public boolean m_isOnTarget() {
+    public boolean isOnTarget() {
         return Math.abs(m_hoodMotor.getPosition().getValueAsDouble() - m_positionRequest.Position) < 0.1;
     }
 
@@ -80,7 +80,7 @@ public class HoodSubsystem extends SubsystemBase{
     public Command staticPitch(){
         return Commands.runEnd(
             () -> {
-                m_hoodMotor.setControl(m_positionRequest.withPosition(ShooterConstants.k_staticShotAngle));
+                m_hoodMotor.setControl(m_positionRequest.withPosition(Units.degreesToRotations(ShooterConstants.k_staticShotAngle)));
             }, () -> {
                 m_hoodMotor.setControl(m_brakeRequest);
             }, this);
