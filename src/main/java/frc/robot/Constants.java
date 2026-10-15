@@ -1,5 +1,6 @@
 package frc.robot;
 
+import static org.wpilib.units.Units.Degrees;
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 
@@ -94,14 +95,17 @@ public class Constants {
 
     public static class VisionConstants {
 
+        // Camera angles are written in degrees, so wrap each one in Degrees.of(...).
+        // new Rotation3d(double, double, double) takes RADIANS: a bare 148 means 148 rad (about 8480 degrees).
+
         public static final Translation3d frontRightPosition = new Translation3d(Units.inchesToMeters(-12.2212), Units.inchesToMeters(12.6202), Units.inchesToMeters(12.3281));
-        public static final Rotation3d frontRightRotation = new Rotation3d(25, -2.012, 148);
+        public static final Rotation3d frontRightRotation = new Rotation3d(Degrees.of(25), Degrees.of(-2.012), Degrees.of(148));
         public static final Translation3d sideLeftPosition = new Translation3d(Units.inchesToMeters(-11.0169), Units.inchesToMeters(-13.0384), Units.inchesToMeters(11.9732));
-        public static final Rotation3d sideLeftRotation = new Rotation3d(25, 11.148, 65);
+        public static final Rotation3d sideLeftRotation = new Rotation3d(Degrees.of(25), Degrees.of(11.148), Degrees.of(65));
         //public static final Translation3d sideLeftPosition = new Translation3d(Units.inchesToMeters(-3.8793),Units.inchesToMeters(14.0335), Units.inchesToMeters(5.3676));
         //public static final Rotation3d sideLeftRotation = new Rotation3d();
         public static final Translation3d frontLeftPos = new Translation3d(Units.inchesToMeters(-12.1548), Units.inchesToMeters(-8.6186), Units.inchesToMeters(12.00));
-        public static final Rotation3d frontLeftRot = new Rotation3d(25, 1.823, 147.168);
+        public static final Rotation3d frontLeftRot = new Rotation3d(Degrees.of(25), Degrees.of(1.823), Degrees.of(147.168));
 
     }
 
