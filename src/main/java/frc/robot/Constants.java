@@ -366,14 +366,14 @@ public class Constants {
 
         public static final double k_rollerP = 0.3;
         public static final double k_rollerS = 0.0;
-        public static final double k_rollerV = 0.0;
+        public static final double k_rollerV = 0.125;
 
         public static final double k_conveyorP = 0.0;
         public static final double k_conveyorS = 0.1;
         public static final double k_conveyorV = 0.0;
 
         public static final double k_conveyorMotionMagicAcceleration = 0.1;
-        public static final double k_rollerMotionMagicAcceleration = 5.0;
+        public static final double k_rollerMotionMagicAcceleration = 300;
 
         public static final double k_conveyorSupplyLimit = 18;
     public static final double k_rollerSupplyLimit = 25;
@@ -382,7 +382,7 @@ public class Constants {
     public static final CurrentLimitsConfigs m_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
 
     public static final MotionMagicConfigs m_indexerConveyorMotionMagicConfig = m_indexerConveyorConfigs.MotionMagic.withMotionMagicAcceleration(k_conveyorMotionMagicAcceleration);
-    public static final MotionMagicConfigs m_indexerRollerMotionMagicConfig = m_indexerConveyorConfigs.MotionMagic.withMotionMagicAcceleration(k_rollerMotionMagicAcceleration);
+    public static final MotionMagicConfigs m_indexerRollerMotionMagicConfig = m_indexerRollerConfigs.MotionMagic.withMotionMagicAcceleration(k_rollerMotionMagicAcceleration);
 
         static {
 
