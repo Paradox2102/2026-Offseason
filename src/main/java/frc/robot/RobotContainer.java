@@ -5,27 +5,13 @@
 package frc.robot;
 
 
-import com.ctre.phoenix6.swerve.SwerveRequest;
-
-import choreo.auto.AutoChooser;
-import choreo.auto.AutoChooserOpMode;
-
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
-import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
-import org.wpilib.command2.button.RobotModeTriggers;
 import org.wpilib.command2.button.Trigger;
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.util.Units;
-import org.wpilib.telemetry.Telemetry;
-import org.wpilib.telemetry.TelemetryTable;
-
 import frc.robot.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
-import frc.robot.subsystems.intake.IntakeExtensionSubsystem;
 import frc.robot.subsystems.intake.IntakeExtensionSubsystem.TargetPosition;
 public class RobotContainer {
     
@@ -63,6 +49,8 @@ public class RobotContainer {
             Subsystems.m_shooterSubsystem.shoot(() -> SwerveSubsystem.distanceToTarget()),
             Subsystems.m_hoodSubsystem.pitchHood(() -> SwerveSubsystem.distanceToTarget())
         ));
+
+        m_controller.faceDown().whileTrue(Subsystems.m_indexerRollerSubsystem.run(true));
 
         isReadyToShoot.whileTrue(Commands.parallel(
             Subsystems.m_indexerRollerSubsystem.run(true),

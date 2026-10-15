@@ -2,8 +2,8 @@ package frc.robot.subsystems.indexer;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.controls.MotionMagicVelocityDutyCycle;
 import com.ctre.phoenix6.controls.StaticBrake;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
@@ -26,7 +26,7 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class IndexerConveyorSubsystem extends SubsystemBase {
-    private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withSlot(0);
+    private final MotionMagicVelocityDutyCycle m_velocityRequest = new MotionMagicVelocityDutyCycle(0);
     private final StaticBrake m_brakeRequest = new StaticBrake();
 
     private final CANBus k_CANBus = CANIDConstants.k_canBus1;
@@ -39,8 +39,8 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
         Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), IndexerConstants.k_indexerConveyorMOI, k_gearRatio), DCMotor.getKrakenX60(1));
 
     public IndexerConveyorSubsystem() {
-        m_indexerConveyorTop.getConfigurator().apply(IndexerConstants.k_indexerConveyorConfigs);
-        m_indexerConveyorBottom.getConfigurator().apply(IndexerConstants.k_indexerConveyorConfigs);
+        m_indexerConveyorTop.getConfigurator().apply(IndexerConstants.m_indexerConveyorConfigs);
+        m_indexerConveyorBottom.getConfigurator().apply(IndexerConstants.m_indexerConveyorConfigs);
 
 
         if (Utils.isSimulation()){
@@ -63,11 +63,15 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
             
             m_indexerConveyorBottom.setThrottle(0.9);
             m_indexerConveyorTop.setThrottle(1.0);
-        }, () -> {m_indexerConveyorTop.setControl(new StaticBrake()); m_indexerConveyorBottom.setControl(new StaticBrake());}, this);
+        }, () -> {
+            m_indexerConveyorTop.setControl(m_brakeRequest);
+            m_indexerConveyorBottom.setControl(m_brakeRequest);
+        }, this);
     }
     
     public void setSpeed(List<ParadoxTalon> motors, List<Double> speeds){
         for (int i = 0; i < motors.size(); i++) {
+            // motors.get(i).setControl(m_velocityRequest.withVelocity(speeds.get(i)));
             motors.get(i).setControl(m_velocityRequest.withVelocity(speeds.get(i)));
         }
     }

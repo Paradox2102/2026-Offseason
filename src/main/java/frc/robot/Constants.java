@@ -7,6 +7,7 @@ import org.wpilib.hardware.bus.CANPort;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
 
@@ -358,35 +359,47 @@ public class Constants {
 
         public static final int k_jamThreshold = 6; // should be tuned to not happen too much
 
-        public static final TalonFXConfiguration k_indexerRollerConfigs = new TalonFXConfiguration();
-        public static final TalonFXConfiguration k_indexerConveyorConfigs = new TalonFXConfiguration();
+        public static final TalonFXConfiguration m_indexerRollerConfigs = new TalonFXConfiguration();
+        public static final TalonFXConfiguration m_indexerConveyorConfigs = new TalonFXConfiguration();
         public static final double k_indexerRollerMOI = 0.00045822;
         public static final double k_indexerConveyorMOI = 0.00001722;
 
-        public static final double k_rollerP = 0.0;
-        public static final double k_rollerS = 0.015;
-        public static final double k_rollerV = 0.0367;
+        public static final double k_rollerP = 0.3;
+        public static final double k_rollerS = 0.0;
+        public static final double k_rollerV = 0.0;
 
         public static final double k_conveyorP = 0.0;
         public static final double k_conveyorS = 0.1;
         public static final double k_conveyorV = 0.0;
 
+        public static final double k_conveyorMotionMagicAcceleration = 0.1;
+        public static final double k_rollerMotionMagicAcceleration = 5.0;
+
         public static final double k_conveyorSupplyLimit = 18;
     public static final double k_rollerSupplyLimit = 25;
 
-    public static final CurrentLimitsConfigs k_conveyorLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_conveyorSupplyLimit);
-    public static final CurrentLimitsConfigs k_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
+    public static final CurrentLimitsConfigs m_conveyorLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_conveyorSupplyLimit);
+    public static final CurrentLimitsConfigs m_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
+
+    public static final MotionMagicConfigs m_indexerConveyorMotionMagicConfig = m_indexerConveyorConfigs.MotionMagic.withMotionMagicAcceleration(k_conveyorMotionMagicAcceleration);
+    public static final MotionMagicConfigs m_indexerRollerMotionMagicConfig = m_indexerConveyorConfigs.MotionMagic.withMotionMagicAcceleration(k_rollerMotionMagicAcceleration);
 
         static {
-            k_indexerRollerConfigs.withCurrentLimits(k_rollerLimitConfig);
-            k_indexerRollerConfigs.Slot0.kP = k_rollerP;
-            k_indexerRollerConfigs.Slot0.kS = k_rollerS;
-            k_indexerRollerConfigs.Slot0.kV = k_rollerV;
+
+            // m_indexerRollerMotionMagicConfig.MotionMagicAcceleration = k_rollerMotionMagicAcceleration;
+
+            m_indexerRollerConfigs.withCurrentLimits(m_rollerLimitConfig);
+            m_indexerRollerConfigs.Slot0.kP = k_rollerP;
+            m_indexerRollerConfigs.Slot0.kS = k_rollerS;
+            m_indexerRollerConfigs.Slot0.kV = k_rollerV;
+
             
-            k_indexerConveyorConfigs.withCurrentLimits(k_rollerLimitConfig);
-            k_indexerConveyorConfigs.Slot0.kP = k_conveyorP;
-            k_indexerConveyorConfigs.Slot0.kS = k_conveyorS;
-            k_indexerConveyorConfigs.Slot0.kV = k_conveyorV;
+            // m_indexerConveyorMotionMagicConfig.withMotionMagicAcceleration(k_rollerMotionMagicAcceleration);
+            
+            m_indexerConveyorConfigs.withCurrentLimits(m_rollerLimitConfig);
+            m_indexerConveyorConfigs.Slot0.kP = k_conveyorP;
+            m_indexerConveyorConfigs.Slot0.kS = k_conveyorS;
+            m_indexerConveyorConfigs.Slot0.kV = k_conveyorV;
             
         }
   }
