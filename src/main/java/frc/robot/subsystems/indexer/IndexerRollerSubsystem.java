@@ -62,7 +62,7 @@ public class IndexerRollerSubsystem extends SubsystemBase {
     public Command run(boolean in) {
         return Commands.runEnd(() -> {   
             // m_runningDirection = in ? targetDirection.IN : targetDirection.OUT;
-            m_indexerRollerMotor.setControl(m_velocityRequest.withVelocity(in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerInRPS));
+            m_indexerRollerMotor.setControl(m_velocityRequest.withVelocity(in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerOutRPS));
         }, () -> {
             m_indexerRollerMotor.setControl(m_coastRequest);
             // m_runningDirection = targetDirection.STILL;
