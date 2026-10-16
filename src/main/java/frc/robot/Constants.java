@@ -3,6 +3,8 @@ package frc.robot;
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
 import org.wpilib.hardware.bus.CANPort;
 
 import com.ctre.phoenix6.CANBus;
@@ -99,13 +101,13 @@ public class Constants {
     public static class VisionConstants {
 
         public static final Translation3d frontRightPosition = new Translation3d(Units.inchesToMeters(-12.2212), Units.inchesToMeters(12.6202), Units.inchesToMeters(12.3281));
-        public static final Rotation3d frontRightRotation = new Rotation3d(25, -2.012, 148);
+        public static final Rotation3d frontRightRotation = new Rotation3d(Units.degreesToRadians(25), Units.degreesToRadians(-2.012), Units.degreesToRadians(148));
         public static final Translation3d sideLeftPosition = new Translation3d(Units.inchesToMeters(-11.0169), Units.inchesToMeters(-13.0384), Units.inchesToMeters(11.9732));
-        public static final Rotation3d sideLeftRotation = new Rotation3d(25, 11.148, 65);
+        public static final Rotation3d sideLeftRotation = new Rotation3d(Units.degreesToRadians(25), Units.degreesToRadians(11.148), Units.degreesToRadians(65));
         //public static final Translation3d sideLeftPosition = new Translation3d(Units.inchesToMeters(-3.8793),Units.inchesToMeters(14.0335), Units.inchesToMeters(5.3676));
         //public static final Rotation3d sideLeftRotation = new Rotation3d();
         public static final Translation3d frontLeftPos = new Translation3d(Units.inchesToMeters(-12.1548), Units.inchesToMeters(-8.6186), Units.inchesToMeters(12.00));
-        public static final Rotation3d frontLeftRot = new Rotation3d(25, 1.823, 147.168);
+        public static final Rotation3d frontLeftRot = new Rotation3d(Units.degreesToRadians(25), Units.degreesToRadians(1.823), Units.degreesToRadians(147.168));
 
     }
 
@@ -373,7 +375,7 @@ public class Constants {
         public static final double k_indexerRollerMOI = 0.00045822;
         public static final double k_indexerConveyorMOI = 0.00001722;
 
-        public static final double k_rollerP = 0.3;
+        public static final double k_rollerP = 0.0;
         public static final double k_rollerS = 0.0;
         public static final double k_rollerV = 0.125;
 
@@ -395,7 +397,7 @@ public class Constants {
 
         static {
 
-            // m_indexerRollerMotionMagicConfig.MotionMagicAcceleration = k_rollerMotionMagicAcceleration;
+            m_indexerRollerMotionMagicConfig.MotionMagicAcceleration = k_rollerMotionMagicAcceleration;
 
             m_indexerRollerConfigs.withCurrentLimits(m_rollerLimitConfig).withMotorOutput(m_indexerRollerConfigs.MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
             m_indexerRollerConfigs.Slot0.kP = k_rollerP;
@@ -403,9 +405,9 @@ public class Constants {
             m_indexerRollerConfigs.Slot0.kV = k_rollerV;
 
             
-            // m_indexerConveyorMotionMagicConfig.withMotionMagicAcceleration(k_rollerMotionMagicAcceleration);
+            m_indexerConveyorMotionMagicConfig.withMotionMagicAcceleration(k_conveyorMotionMagicAcceleration);
             
-            m_indexerConveyorConfigs.withCurrentLimits(m_rollerLimitConfig);
+            m_indexerConveyorConfigs.withCurrentLimits(m_conveyorLimitConfig);
             m_indexerConveyorConfigs.Slot0.kP = k_conveyorP;
             m_indexerConveyorConfigs.Slot0.kS = k_conveyorS;
             m_indexerConveyorConfigs.Slot0.kV = k_conveyorV;
