@@ -4,11 +4,13 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.MotionMagicVelocityDutyCycle;
 import com.ctre.phoenix6.controls.StaticBrake;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.IndexerConstants;
+import frc.robot.Constants.IntakeConstants;
 import frc.robot.utils.ParadoxTalon;
 
 import org.wpilib.math.system.DCMotor;
@@ -40,7 +42,7 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
 
     public IndexerConveyorSubsystem() {
         m_indexerConveyorTop.getConfigurator().apply(IndexerConstants.m_indexerConveyorConfigs);
-        m_indexerConveyorBottom.getConfigurator().apply(IndexerConstants.m_indexerConveyorConfigs);
+        m_indexerConveyorBottom.getConfigurator().apply(IndexerConstants.m_indexerConveyorConfigs.withMotorOutput(IndexerConstants.m_indexerConveyorConfigs.MotorOutput.withInverted(InvertedValue.Clockwise_Positive)));
 
 
         if (Utils.isSimulation()){
@@ -49,10 +51,10 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
             talonFXSim.setMotorType(TalonFXSimState.MotorType.KrakenX60);
         }
     }
-    public Command run(boolean in) {
+    public Command run() {
         return Commands.runEnd(() -> {
             // TODO: Different Speeds
-            setSpeed(asList(m_indexerConveyorTop, m_indexerConveyorTop), asList(in ? IndexerConstants.k_conveyorInRPS : IndexerConstants.k_conveyorOutRPS, in ? IndexerConstants.k_conveyorInRPS : IndexerConstants.k_conveyorOutRPS));
+            setSpeed(asList(m_indexerConveyorTop, m_indexerConveyorBottom), asList(IndexerConstants.k_conveyorRPS, IndexerConstants.k_conveyorRPS));
             }, () -> {
                 stop(m_indexerConveyorTop, m_indexerConveyorBottom);
             }, this); 

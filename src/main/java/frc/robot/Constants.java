@@ -318,16 +318,16 @@ public class Constants {
 
     public static final double k_outPosition = 90;
 
-    public static final TalonFXConfiguration k_intakeRollerConfigs = new TalonFXConfiguration();
-    public static final TalonFXConfiguration k_intakeExtensionConfigs = new TalonFXConfiguration();
+    public static final TalonFXConfiguration m_intakeRollerConfigs = new TalonFXConfiguration();
+    public static final TalonFXConfiguration m_intakeExtensionConfigs = new TalonFXConfiguration();
 
-    public static final double k_rollerP = 0.1;
+    public static final double k_rollerP = 0.2;
     public static final double k_rollerS = 0.0;
-    public static final double k_rollerV = 0.0;
+    public static final double k_rollerV = 0.15;
 
     public static final double k_intakeExtensionG = 0;
     public static final double k_intakeExtensionP = 0.1;
-    public static final double k_intakeExtensionV = 0;
+    public static final double k_intakeExtensionV = 1.5;
     public static final double k_intakeExtensionD = 0;
 
     public static final double k_extensionSupplyLimit = 30;
@@ -336,30 +336,35 @@ public class Constants {
     public static final CurrentLimitsConfigs k_extensionLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_extensionSupplyLimit);
     public static final CurrentLimitsConfigs k_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
 
+    public static final double m_intakeExtensionAcceleration = 10.0;
+    public static final double m_rollerMotionMagicAcceleration = 10.0;
+
+    public static final MotionMagicConfigs m_intakeExtensionMotionMagicConfig = m_intakeExtensionConfigs.MotionMagic.withMotionMagicAcceleration(m_intakeExtensionAcceleration);
+    public static final MotionMagicConfigs m_intakeRollerMotionMagicConfig = m_intakeExtensionConfigs.MotionMagic.withMotionMagicAcceleration(m_rollerMotionMagicAcceleration);
+
     
     public static final double k_intakeRollerMOI = 0.093084;
     static {
         // k_intakeRollerConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        k_intakeRollerConfigs.withMotorOutput(k_intakeRollerConfigs.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive)).withCurrentLimits(k_rollerLimitConfig);
-        k_intakeRollerConfigs.Slot0.kP = k_rollerP;
-        k_intakeRollerConfigs.Slot0.kV = k_rollerV;
-        k_intakeRollerConfigs.Slot0.kS = k_rollerS;
+        m_intakeRollerConfigs.withMotorOutput(m_intakeRollerConfigs.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive));
+        m_intakeRollerConfigs.Slot0.kP = k_rollerP;
+        m_intakeRollerConfigs.Slot0.kV = k_rollerV;
+        m_intakeRollerConfigs.Slot0.kS = k_rollerS;
 
-        k_intakeExtensionConfigs.withCurrentLimits(k_extensionLimitConfig);
-        k_intakeExtensionConfigs.Slot0.kG = k_intakeExtensionG;
-        k_intakeExtensionConfigs.Slot0.kP = k_intakeExtensionP;
-        k_intakeExtensionConfigs.Slot0.kV = k_intakeExtensionV;
-        k_intakeExtensionConfigs.Slot0.kD = k_intakeExtensionD;
+        m_intakeExtensionConfigs.withCurrentLimits(k_extensionLimitConfig);
+        m_intakeExtensionConfigs.Slot0.kG = k_intakeExtensionG;
+        m_intakeExtensionConfigs.Slot0.kP = k_intakeExtensionP;
+        m_intakeExtensionConfigs.Slot0.kV = k_intakeExtensionV;
+        m_intakeExtensionConfigs.Slot0.kD = k_intakeExtensionD;
     }
 
     
     }
     public static class IndexerConstants {
-        public static final double k_rollerInRPS = 50;
-        public static final double k_rollerOutRPS = -40;
+        public static final double k_rollerInRPS = 25;
+        public static final double k_rollerOutRPS = -10;
 
-        public static final double k_conveyorInRPS = 20;
-        public static final double k_conveyorOutRPS = -40;
+        public static final double k_conveyorRPS = 20;
 
         public static final int k_jamThreshold = 6; // should be tuned to not happen too much
 
@@ -370,29 +375,29 @@ public class Constants {
 
         public static final double k_rollerP = 0.3;
         public static final double k_rollerS = 0.0;
-        public static final double k_rollerV = 0.0;
+        public static final double k_rollerV = 0.125;
 
         public static final double k_conveyorP = 0.0;
-        public static final double k_conveyorS = 0.1;
-        public static final double k_conveyorV = 0.0;
+        public static final double k_conveyorS = 0.0;
+        public static final double k_conveyorV = 0.1;
 
-        public static final double k_conveyorMotionMagicAcceleration = 0.1;
-        public static final double k_rollerMotionMagicAcceleration = 5.0;
+        public static final double k_conveyorMotionMagicAcceleration = 40.0;
+        public static final double k_rollerMotionMagicAcceleration = 20.0;
 
         public static final double k_conveyorSupplyLimit = 18;
-    public static final double k_rollerSupplyLimit = 25;
+        public static final double k_rollerSupplyLimit = 25;
 
-    public static final CurrentLimitsConfigs m_conveyorLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_conveyorSupplyLimit);
-    public static final CurrentLimitsConfigs m_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
+        public static final CurrentLimitsConfigs m_conveyorLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_conveyorSupplyLimit);
+        public static final CurrentLimitsConfigs m_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
 
-    public static final MotionMagicConfigs m_indexerConveyorMotionMagicConfig = m_indexerConveyorConfigs.MotionMagic.withMotionMagicAcceleration(k_conveyorMotionMagicAcceleration);
-    public static final MotionMagicConfigs m_indexerRollerMotionMagicConfig = m_indexerConveyorConfigs.MotionMagic.withMotionMagicAcceleration(k_rollerMotionMagicAcceleration);
+        public static final MotionMagicConfigs m_indexerConveyorMotionMagicConfig = m_indexerConveyorConfigs.MotionMagic.withMotionMagicAcceleration(k_conveyorMotionMagicAcceleration);
+        public static final MotionMagicConfigs m_indexerRollerMotionMagicConfig = m_indexerRollerConfigs.MotionMagic.withMotionMagicAcceleration(k_rollerMotionMagicAcceleration);
 
         static {
 
             // m_indexerRollerMotionMagicConfig.MotionMagicAcceleration = k_rollerMotionMagicAcceleration;
 
-            m_indexerRollerConfigs.withCurrentLimits(m_rollerLimitConfig);
+            m_indexerRollerConfigs.withCurrentLimits(m_rollerLimitConfig).withMotorOutput(m_indexerRollerConfigs.MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
             m_indexerRollerConfigs.Slot0.kP = k_rollerP;
             m_indexerRollerConfigs.Slot0.kS = k_rollerS;
             m_indexerRollerConfigs.Slot0.kV = k_rollerV;

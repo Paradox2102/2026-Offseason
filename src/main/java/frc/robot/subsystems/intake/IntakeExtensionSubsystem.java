@@ -3,6 +3,10 @@ package frc.robot.subsystems.intake;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.MotionMagicVelocityDutyCycle;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
+import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
@@ -24,12 +28,13 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
-    private static final double k_intakeMaxExtension = 4.06;
+    private static final double k_intakeMaxExtension = 3.95;
     private static final double k_elevatorDrimRadius = 0.038091; // If something is wrong then this is the first thing to check. Idk if I did this right
     private static final double k_elevatorMass = 5.401715051809;
     private final CANBus k_CANBus = CANIDConstants.k_canBus4;
 
-    private final PositionVoltage m_positionRequest = new PositionVoltage(0).withSlot(0);
+    private final PositionTorqueCurrentFOC m_positionRequest = new PositionTorqueCurrentFOC(0).withSlot(0);
+    private final MotionMagicVelocityVoltage m_velocityRequest = new MotionMagicVelocityVoltage(0);
     private final Follower m_followRequest = new Follower(CANIDConstants.intakeExtensionLeader, MotorAlignmentValue.Opposed);
     private final StaticBrake m_brakeRequest = new StaticBrake();
     
@@ -49,7 +54,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     
     public static enum TargetPosition {
         IN(0),
-        OUT(4.06);
+        OUT(k_intakeMaxExtension);
 
         double position;
         TargetPosition(double target){
@@ -58,8 +63,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     }
 
     public IntakeExtensionSubsystem() {
-        m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
-        m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.k_intakeExtensionConfigs);
+        m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
+        m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.setControl(m_followRequest);
         m_stallTimer.start();
 
@@ -74,18 +79,39 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        
+        Telemetry.log("Intake Extension at target", isIntakeAtTarget(TargetPosition.IN));
+
         Telemetry.log("Intake Extension Position", m_intakeExtensionLeader.getPosition(true).getValueAsDouble());
     }
 
-    public Command moveIntake(TargetPosition position){
-        return Commands.run(() -> {
-            m_intakeExtensionLeader.setControl(m_positionRequest.withPosition(position.position));
-        }, this).until(() -> isIntakeAtTarget(position)).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest));
-    }
+    // public Command moveIntake(TargetPosition position){
+    //     return Commands.run(() -> {
+    //         m_intakeExtensionLeader.setControl(m_positionRequest.withPosition(position.position));
+    //     }, this).until(() -> isIntakeAtTarget(position)).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest));
+    // }
 
     public Command crush(){
-        return Commands.repeatingSequence(moveIntake(TargetPosition.IN), moveIntake(TargetPosition.OUT));
+        return Commands.repeatingSequence(extendIntakePower(), retractIntakePower());
+    }
+
+    public Command retractIntake() {
+        return Commands.startRun(() -> {
+            m_stallTimer.reset();
+            m_intakeExtensionLeader.setThrottle(-0.5);
+        }, () -> {
+            if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
+                m_stallTimer.reset();
+        }, this).until(() -> isIntakeAtTarget(TargetPosition.IN)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+    }
+
+    public Command extendIntake() {
+        return Commands.startRun(() -> {
+            m_stallTimer.reset();
+            m_intakeExtensionLeader.setThrottle(0.5);
+        }, () -> {
+            if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
+                m_stallTimer.reset();
+        }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
     public Command forceRetractIntake(){
@@ -102,7 +128,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         }, () -> {
             if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
                 m_stallTimer.reset();
-        }, this).until(() -> m_stallTimer.get() > k_stallTimerThreshold).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+        }, this).until(() -> isIntakeAtTarget(TargetPosition.IN)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
     public Command extendIntakePower() {
@@ -112,11 +138,11 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         }, () -> {
             if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
                 m_stallTimer.reset();
-        }, this).until(() -> m_stallTimer.get() > k_stallTimerThreshold).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+        }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
     public boolean isIntakeAtTarget(TargetPosition target){
-        return (Math.abs(m_intakeExtensionLeader.getPosition().getValueAsDouble() + m_intakeExtensionFollower.getPosition().getValueAsDouble()) / 2) - target.position < 0.1;
+        return Math.abs(((m_intakeExtensionLeader.getPosition().getValueAsDouble() + m_intakeExtensionFollower.getPosition().getValueAsDouble()) / 2) - target.position) < 0.08;
     }
 
     @Override

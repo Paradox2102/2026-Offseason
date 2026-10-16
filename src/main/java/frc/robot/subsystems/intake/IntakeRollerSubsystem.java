@@ -3,6 +3,7 @@ package frc.robot.subsystems.intake;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.CoastOut;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -26,6 +27,7 @@ import org.wpilib.command2.SubsystemBase;
 public class IntakeRollerSubsystem extends SubsystemBase {
     private final StaticBrake m_brakeRequest = new StaticBrake();
     private final CoastOut m_coastRequest = new CoastOut(); 
+    private final MotionMagicVelocityVoltage m_velocityRequest = new MotionMagicVelocityVoltage(0);
 
     private final CANBus k_CANBus = CANIDConstants.k_canBus4;
 
@@ -39,7 +41,7 @@ public class IntakeRollerSubsystem extends SubsystemBase {
         Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), IntakeConstants.k_intakeRollerMOI, k_gearRatio), DCMotor.getKrakenX60(1));
     
         public IntakeRollerSubsystem() {
-        m_intakeRollerMotor.getConfigurator().apply(IntakeConstants.k_intakeRollerConfigs);
+        m_intakeRollerMotor.getConfigurator().apply(IntakeConstants.m_intakeRollerConfigs);
         
         if (Utils.isSimulation()){
             var talonFXSim = m_intakeRollerMotor.getSimState();
@@ -50,11 +52,11 @@ public class IntakeRollerSubsystem extends SubsystemBase {
 
     public Command run(boolean in){
         return Commands.runEnd(() -> {
-            m_intakeRollerMotor.setControl(m_coastRequest);
-           m_intakeRollerMotor.configNeutralMode(NeutralModeValue.Coast);
+        //   m_intakeRollerMotor.setControl(m_coastRequest);
+             m_intakeRollerMotor.configNeutralMode(NeutralModeValue.Coast);
         
-           m_intakeRollerMotor.setThrottle((in ? 1 : -1)  *k_bangBang.calculate(m_intakeRollerMotor.getVelocity(true).getValueAsDouble(), in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS));
-        
+        //  m_intakeRollerMotor.setThrottle((in ? 1 : -1) * k_bangBang.calculate(m_intakeRollerMotor.getVelocity(true).getValueAsDouble(), in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS));
+            m_intakeRollerMotor.setControl(m_velocityRequest.withVelocity(in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS));
         }, () -> {
             m_intakeRollerMotor.configNeutralMode(NeutralModeValue.Brake);
             m_intakeRollerMotor.setControl(m_brakeRequest);

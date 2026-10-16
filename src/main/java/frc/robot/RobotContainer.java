@@ -12,6 +12,7 @@ import org.wpilib.command2.button.CommandJoystick;
 import org.wpilib.command2.button.Trigger;
 import frc.robot.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
+import frc.robot.subsystems.intake.IntakeExtensionSubsystem;
 import frc.robot.subsystems.intake.IntakeExtensionSubsystem.TargetPosition;
 public class RobotContainer {
     
@@ -41,7 +42,7 @@ public class RobotContainer {
         Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_turretAimSubsystem.isOnTarget() && Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed());
 
         m_controller.leftTrigger().whileTrue(Commands.sequence(
-            Subsystems.m_intakeExtension.moveIntake(TargetPosition.OUT),
+            Subsystems.m_intakeExtension.extendIntake(),
             Subsystems.m_intakeRoller.run(true)
         ));
 
@@ -50,11 +51,11 @@ public class RobotContainer {
             Subsystems.m_hoodSubsystem.pitchHood(() -> SwerveSubsystem.distanceToTarget())
         ));
 
-        m_controller.faceDown().whileTrue(Subsystems.m_indexerRollerSubsystem.run(true));
+        m_controller.faceDown().whileTrue(Subsystems.m_intakeRoller.run(true));
 
         isReadyToShoot.whileTrue(Commands.parallel(
             Subsystems.m_indexerRollerSubsystem.run(true),
-            Subsystems.m_indexerConveyor.run(true),
+            Subsystems.m_indexerConveyor.run(),
             Subsystems.m_kickerSubsystem.run(true),
             Subsystems.m_secondaryKicker.run()
         ));
