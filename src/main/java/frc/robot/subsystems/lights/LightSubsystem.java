@@ -4,7 +4,6 @@
 
 package frc.robot.subsystems.lights;
 
-import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.Seconds;
 
 import java.util.Map;
@@ -22,7 +21,6 @@ import org.wpilib.driverstation.Alliance;
 import org.wpilib.util.Color;
 
 import frc.robot.Constants.LightConstants;
-import frc.robot.RobotContainer;
 
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;

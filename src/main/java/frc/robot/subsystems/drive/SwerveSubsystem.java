@@ -10,6 +10,7 @@ import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.ctre.phoenix6.swerve.SwerveRequest.RobotCentric;
 
 import org.wpilib.math.linalg.Matrix;
 import org.wpilib.math.controller.PIDController;
@@ -81,6 +82,9 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
                 .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
             // TODO: Remember this is open loop
+
+    private final SwerveRequest.RobotCentric robotRelatveDrive = new RobotCentric().withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+                .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     
     private final SwerveRequest.ApplyFieldVelocity m_velocityDrive = new SwerveRequest.ApplyFieldVelocity().withDesaturateWheelVelocities(true)
     .withDriveRequestType(DriveRequestType.Velocity);
@@ -511,6 +515,11 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     public void drive(ChassisVelocities velocity) {
         setControl(drive.withVelocityX(velocity.vx).withVelocityY(velocity.vy).withRotationalRate(velocity.omega));
     }
+
+    public void driveRobotRelative(ChassisVelocities velocity) {
+        setControl(robotRelatveDrive.withVelocityX(velocity.vx).withVelocityY(velocity.vy).withRotationalRate(velocity.omega));
+    }
+
     // /**
     //  * Drives the Robot!
     //  * @param translation This is the X and Y Velocity

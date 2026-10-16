@@ -4,7 +4,7 @@
     "font": "Proggy Dotted",
     "fps": "120",
     "height": "720",
-    "maximized": "0",
+    "maximized": "1",
     "style": "0",
     "userScaling": "100",
     "width": "1280",
@@ -13,10 +13,15 @@
   }},
   "Table": {"0xED901DC8,2": {"RefScale": "10"}},
   "Window": {
+    "\/Mechanisms\/Turret Aim\/mechanism": {
+      "Collapsed": "0",
+      "Pos": "984,77",
+      "Size": "210,200"
+    },
     "DS": {
       "Collapsed": "0",
       "Pos": "5,540",
-      "Size": "140,140"
+      "Size": "230,122"
     },
     "Debug##Default": {
       "Collapsed": "0",
@@ -25,7 +30,7 @@
     },
     "Display": {
       "Collapsed": "0",
-      "Pos": "250,20",
+      "Pos": "293,188",
       "Size": "650,320"
     },
     "Joysticks": {
@@ -40,7 +45,7 @@
     },
     "NetworkTables Info": {
       "Collapsed": "0",
-      "Pos": "250,130",
+      "Pos": "353,314",
       "Size": "750,145"
     },
     "Other Devices": {
@@ -61,7 +66,7 @@
     "Timing": {
       "Collapsed": "0",
       "Pos": "5,150",
-      "Size": "249,147"
+      "Size": "269,147"
     }
   }
 }

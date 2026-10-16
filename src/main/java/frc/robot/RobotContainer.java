@@ -4,27 +4,18 @@
 
 package frc.robot;
 
-
-import com.ctre.phoenix6.swerve.SwerveRequest;
-
-import choreo.auto.AutoChooser;
-import choreo.auto.AutoChooserOpMode;
-
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
-import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
-import org.wpilib.command2.button.RobotModeTriggers;
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.util.Units;
-import org.wpilib.telemetry.Telemetry;
-import org.wpilib.telemetry.TelemetryTable;
+import org.wpilib.math.controller.PIDController;
 
-import frc.robot.Constants.Controls;
 import frc.robot.Constants.Subsystems;
+import bline.commands.FollowPathV2;
+import bline.following.DriveType;
+import bline.path.Path;
 import frc.robot.subsystems.drive.SwerveSubsystem;
+
 public class RobotContainer {
     
 
@@ -40,11 +31,29 @@ public class RobotContainer {
     public static final CommandGamepad m_controller = new CommandGamepad(0);
     @SuppressWarnings("unused")
     private final CommandJoystick m_joystick = new CommandJoystick(1);
-    
+
+    FollowPathV2.Builder pathBuilder = new FollowPathV2.Builder(
+        DriveType.SWERVE,
+        Subsystems.m_swerveSubsystem,
+        Subsystems.m_swerveSubsystem::getPose,
+        null,
+        Subsystems.m_swerveSubsystem::getChassisVelocities,
+        null,
+        Subsystems.m_swerveSubsystem.m_xPID,
+        Subsystems.m_swerveSubsystem.m_orientPID,
+        new PIDController(0.2, 0.0, 0.0) // cross-track PID. If tuned, set it here.
+    );
+
+    Path firstStraight = new Path("first-straight");
+
+    Command firstAuto = pathBuilder
+        .build(firstStraight);
+
     public RobotContainer() {
 
         configureDefaults();
         configureBindings();
+        m_controller.leftBumper().onTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
         // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
         // configureAutos();
         // m_controller.southFace().whileTrue(Subsystems.m_hoodSubsystem.staticShoot()).whileFalse(Subsystems.m_hoodSubsystem.returnHood());
