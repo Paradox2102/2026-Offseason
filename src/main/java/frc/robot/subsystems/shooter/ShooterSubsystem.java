@@ -45,8 +45,8 @@ public class ShooterSubsystem extends SubsystemBase{
         Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), ShooterConstants.k_shooterMOI, k_gearRatio), DCMotor.getKrakenX60(1));
 
 
-    public boolean m_isAtSpeed() {
-        return Math.abs((m_shooterLeader.getVelocity().getValueAsDouble() + m_shooterFollower.getVelocity().getValueAsDouble()) / 2) - m_velocityRequest.Velocity < 3;
+    public boolean isAtSpeed() {
+        return Math.abs((m_shooterLeader.getVelocity().getValueAsDouble() + m_shooterFollower.getVelocity().getValueAsDouble()) / 2 - m_velocityRequest.Velocity) < 3;
     }
     public ShooterSubsystem() {
         m_shooterLeader.getConfigurator().apply(ShooterConstants.k_shooterConfigs);
@@ -66,21 +66,17 @@ public class ShooterSubsystem extends SubsystemBase{
 
     public Command shoot(DoubleSupplier distanceToTarget) {
         return Commands.runEnd(() -> {               
-            m_shooterLeader.setRequest(m_velocityRequest.withVelocity(m_shooterLerpTable.get(distanceToTarget.getAsDouble())));
-            m_shooterLeader.applyRequest();
+            m_shooterLeader.setControl(m_velocityRequest.withVelocity(m_shooterLerpTable.get(distanceToTarget.getAsDouble())));
         }, () -> {
-            m_shooterLeader.setRequest(m_coastRequest);
-            m_shooterLeader.applyRequest();
+            m_shooterLeader.setControl(m_coastRequest);
         }, this);
     }
 
     public Command staticShoot(){
         return Commands.runEnd(() -> {
-            m_shooterLeader.setRequest(m_velocityRequest.withVelocity(47));
-            m_shooterLeader.applyRequest();
+            m_shooterLeader.setControl(m_velocityRequest.withVelocity(47));
         }, () -> {
-            m_shooterLeader.setRequest(m_coastRequest);
-            m_shooterLeader.applyRequest();
+            m_shooterLeader.setControl(m_coastRequest);
         }, this);
     }
 

@@ -5,7 +5,9 @@
 package frc.robot;
 
 import com.ctre.phoenix6.HootAutoReplay;
+import com.ctre.phoenix6.SignalLogger;
 
+import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 
@@ -19,6 +21,9 @@ import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.networktables.StructArrayPublisher;
 import org.wpilib.networktables.StructPublisher;
 import org.wpilib.framework.OpModeRobot;
+import org.wpilib.framework.TimedRobot;
+import org.wpilib.hardware.power.PowerDistribution;
+import org.wpilib.hardware.power.PowerDistribution.ModuleType;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
 
@@ -38,6 +43,9 @@ public class Robot extends OpModeRobot {
         .withTimestampReplay()
         .withJoystickReplay();
 
+    /* log PDH channel currents into the hoot log, next to the Talon signals */
+    private final PowerDistribution m_pdh = new PowerDistribution(CANIDConstants.k_pdhPort, CANIDConstants.pdh, ModuleType.REV);
+
     // private final boolean kUseLimelight = false;
 
     public Robot() {
@@ -48,6 +56,8 @@ public class Robot extends OpModeRobot {
     @Override
     public void robotPeriodic() {
         m_timeAndJoystickReplay.update();
+        SignalLogger.writeDoubleArray("PDH/ChannelCurrents", m_pdh.getAllCurrents(), "A");
+        SignalLogger.writeDouble("PDH/Voltage", m_pdh.getVoltage(), "V");
         CommandScheduler.getInstance().run();
 
         Pose2d robotPose = Subsystems.m_swerveSubsystem.getPose();

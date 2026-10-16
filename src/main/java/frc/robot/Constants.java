@@ -5,11 +5,11 @@ import static org.wpilib.units.Units.MetersPerSecond;
 
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
-import org.wpilib.command2.button.Trigger;
 import org.wpilib.hardware.bus.CANPort;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
 
@@ -46,6 +46,10 @@ public class Constants {
         public static final CANBus k_canBus4 = new CANBus(CANPort.CAN_S4);
 
         public static final int gyro = 0;
+
+        // The PDH is alone on CAN_S0 with CAN ID 21 (REV default is 1)
+        public static final CANPort k_pdhPort = CANPort.CAN_S0;
+        public static final int pdh = 21;
 
         public static final int fl_drive = 1;
         public static final int fl_steer = 2;
@@ -97,13 +101,13 @@ public class Constants {
     public static class VisionConstants {
 
         public static final Translation3d frontRightPosition = new Translation3d(Units.inchesToMeters(-12.2212), Units.inchesToMeters(12.6202), Units.inchesToMeters(12.3281));
-        public static final Rotation3d frontRightRotation = new Rotation3d(25, -2.012, 148);
+        public static final Rotation3d frontRightRotation = new Rotation3d(Units.degreesToRadians(25), Units.degreesToRadians(-2.012), Units.degreesToRadians(148));
         public static final Translation3d sideLeftPosition = new Translation3d(Units.inchesToMeters(-11.0169), Units.inchesToMeters(-13.0384), Units.inchesToMeters(11.9732));
-        public static final Rotation3d sideLeftRotation = new Rotation3d(25, 11.148, 65);
+        public static final Rotation3d sideLeftRotation = new Rotation3d(Units.degreesToRadians(25), Units.degreesToRadians(11.148), Units.degreesToRadians(65));
         //public static final Translation3d sideLeftPosition = new Translation3d(Units.inchesToMeters(-3.8793),Units.inchesToMeters(14.0335), Units.inchesToMeters(5.3676));
         //public static final Rotation3d sideLeftRotation = new Rotation3d();
         public static final Translation3d frontLeftPos = new Translation3d(Units.inchesToMeters(-12.1548), Units.inchesToMeters(-8.6186), Units.inchesToMeters(12.00));
-        public static final Rotation3d frontLeftRot = new Rotation3d(25, 1.823, 147.168);
+        public static final Rotation3d frontLeftRot = new Rotation3d(Units.degreesToRadians(25), Units.degreesToRadians(1.823), Units.degreesToRadians(147.168));
 
     }
 
@@ -312,20 +316,20 @@ public class Constants {
 
   public static class IntakeConstants {
     public static final double k_inRPS = 40;
-    public static final double k_outRPS = -30;
+    public static final double k_outRPS = 30;
 
     public static final double k_outPosition = 90;
 
-    public static final TalonFXConfiguration k_intakeRollerConfigs = new TalonFXConfiguration();
-    public static final TalonFXConfiguration k_intakeExtensionConfigs = new TalonFXConfiguration();
+    public static final TalonFXConfiguration m_intakeRollerConfigs = new TalonFXConfiguration();
+    public static final TalonFXConfiguration m_intakeExtensionConfigs = new TalonFXConfiguration();
 
-    public static final double k_rollerP = 0.1;
+    public static final double k_rollerP = 0.2;
     public static final double k_rollerS = 0.0;
-    public static final double k_rollerV = 0.0;
+    public static final double k_rollerV = 0.15;
 
     public static final double k_intakeExtensionG = 0;
     public static final double k_intakeExtensionP = 0.1;
-    public static final double k_intakeExtensionV = 0;
+    public static final double k_intakeExtensionV = 1.5;
     public static final double k_intakeExtensionD = 0;
 
     public static final double k_extensionSupplyLimit = 30;
@@ -334,122 +338,80 @@ public class Constants {
     public static final CurrentLimitsConfigs k_extensionLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_extensionSupplyLimit);
     public static final CurrentLimitsConfigs k_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
 
+    public static final double m_intakeExtensionAcceleration = 10.0;
+    public static final double m_rollerMotionMagicAcceleration = 10.0;
+
+    public static final MotionMagicConfigs m_intakeExtensionMotionMagicConfig = m_intakeExtensionConfigs.MotionMagic.withMotionMagicAcceleration(m_intakeExtensionAcceleration);
+    public static final MotionMagicConfigs m_intakeRollerMotionMagicConfig = m_intakeExtensionConfigs.MotionMagic.withMotionMagicAcceleration(m_rollerMotionMagicAcceleration);
+
     
     public static final double k_intakeRollerMOI = 0.093084;
     static {
         // k_intakeRollerConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        k_intakeRollerConfigs.withMotorOutput(k_intakeRollerConfigs.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive)).withCurrentLimits(k_rollerLimitConfig);
-        k_intakeRollerConfigs.Slot0.kP = k_rollerP;
-        k_intakeRollerConfigs.Slot0.kV = k_rollerV;
-        k_intakeRollerConfigs.Slot0.kS = k_rollerS;
+        m_intakeRollerConfigs.withMotorOutput(m_intakeRollerConfigs.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive));
+        m_intakeRollerConfigs.Slot0.kP = k_rollerP;
+        m_intakeRollerConfigs.Slot0.kV = k_rollerV;
+        m_intakeRollerConfigs.Slot0.kS = k_rollerS;
 
-        k_intakeExtensionConfigs.withCurrentLimits(k_extensionLimitConfig);
-        k_intakeExtensionConfigs.Slot0.kG = k_intakeExtensionG;
-        k_intakeExtensionConfigs.Slot0.kP = k_intakeExtensionP;
-        k_intakeExtensionConfigs.Slot0.kV = k_intakeExtensionV;
-        k_intakeExtensionConfigs.Slot0.kD = k_intakeExtensionD;
+        m_intakeExtensionConfigs.withCurrentLimits(k_extensionLimitConfig);
+        m_intakeExtensionConfigs.Slot0.kG = k_intakeExtensionG;
+        m_intakeExtensionConfigs.Slot0.kP = k_intakeExtensionP;
+        m_intakeExtensionConfigs.Slot0.kV = k_intakeExtensionV;
+        m_intakeExtensionConfigs.Slot0.kD = k_intakeExtensionD;
     }
 
     
     }
     public static class IndexerConstants {
-        public static final double k_rollerInRPS = 50;
-        public static final double k_rollerOutRPS = -40;
+        public static final double k_rollerInRPS = 25;
+        public static final double k_rollerOutRPS = -10;
 
-        public static final double k_conveyorInRPS = 20;
-        public static final double k_conveyorOutRPS = -40;
+        public static final double k_conveyorRPS = 20;
 
         public static final int k_jamThreshold = 6; // should be tuned to not happen too much
 
-        public static final TalonFXConfiguration k_indexerRollerConfigs = new TalonFXConfiguration();
-        public static final TalonFXConfiguration k_indexerConveyorConfigs = new TalonFXConfiguration();
+        public static final TalonFXConfiguration m_indexerRollerConfigs = new TalonFXConfiguration();
+        public static final TalonFXConfiguration m_indexerConveyorConfigs = new TalonFXConfiguration();
         public static final double k_indexerRollerMOI = 0.00045822;
         public static final double k_indexerConveyorMOI = 0.00001722;
 
         public static final double k_rollerP = 0.0;
-        public static final double k_rollerS = 0.015;
-        public static final double k_rollerV = 0.0367;
+        public static final double k_rollerS = 0.0;
+        public static final double k_rollerV = 0.125;
 
         public static final double k_conveyorP = 0.0;
-        public static final double k_conveyorS = 0.1;
-        public static final double k_conveyorV = 0.0;
+        public static final double k_conveyorS = 0.0;
+        public static final double k_conveyorV = 0.1;
+
+        public static final double k_conveyorMotionMagicAcceleration = 40.0;
+        public static final double k_rollerMotionMagicAcceleration = 20.0;
 
         public static final double k_conveyorSupplyLimit = 18;
-    public static final double k_rollerSupplyLimit = 25;
+        public static final double k_rollerSupplyLimit = 25;
 
-    public static final CurrentLimitsConfigs k_conveyorLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_conveyorSupplyLimit);
-    public static final CurrentLimitsConfigs k_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
+        public static final CurrentLimitsConfigs m_conveyorLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_conveyorSupplyLimit);
+        public static final CurrentLimitsConfigs m_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
+
+        public static final MotionMagicConfigs m_indexerConveyorMotionMagicConfig = m_indexerConveyorConfigs.MotionMagic.withMotionMagicAcceleration(k_conveyorMotionMagicAcceleration);
+        public static final MotionMagicConfigs m_indexerRollerMotionMagicConfig = m_indexerRollerConfigs.MotionMagic.withMotionMagicAcceleration(k_rollerMotionMagicAcceleration);
 
         static {
-            k_indexerRollerConfigs.withCurrentLimits(k_rollerLimitConfig);
-            k_indexerRollerConfigs.Slot0.kP = k_rollerP;
-            k_indexerRollerConfigs.Slot0.kS = k_rollerS;
-            k_indexerRollerConfigs.Slot0.kV = k_rollerV;
+
+            m_indexerRollerMotionMagicConfig.MotionMagicAcceleration = k_rollerMotionMagicAcceleration;
+
+            m_indexerRollerConfigs.withCurrentLimits(m_rollerLimitConfig).withMotorOutput(m_indexerRollerConfigs.MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
+            m_indexerRollerConfigs.Slot0.kP = k_rollerP;
+            m_indexerRollerConfigs.Slot0.kS = k_rollerS;
+            m_indexerRollerConfigs.Slot0.kV = k_rollerV;
+
             
-            k_indexerRollerConfigs.withCurrentLimits(k_rollerLimitConfig);
-            k_indexerConveyorConfigs.Slot0.kP = k_conveyorP;
-            k_indexerConveyorConfigs.Slot0.kS = k_conveyorS;
-            k_indexerConveyorConfigs.Slot0.kV = k_conveyorV;
+            m_indexerConveyorMotionMagicConfig.withMotionMagicAcceleration(k_conveyorMotionMagicAcceleration);
+            
+            m_indexerConveyorConfigs.withCurrentLimits(m_conveyorLimitConfig);
+            m_indexerConveyorConfigs.Slot0.kP = k_conveyorP;
+            m_indexerConveyorConfigs.Slot0.kS = k_conveyorS;
+            m_indexerConveyorConfigs.Slot0.kV = k_conveyorV;
             
         }
   }
-
- 
-    public static class Controls {
-        public static final Trigger isReadyToShoot = new Trigger(() -> (Subsystems.m_hoodSubsystem.m_isOnTarget() && Subsystems.m_shooterSubsystem.m_isAtSpeed() && Subsystems.m_turretAimSubsystem.m_isOnTarget()));
-        public static final Command extendIntake() {
-            return Commands.sequence(
-                Subsystems.m_intakeExtension.moveIntake(IntakeExtensionSubsystem.targetPosition.OUT),
-                Subsystems.m_intakeRoller.run(true));
-        }
-
-        public static Command shoot(){
-            return Commands.repeatingSequence(Commands.either(launch(), aim(), Controls.isReadyToShoot));
-        }
-
-        public static Command aim(){
-            return Commands.parallel(
-                Subsystems.m_hoodSubsystem.pitchHood(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
-                Subsystems.m_shooterSubsystem.shoot(() -> Subsystems.m_swerveSubsystem.distanceToTarget()),
-                Subsystems.m_turretAimSubsystem.rotateToTarget()
-            );
-
-        }
-
-        public static Command launch() {
-            return Commands.parallel(
-                aim(),
-                // Subsystems.m_indexerConveyor.run(true),
-                Subsystems.m_indexerRollerSubsystem.run(true),
-                Subsystems.m_secondaryKicker.run(),
-                Subsystems.m_kickerSubsystem.run(true)
-                );
-        }
-
-        public static Command staticLaunch() {
-            return Commands.parallel(
-                staticAim(),
-                // Subsystems.m_indexerConveyor.run(true),
-                Subsystems.m_indexerRollerSubsystem.run(true),
-                Subsystems.m_secondaryKicker.run(),
-                Subsystems.m_kickerSubsystem.run(true)
-                );
-        }
-        public static Command staticAim(){
-            return Commands.parallel(
-                Subsystems.m_hoodSubsystem.staticPitch(),
-                Subsystems.m_shooterSubsystem.staticShoot(),
-                Subsystems.m_turretAimSubsystem.staticAim()
-            );
-
-        }
-
-        // public static Command towerSweep() {
-        //     return Commands.either(Commands.either(
-        //         Commands.either(new DrivePath("OutpostDepotTowerSweep.json"), new DrivePath("OutpostDepotTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_depotIntermediatePoint),
-        //         Commands.either(new DrivePath("DepotOutpostTowerSweep.json"), new DrivePath("DepotOutpostTowerSweepIntermediate.json"), () -> Subsystems.m_swerveSubsystem.getPose().getY() < FieldConstants.k_outpostIntermediatePoint),
-        //         () -> Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_yCenterline),
-        //     Commands.none(), () -> !Subsystems.m_swerveSubsystem.inTeamAlliance());    
-        // }
-    }
 }

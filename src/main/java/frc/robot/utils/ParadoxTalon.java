@@ -22,21 +22,6 @@ public class ParadoxTalon extends TalonFX {
         k_stallShutDownTime = stallShutDownTime;
         setControl(request);
     }
+ 
     
-    /**
-     * Applies the set request to the motor.
-     */
-    public void applyRequest(){
-        setControl(m_request);
-    }
-    /**
-     * returns the request used to get the motor
-     */
-    public ControlRequest getRequest(){
-        return m_request;
-    }
-
-    public void setRequest(ControlRequest newRequest){
-        m_request = (newRequest);
-    }
 }

@@ -245,12 +245,12 @@ public class DrivePath extends Command{
         }
         
         if (m_commandedRotation.isPresent()){
-            m_swerveSubsystem.drive(new Translation2d(x, y), m_commandedRotation.get().getAsDouble() * (isRedAlliance() ? -1 : 1), true);
+            // m_swerveSubsystem.drive(new Translation2d(x, y), m_commandedRotation.get().getAsDouble() * (isRedAlliance() ? -1 : 1), true);
             return;
         }
 
         if (m_pose[m_point].m_translation == null){
-            m_swerveSubsystem.drive(new Translation2d(x, y), orientPID(() -> Units.degreesToRadians(m_pose[m_point].m_pose.getRotation().getDegrees()) * (isRedAlliance() ? -1 : 1)).get().getDegrees(), true);
+            // m_swerveSubsystem.drive(new Translation2d(x, y), orientPID(() -> Units.degreesToRadians(m_pose[m_point].m_pose.getRotation().getDegrees()) * (isRedAlliance() ? -1 : 1)).get().getDegrees(), true);
             System.out.println("We gettin velocity because of no rotation");
         }else{
         if (m_rotationIndex == -1){
@@ -275,10 +275,10 @@ public class DrivePath extends Command{
         }    
           
             if (m_rotationIndex == -1){
-                m_swerveSubsystem.drive(new Translation2d(x, y), 0, true);
+                // m_swerveSubsystem.drive(new Translation2d(x, y), 0, true);
                 
             }else{
-                m_swerveSubsystem.drive(new Translation2d(x, y), orientPID(() -> m_pose[m_rotationIndex].m_pose.getRotation().getDegrees() * (isRedAlliance() ? -1 : 1)).get().getDegrees(), true);
+                // m_swerveSubsystem.drive(new Translation2d(x, y), orientPID(() -> m_pose[m_rotationIndex].m_pose.getRotation().getDegrees() * (isRedAlliance() ? -1 : 1)).get().getDegrees(), true);
                 System.out.println("The rotation index is NOT -1");
             }
         }

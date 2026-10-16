@@ -2,8 +2,8 @@ package frc.robot.subsystems.indexer;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.controls.StaticBrake;
-import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.CoastOut;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
@@ -23,10 +23,10 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class IndexerRollerSubsystem extends SubsystemBase {
-    private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withSlot(0);
-    private final StaticBrake m_brakeRequest = new StaticBrake();
+    private final MotionMagicVelocityVoltage m_velocityRequest = new MotionMagicVelocityVoltage(0).withEnableFOC(true);
+    private final CoastOut m_coastRequest = new CoastOut();
     private final CANBus k_CANBus = CANIDConstants.k_canBus1;
-    private final ParadoxTalon m_indexerRollerMotor = new ParadoxTalon(CANIDConstants.indexerRoller, k_CANBus, m_brakeRequest, 0.1);
+    private final ParadoxTalon m_indexerRollerMotor = new ParadoxTalon(CANIDConstants.indexerRoller, k_CANBus, m_coastRequest, 0.1);
     
 
     private final double k_gearRatio = 0.31;
@@ -49,7 +49,7 @@ public class IndexerRollerSubsystem extends SubsystemBase {
 
 
     public IndexerRollerSubsystem() {
-        m_indexerRollerMotor.getConfigurator().apply(IndexerConstants.k_indexerRollerConfigs);
+        m_indexerRollerMotor.getConfigurator().apply(IndexerConstants.m_indexerRollerConfigs);
 
         if (Utils.isSimulation()){
             var talonFXSim = m_indexerRollerMotor.getSimState();
@@ -59,14 +59,10 @@ public class IndexerRollerSubsystem extends SubsystemBase {
     }
     public Command run(boolean in) {
         return Commands.runEnd(() -> {   
-
             // m_runningDirection = in ? targetDirection.IN : targetDirection.OUT;
-
-            m_indexerRollerMotor.setRequest(m_velocityRequest.withVelocity( in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerInRPS));
-            m_indexerRollerMotor.applyRequest();
+            m_indexerRollerMotor.setControl(m_velocityRequest.withVelocity(in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerInRPS));
         }, () -> {
-            m_indexerRollerMotor.setRequest(m_brakeRequest);
-            m_indexerRollerMotor.applyRequest();
+            m_indexerRollerMotor.setControl(m_coastRequest);
             // m_runningDirection = targetDirection.STILL;
         }, this); }
     
@@ -75,8 +71,7 @@ public class IndexerRollerSubsystem extends SubsystemBase {
             
             m_indexerRollerMotor.setThrottle(1 * (in ? 1 : -1));
         }, () -> {
-            m_indexerRollerMotor.setRequest(m_brakeRequest);
-            m_indexerRollerMotor.applyRequest();
+            m_indexerRollerMotor.setControl(m_coastRequest);
         }, this);
     }
 

@@ -45,11 +45,9 @@ public class KickerSubsystem extends SubsystemBase {
     }
     public Command run(boolean in) {
         return Commands.runEnd(() -> {
-            m_kickerMotor.setRequest(m_velocityRequest.withVelocity(in ? ShooterConstants.k_kickInRPS : ShooterConstants.k_kickOutRPS));
-            m_kickerMotor.applyRequest();
+            m_kickerMotor.setControl(m_velocityRequest.withVelocity(in ? ShooterConstants.k_kickInRPS : ShooterConstants.k_kickOutRPS));
         }, () -> {
-            m_kickerMotor.setRequest(m_coastRequest);
-            m_kickerMotor.applyRequest();
+            m_kickerMotor.setControl(m_coastRequest);
         }, this); }
 
         public Command runPower(){
@@ -57,8 +55,7 @@ public class KickerSubsystem extends SubsystemBase {
             
             m_kickerMotor.setThrottle(0.9);
         }, () -> {
-            m_kickerMotor.setRequest(m_coastRequest);
-            m_kickerMotor.applyRequest();
+            m_kickerMotor.setControl(m_coastRequest);
         }, this);
     }
 

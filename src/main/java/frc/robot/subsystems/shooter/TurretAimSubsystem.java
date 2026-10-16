@@ -119,8 +119,7 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     public Command staticAim() {
         return Commands.run(() -> {
-            m_shooterAzimuth.setRequest(m_positionRequest.withPosition(0.1 * ShooterConstants.k_shooterGearReduction)); 
-            m_shooterAzimuth.applyRequest();
+            m_shooterAzimuth.setControl(m_positionRequest.withPosition(0.1 * ShooterConstants.k_shooterGearReduction)); 
         }, this);
     }
 
