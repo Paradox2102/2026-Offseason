@@ -27,6 +27,7 @@ public class SecondaryKicker extends SubsystemBase {
 
     private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withSlot(0);
     private final CoastOut m_coastRequest = new CoastOut();
+    private final StaticBrake m_brakeRequest = new StaticBrake();
 
     private final ParadoxTalon m_secondaryKickerMotor = new ParadoxTalon(CANIDConstants.goUp, k_CANBus, m_coastRequest, 0.1);
 
@@ -54,7 +55,7 @@ public class SecondaryKicker extends SubsystemBase {
     public Command runPower(){
         return Commands.runEnd(() -> {
             m_secondaryKickerMotor.setThrottle(1.0);
-        }, () -> m_secondaryKickerMotor.setControl(new StaticBrake()), this);
+        }, () -> m_secondaryKickerMotor.setControl(m_brakeRequest), this);
     }
 
        public Command runFull(){

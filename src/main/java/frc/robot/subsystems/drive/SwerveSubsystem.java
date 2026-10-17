@@ -248,7 +248,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         for(double[] values : ShooterConstants.k_scoreShotTimes){
             m_shotTimeInt.put(values[0], values[1]);
         }
-        getState().Pose = new Pose2d(0, 0,new Rotation2d((3/4) * Math.PI));
+        getState().Pose = new Pose2d(0, 0,new Rotation2d((3/4.0) * Math.PI));
     }
 
 
@@ -482,7 +482,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     }
 
     public boolean inTeamAlliance(){
-        return MatchState.getAlliance().isEmpty() ? true : MatchState.getAlliance() == inAllianceZone();
+        return MatchState.getAlliance().isEmpty() ? true : MatchState.getAlliance().equals(inAllianceZone());
 
     }
 

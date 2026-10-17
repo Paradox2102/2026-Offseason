@@ -222,13 +222,13 @@ public class LightSubsystem extends SubsystemBase {
       case 0:
         return true;
       case 1:
-        return getWonAuto() ? false : true;
+        return !getWonAuto();
       case 2:
-        return getWonAuto() ? true : false;
+        return getWonAuto();
       case 3:
-        return getWonAuto() ? false : true;
+        return !getWonAuto();
       case 4:
-        return getWonAuto() ? true : false;
+        return getWonAuto();
       case 5:
         return true;
       default:

@@ -64,7 +64,7 @@ public class HoodSubsystem extends SubsystemBase{
 
     public Command pitchHood(DoubleSupplier distanceToTarget) {
         return Commands.run(() -> {
-            m_hoodMotor.setControl(m_positionRequest.withPosition(m_hoodLerpTable.get(distanceToTarget.getAsDouble())));
+            m_hoodMotor.setControl(m_positionRequest.withPosition(Units.degreesToRotations(m_hoodLerpTable.get(distanceToTarget.getAsDouble()))));
         }, this);
     }
 

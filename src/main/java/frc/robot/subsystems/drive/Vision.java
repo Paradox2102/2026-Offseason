@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -521,9 +522,7 @@ public static final Field aprilTagField = fieldLayout.loadField();
 
         resultsList = Robot.isReal() ? camera.getAllUnreadResults() : cameraSim.getCamera().getAllUnreadResults();
         lastReadTimestamp = currentTimestamp;
-        resultsList.sort((PhotonPipelineResult a, PhotonPipelineResult b) -> {
-          return a.getTimestampSeconds() >= b.getTimestampSeconds() ? 1 : -1;
-        });
+        resultsList.sort(Comparator.comparingDouble(PhotonPipelineResult::getTimestampSeconds));
         if (!resultsList.isEmpty())
         {
           updateEstimatedGlobalPose();
