@@ -60,7 +60,7 @@ public class RobotContainer {
 
     private void configureBindings() {
 
-        Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_turretAimSubsystem.m_isOnTarget() && Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed());
+        Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_turretAimSubsystem.isOnTarget() && Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed());
 
         m_controller.leftTrigger().whileTrue(Commands.sequence(
             Subsystems.m_intakeExtension.extendIntake(),
@@ -140,6 +140,9 @@ public class RobotContainer {
         //     Subsystems.m_swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true)
         // );
     }
+
+    
+    @SuppressWarnings("unused")
     private void configureAutos(){
         // SelectAuto.addCommand("RightDoubleSweep", Autos.doubleSwipe(true));
         // SelectAuto.addCommand("LeftDoubleSweep", Autos.doubleSwipe(false));
