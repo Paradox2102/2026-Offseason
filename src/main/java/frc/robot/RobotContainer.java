@@ -36,9 +36,9 @@ public class RobotContainer {
         DriveType.SWERVE,
         Subsystems.m_swerveSubsystem,
         Subsystems.m_swerveSubsystem::getPose,
-        null,
+        pose -> {}, // Reset Pose
         Subsystems.m_swerveSubsystem::getChassisVelocities,
-        null,
+        velocities -> {}, // output
         Subsystems.m_swerveSubsystem.m_xPID,
         Subsystems.m_swerveSubsystem.m_orientPID,
         new PIDController(0.2, 0.0, 0.0) // cross-track PID. If tuned, set it here.
