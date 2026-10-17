@@ -5,8 +5,6 @@ import java.nio.file.Paths;
 
 import org.wpilib.tunable.Selectable;
 
-import frc.robot.Constants.Subsystems;
-
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 

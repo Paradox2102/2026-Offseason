@@ -3,8 +3,6 @@ package frc.robot;
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 
-import org.wpilib.command2.Command;
-import org.wpilib.command2.Commands;
 import org.wpilib.hardware.bus.CANPort;
 
 import com.ctre.phoenix6.CANBus;

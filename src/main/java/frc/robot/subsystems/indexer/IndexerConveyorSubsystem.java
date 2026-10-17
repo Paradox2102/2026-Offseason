@@ -10,7 +10,6 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.IndexerConstants;
-import frc.robot.Constants.IntakeConstants;
 import frc.robot.utils.ParadoxTalon;
 
 import org.wpilib.math.system.DCMotor;
