@@ -100,9 +100,10 @@ public class Constants {
         //Wheel Calibration
     public static final double k_wheelRadiusMaxVelocity = 0.5; // Rad/Sec
     public static final double k_wheelRadiusRampRate = 0.25; // Rad/Sec^2
-    public static final double k_wheelRadiusMeters = 0.037;
 
-    public static final double k_driveBaseRadius = Math.hypot(Units.inchesToMeters(25), Units.inchesToMeters(28.5));
+    // Distance from the robot center to a wheel, in meters. Read it from the
+    // swerve module positions so there is only one place to change it.
+    public static final double k_driveBaseRadius = Math.hypot(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY);
     }
 
     public static class VisionConstants {
@@ -354,6 +355,7 @@ public class Constants {
     static {
         // k_intakeRollerConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         m_intakeRollerConfigs.withMotorOutput(m_intakeRollerConfigs.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive));
+        m_intakeRollerConfigs.withCurrentLimits(k_rollerLimitConfig);
 
         m_intakeRollerConfigs.MotionMagic = m_intakeRollerMotionMagicConfig;
 
@@ -361,7 +363,7 @@ public class Constants {
         m_intakeRollerConfigs.Slot0.kV = k_rollerV;
         m_intakeRollerConfigs.Slot0.kS = k_rollerS;
 
-        m_intakeExtensionConfigs.MotionMagic = m_intakeRollerMotionMagicConfig;
+        m_intakeExtensionConfigs.MotionMagic = m_intakeExtensionMotionMagicConfig;
 
         m_intakeExtensionConfigs.withCurrentLimits(k_extensionLimitConfig);
         m_intakeExtensionConfigs.Slot0.kG = k_intakeExtensionG;
