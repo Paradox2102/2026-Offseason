@@ -21,6 +21,9 @@ public class ParadoxTalon extends TalonFX {
         m_request = request;
         k_stallShutDownTime = stallShutDownTime;
         setControl(request);
+
+        // Alert on the dashboard if this motor drops off CAN or reboots
+        HealthMonitor.register(this);
     }
  
     

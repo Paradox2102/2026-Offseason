@@ -9,6 +9,7 @@ import com.ctre.phoenix6.SignalLogger;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.Subsystems;
+import frc.robot.utils.HealthMonitor;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.networktables.NetworkTableInstance;
@@ -44,6 +45,9 @@ public class Robot extends TimedRobot {
     public Robot() {
         m_robotContainer = new RobotContainer();
 
+        /* watch CAN buses, devices, battery and cameras; see utils/HealthMonitor.java */
+        HealthMonitor.registerDrivetrain(Subsystems.m_swerveSubsystem);
+        HealthMonitor.start();
     }
 
     @Override
@@ -51,6 +55,7 @@ public class Robot extends TimedRobot {
         m_timeAndJoystickReplay.update();
         SignalLogger.writeDoubleArray("PDH/ChannelCurrents", m_pdh.getAllCurrents(), "A");
         SignalLogger.writeDouble("PDH/Voltage", m_pdh.getVoltage(), "V");
+        HealthMonitor.periodic();
         CommandScheduler.getInstance().run();
 
         Pose2d robotPose = Subsystems.m_swerveSubsystem.getPose();
