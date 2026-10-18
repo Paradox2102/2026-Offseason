@@ -564,8 +564,11 @@ public double[] getWheelRadiusCharacterizationPositions() {
     return values;
   }
 
+  /** How far the wheel has turned, in radians. */
   public double getModuleCharacterizationPosition(SwerveModule<TalonFX, TalonFX, CANcoder> module){
-    return (module.getDriveMotor().getPosition().getValueAsDouble() / DrivebaseConstants.k_wheelRadiusMeters);
+    // distance is in meters. Divide by the wheel radius that the swerve code uses
+    // to turn it back into wheel radians.
+    return module.getCachedPosition().distance / TunerConstants.FrontLeft.WheelRadius;
   }
 
     private static class WheelRadiusCharacterizationState {
@@ -579,6 +582,9 @@ public double[] getWheelRadiusCharacterizationPositions() {
     public Command wheelRadiusCharacterization(SwerveSubsystem drive) {
     SlewRateLimiter limiter = new SlewRateLimiter(DrivebaseConstants.k_wheelRadiusRampRate);
     WheelRadiusCharacterizationState state = new WheelRadiusCharacterizationState();
+    // No deadband here: the teleop request drops any rotation below ~1.16 rad/s,
+    // and this test spins at 0.5 rad/s.
+    SwerveRequest.RobotCentric spin = new SwerveRequest.RobotCentric();
 
     return Commands.parallel(
         // Drive control sequence
@@ -593,7 +599,7 @@ public double[] getWheelRadiusCharacterizationPositions() {
             Commands.run(
                 () -> {
                   double speed = limiter.calculate(DrivebaseConstants.k_wheelRadiusMaxVelocity);
-                  drive.drive(new ChassisVelocities(0.0, 0.0, speed));
+                  drive.setControl(spin.withRotationalRate(speed));
                 },
                 drive)),
 
@@ -606,14 +612,15 @@ public double[] getWheelRadiusCharacterizationPositions() {
             Commands.runOnce(
                 () -> {
                   state.positions = drive.getWheelRadiusCharacterizationPositions();
-                  state.lastAngle = drive.getPose().getRotation();
+                  state.lastAngle = drive.getState().RawHeading;
                   state.gyroDelta = 0.0;
                 }),
 
             //Update gyro delta
             Commands.run(
                     () -> {
-                      var rotation = drive.getPose().getRotation();
+                      // Raw gyro heading: vision corrections must not count as rotation.
+                      var rotation = drive.getState().RawHeading;
                       state.gyroDelta += Math.abs(rotation.minus(state.lastAngle).getRadians());
                       state.lastAngle = rotation;
                     })
