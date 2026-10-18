@@ -22,6 +22,7 @@ import org.wpilib.networktables.NetworkTablesJNI;
 import org.wpilib.smartdashboard.Field2d;
 import frc.robot.Robot;
 import frc.robot.Constants.VisionConstants;
+import frc.robot.utils.HealthMonitor;
 
 import java.awt.Desktop;
 import java.io.IOException;
@@ -413,6 +414,8 @@ public static final Field aprilTagField = fieldLayout.loadField();
       latencyAlert = new Alert(name, "Camera is experiencing high latency.", Alert.Level.LOW);
 
       camera = new PhotonCamera(name);
+      // Alert on the dashboard if this camera's Pi stops sending data
+      HealthMonitor.registerCamera(camera);
 
       // https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html
       robotToCamTransform = new Transform3d(robotToCamTranslation, robotToCamRotation);
