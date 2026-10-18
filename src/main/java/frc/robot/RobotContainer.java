@@ -16,6 +16,7 @@ import frc.robot.Constants.Subsystems;
 import frc.robot.PathPlanningThing.SelectAuto;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.utils.Autos;
+import frc.robot.utils.SwerveHealth;
 public class RobotContainer {
     
 
@@ -41,6 +42,7 @@ public class RobotContainer {
         // m_controller.leftBumper().onTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
         // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
         configureAutos();
+        configurePitTests();
     }
 
     private void configureBindings() {
@@ -132,6 +134,14 @@ public class RobotContainer {
         SelectAuto.addCommand("B-Line Test", Autos.testBLine());
 
         Tunables.publish("Auto Selection", SelectAuto.m_autoSelection);
+    }
+
+    /** Pit tools, run from the dashboard with the robot enabled. See utils/SwerveHealth.java. */
+    private void configurePitTests() {
+        // Spins once in place and checks that every steer encoder is clocked right.
+        Tunables.publish("Pit/Swerve Self-Test", SwerveHealth.clockingSelfTest(Subsystems.m_swerveSubsystem));
+        // Points all wheels straight ahead, for a quick look along the robot.
+        Tunables.publish("Pit/Wheels Forward", SwerveHealth.wheelsForward(Subsystems.m_swerveSubsystem));
     }
 
     public Command getAutonomousCommand() {
