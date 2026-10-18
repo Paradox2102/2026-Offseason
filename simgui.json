@@ -3,7 +3,8 @@
     "types": {
       "\/DriverStation": "DriverStation",
       "\/Mechanisms\/Turret Aim\/mechanism": "Mechanism2d",
-      "\/Telemetry\/VisionSystemSim-Vision\/Sim Field": "Field2d"
+      "\/Telemetry\/VisionSystemSim-Vision\/Sim Field": "Field2d",
+      "\/Tunables\/Auto Selection": "Selectable"
     },
     "windows": {"\/Mechanisms\/Turret Aim\/mechanism": {"window": {"visible": true}}}
   },

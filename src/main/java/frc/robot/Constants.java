@@ -316,8 +316,6 @@ public class Constants {
     public static final double k_inRPS = 40;
     public static final double k_outRPS = 30;
 
-    public static final double k_outPosition = 90;
-
     public static final TalonFXConfiguration m_intakeRollerConfigs = new TalonFXConfiguration();
     public static final TalonFXConfiguration m_intakeExtensionConfigs = new TalonFXConfiguration();
 
@@ -340,7 +338,7 @@ public class Constants {
     public static final double m_rollerMotionMagicAcceleration = 10.0;
 
     public static final MotionMagicConfigs m_intakeExtensionMotionMagicConfig = m_intakeExtensionConfigs.MotionMagic.withMotionMagicAcceleration(m_intakeExtensionAcceleration);
-    public static final MotionMagicConfigs m_intakeRollerMotionMagicConfig = m_intakeExtensionConfigs.MotionMagic.withMotionMagicAcceleration(m_rollerMotionMagicAcceleration);
+    public static final MotionMagicConfigs m_intakeRollerMotionMagicConfig = m_intakeRollerConfigs.MotionMagic.withMotionMagicAcceleration(m_rollerMotionMagicAcceleration);
 
     
     public static final double k_intakeRollerMOI = 0.093084;

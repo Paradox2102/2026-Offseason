@@ -7,6 +7,7 @@ import org.wpilib.tunable.Selectable;
 
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
+import org.wpilib.telemetry.Telemetry;
 
 public class SelectAuto {
     
@@ -23,9 +24,7 @@ public class SelectAuto {
 
 
     // function in disabled periodic that checks if the auto has been changed in order to set selected auto to a new drive path
-    SelectAuto() {
-        
-    }
+
 
     /**
      * This function needs to be called in disabled periodic in the Robot Java Class
@@ -75,7 +74,12 @@ public class SelectAuto {
     }
 
     public static Command getSelectedAuto(){
-        return m_autoSelection.getSelected().equals(null) ? Commands.runOnce(() -> {System.out.println("No selected Auto");}) : m_autoSelection.getSelected();
+        try {
+            return m_autoSelection.getSelected();
+        } catch (Exception ignored) {
+            return Commands.runOnce(() -> {System.out.println("No selected Auto");});
+        }
+        
         // return Commands.sequence(Subsystems.m_intakeExtension.extendIntake(), Commands.parallel(
         //     Subsystems.m_shooterSubsystem.staticShoot(),
         //                     Subsystems.m_indexerConveyor.testRun(),
@@ -84,7 +88,7 @@ public class SelectAuto {
         //     Commands.repeatingSequence(Commands.either(Commands.parallel(
 
         //         Subsystems.m_indexerRollerSubsystem.testRun(true)
-        //     ), Commands.none(), () -> Subsystems.m_shooterSubsystem.m_isAtSpeed()))
+        //     ), Commands.none(), Subsystems.m_shooterSubsystem::m_isAtSpeed))
         // ));
     }
 

@@ -65,7 +65,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         m_intakeExtensionFollower.setControl(m_followRequest);
         m_stallTimer.start();
 
-        m_intakeExtensionLeader.setPosition(0);
+        // m_intakeExtensionLeader.setPosition(0);
+        // m_intakeExtensionFollower.setPosition(0);
 
         if (Utils.isSimulation()){
             var talonFXSim = m_intakeExtensionLeader.getSimState();
@@ -76,9 +77,9 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        Telemetry.log("Intake Extension at target", isIntakeAtTarget(TargetPosition.IN));
+        Telemetry.log("Intake Extension at target", isIntakeAtTarget(TargetPosition.OUT));
 
-        Telemetry.log("Intake Extension Position", m_intakeExtensionLeader.getPosition(true).getValueAsDouble());
+        Telemetry.log("Intake Extension Position", (m_intakeExtensionLeader.getPosition().getValueAsDouble() + m_intakeExtensionFollower.getPosition().getValueAsDouble()) / 2);
     }
 
     // public Command moveIntake(TargetPosition position){
@@ -94,7 +95,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     public Command retractIntake() {
         return Commands.startRun(() -> {
             m_stallTimer.reset();
-            m_intakeExtensionLeader.setThrottle(-0.5);
+            m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(-10));
         }, () -> {
             if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
                 m_stallTimer.reset();
@@ -104,7 +105,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     public Command extendIntake() {
         return Commands.startRun(() -> {
             m_stallTimer.reset();
-            m_intakeExtensionLeader.setThrottle(0.5);
+            m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(10));
         }, () -> {
             if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
                 m_stallTimer.reset();
@@ -140,6 +141,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     public boolean isIntakeAtTarget(TargetPosition target){
         return Math.abs(((m_intakeExtensionLeader.getPosition().getValueAsDouble() + m_intakeExtensionFollower.getPosition().getValueAsDouble()) / 2) - target.position) < 0.08;
+
     }
 
     @Override

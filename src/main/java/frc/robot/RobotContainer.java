@@ -9,13 +9,13 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
 import org.wpilib.command2.button.Trigger;
-import org.wpilib.math.controller.PIDController;
+import org.wpilib.telemetry.Telemetry;
+import org.wpilib.tunable.Tunables;
 
 import frc.robot.Constants.Subsystems;
-import bline.commands.FollowPathV2;
-import bline.following.DriveType;
-import bline.path.Path;
+import frc.robot.PathPlanningThing.SelectAuto;
 import frc.robot.subsystems.drive.SwerveSubsystem;
+import frc.robot.utils.Autos;
 public class RobotContainer {
     
 
@@ -32,22 +32,7 @@ public class RobotContainer {
     @SuppressWarnings("unused")
     private final CommandJoystick m_joystick = new CommandJoystick(1);
 
-    FollowPathV2.Builder pathBuilder = new FollowPathV2.Builder(
-        DriveType.SWERVE,
-        Subsystems.m_swerveSubsystem,
-        Subsystems.m_swerveSubsystem::getPose,
-        pose -> {}, // Reset Pose
-        Subsystems.m_swerveSubsystem::getChassisVelocities,
-        velocities -> {}, // output
-        Subsystems.m_swerveSubsystem.m_xPID,
-        Subsystems.m_swerveSubsystem.m_orientPID,
-        new PIDController(0.2, 0.0, 0.0) // cross-track PID. If tuned, set it here.
-    );
 
-    Path firstStraight = new Path("first-straight");
-
-    Command firstAuto = pathBuilder
-        .build(firstStraight);
 
     public RobotContainer() {
 
@@ -55,7 +40,7 @@ public class RobotContainer {
         configureBindings();
         m_controller.leftBumper().onTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
         // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
-        // configureAutos();
+        configureAutos();
     }
 
     private void configureBindings() {
@@ -72,7 +57,7 @@ public class RobotContainer {
             Subsystems.m_hoodSubsystem.pitchHood(() -> SwerveSubsystem.distanceToTarget())
         ));
 
-        m_controller.faceDown().whileTrue(Subsystems.m_intakeRoller.run(true));
+        m_controller.faceDown().whileTrue(Subsystems.m_intakeExtension.retractIntake());
 
         isReadyToShoot.whileTrue(Commands.parallel(
             Subsystems.m_indexerRollerSubsystem.run(true),
@@ -142,16 +127,15 @@ public class RobotContainer {
     }
 
     
-    @SuppressWarnings("unused")
     private void configureAutos(){
         // SelectAuto.addCommand("RightDoubleSweep", Autos.doubleSwipe(true));
-        // SelectAuto.addCommand("LeftDoubleSweep", Autos.doubleSwipe(false));
+        SelectAuto.addCommand("B-Line Test", Autos.testBLine());
 
-        // Telemetry.log("Auto Selection", SelectAuto.m_autoSelection);
+        Tunables.publish("Auto Selection", SelectAuto.m_autoSelection);
     }
 
     public Command getAutonomousCommand() {
         /* Run the routine selected from the auto chooser */
-        return Commands.none();
+        return SelectAuto.getSelectedAuto();
     }
 }
