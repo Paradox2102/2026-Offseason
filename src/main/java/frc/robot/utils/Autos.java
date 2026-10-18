@@ -30,7 +30,7 @@ public class Autos {
         .build(firstStraight).withShouldFlip(SwerveSubsystem::isRedAlliance);
 
     private Autos() {
-        firstAuto.addRequirements(Subsystems.m_hoodSubsystem);
+        firstAuto.addRequirements(Subsystems.m_swerveSubsystem);
     }
 
     public static Command testBLine(){

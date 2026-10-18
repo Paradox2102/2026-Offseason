@@ -83,17 +83,26 @@ public class Constants {
         public static final SwerveSubsystem m_swerveSubsystem;
         public static final IntakeExtensionSubsystem m_intakeExtension = new IntakeExtensionSubsystem();
         public static final IntakeRollerSubsystem m_intakeRoller = new IntakeRollerSubsystem();
-        public static final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
-        public static final HoodSubsystem m_hoodSubsystem = new HoodSubsystem();
-        public static final TurretAimSubsystem m_turretAimSubsystem = new TurretAimSubsystem();
-        public static final KickerSubsystem m_kickerSubsystem = new KickerSubsystem();
-        public static final SecondaryKicker m_secondaryKicker = new SecondaryKicker();
-        public static final IndexerConveyorSubsystem m_indexerConveyor = new IndexerConveyorSubsystem();
-        public static final IndexerRollerSubsystem m_indexerRollerSubsystem = new IndexerRollerSubsystem();
+        // public static final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+        // public static final HoodSubsystem m_hoodSubsystem = new HoodSubsystem();
+        // public static final TurretAimSubsystem m_turretAimSubsystem = new TurretAimSubsystem();
+        // public static final KickerSubsystem m_kickerSubsystem = new KickerSubsystem();
+        // public static final SecondaryKicker m_secondaryKicker = new SecondaryKicker();
+        // public static final IndexerConveyorSubsystem m_indexerConveyor = new IndexerConveyorSubsystem();
+        // public static final IndexerRollerSubsystem m_indexerRollerSubsystem = new IndexerRollerSubsystem();
         public static final LightSubsystem m_lightSubsystem = new LightSubsystem();
         static {
             m_swerveSubsystem = TunerConstants.createDrivetrain();
         }
+    }
+
+    public static class DrivebaseConstants {
+        //Wheel Calibration
+    public static final double k_wheelRadiusMaxVelocity = 0.5; // Rad/Sec
+    public static final double k_wheelRadiusRampRate = 0.25; // Rad/Sec^2
+    public static final double k_wheelRadiusMeters = 0.037;
+
+    public static final double k_driveBaseRadius = Math.hypot(Units.inchesToMeters(25), Units.inchesToMeters(28.5));
     }
 
     public static class VisionConstants {
@@ -345,9 +354,14 @@ public class Constants {
     static {
         // k_intakeRollerConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         m_intakeRollerConfigs.withMotorOutput(m_intakeRollerConfigs.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive));
+
+        m_intakeRollerConfigs.MotionMagic = m_intakeRollerMotionMagicConfig;
+
         m_intakeRollerConfigs.Slot0.kP = k_rollerP;
         m_intakeRollerConfigs.Slot0.kV = k_rollerV;
         m_intakeRollerConfigs.Slot0.kS = k_rollerS;
+
+        m_intakeExtensionConfigs.MotionMagic = m_intakeRollerMotionMagicConfig;
 
         m_intakeExtensionConfigs.withCurrentLimits(k_extensionLimitConfig);
         m_intakeExtensionConfigs.Slot0.kG = k_intakeExtensionG;

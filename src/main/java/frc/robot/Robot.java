@@ -9,18 +9,11 @@ import com.ctre.phoenix6.SignalLogger;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.Subsystems;
-import frc.robot.subsystems.drive.SwerveSubsystem;
-
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
-import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.geometry.Rotation3d;
-import org.wpilib.math.geometry.Translation3d;
-import org.wpilib.math.util.Units;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.networktables.StructArrayPublisher;
 import org.wpilib.networktables.StructPublisher;
-import org.wpilib.framework.OpModeRobot;
 import org.wpilib.framework.TimedRobot;
 import org.wpilib.hardware.power.PowerDistribution;
 import org.wpilib.hardware.power.PowerDistribution.ModuleType;
@@ -64,16 +57,16 @@ public class Robot extends TimedRobot {
 
         m_posePublisher.set(robotPose);
         
-        Rotation2d rot = new Rotation2d(Subsystems.m_turretAimSubsystem.getShooterAzimuth().getPosition().getValueAsDouble() * Constants.ShooterConstants.k_shooterGearReduction);
+        // Rotation2d rot = new Rotation2d(Subsystems.m_turretAimSubsystem.getShooterAzimuth().getPosition().getValueAsDouble() * Constants.ShooterConstants.k_shooterGearReduction);
         //Rotation3d rot = new Rotation3d(Math.cos(Timer.getTimestamp()), Math.tan(Timer.getTimestamp()), Math.sin(Timer.getTimestamp()));
-        Rotation3d hoodRot = new Rotation3d(Subsystems.m_hoodSubsystem.getAngle(), 0, rot.getRadians());
+        // Rotation3d hoodRot = new Rotation3d(Subsystems.m_hoodSubsystem.getAngle(), 0, rot.getRadians());
         //Rotation3d hoodRot = new Rotation3d(Math.sin(-Timer.getTimestamp()-100), Math.cos(-Timer.getTimestamp()-100), Math.tan(Timer.getTimestamp()-100));
         
-        Pose3d turret = new Pose3d(
-            new Translation3d(-0.16,
-                0.19,
-                0.38),
-            new Rotation3d(rot));
+        // Pose3d turret = new Pose3d(
+        //     new Translation3d(-0.16,
+        //         0.19,
+        //         0.38),
+        //     new Rotation3d(rot));
 
         // FUN DO NOT REMOVE!!!!!!!!!!!!!!!!!!!!!
         // Pose3d turret = new Pose3d(
@@ -81,11 +74,11 @@ public class Robot extends TimedRobot {
         //     //new Rotation3d(rot)
         //     rot);
 
-        Pose3d hood = new Pose3d(
-            new Translation3d(-0.16,
-                0.275,
-                0.455),
-            hoodRot);
+        // Pose3d hood = new Pose3d(
+        //     new Translation3d(-0.16,
+        //         0.275,
+        //         0.455),
+        //     hoodRot);
 
         //ex: 0.13
         //ret: -0.15
@@ -94,13 +87,13 @@ public class Robot extends TimedRobot {
         double extended = 0.13;
         double extension = 0;
         
-        Pose3d intake = new Pose3d(
-            new Translation3d(extension * ((extended-retracted)/1) + retracted,
-                0,
-                0.31 + -extension*((extended-retracted)/1) * Math.tan(Math.toRadians(-15.133))),
-            new Rotation3d(0, Math.toRadians(15.133), 0));
-        zeroedComponentPoses.set(new Pose3d[] {new Pose3d(), new Pose3d(), new Pose3d()});
-        finalComponentPoses.set(new Pose3d[] {turret, hood, intake});
+        // Pose3d intake = new Pose3d(
+        //     new Translation3d(extension * ((extended-retracted)/1) + retracted,
+        //         0,
+        //         0.31 + -extension*((extended-retracted)/1) * Math.tan(Math.toRadians(-15.133))),
+        //     new Rotation3d(0, Math.toRadians(15.133), 0));
+        // zeroedComponentPoses.set(new Pose3d[] {new Pose3d(), new Pose3d(), new Pose3d()});
+        // finalComponentPoses.set(new Pose3d[] {turret, hood, intake});
         //m_intakePublisher(Subsystems.m_intakeExtension.)
         
 

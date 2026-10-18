@@ -36,16 +36,16 @@ public class RobotContainer {
 
     public RobotContainer() {
 
-        configureDefaults();
+        // configureDefaults();
         configureBindings();
-        m_controller.leftBumper().onTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
+        // m_controller.leftBumper().onTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
         // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
         configureAutos();
     }
 
     private void configureBindings() {
 
-        Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_turretAimSubsystem.isOnTarget() && Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed());
+        // Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_turretAimSubsystem.m_isOnTarget() && Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed());
 
         m_controller.leftTrigger().whileTrue(Commands.sequence(
             Subsystems.m_intakeExtension.extendIntake(),
@@ -53,18 +53,18 @@ public class RobotContainer {
         ));
 
         m_controller.rightTrigger().whileTrue(Commands.parallel( // Shooter bindings not properly set-up, don't have shooter yet :P
-            Subsystems.m_shooterSubsystem.shoot(() -> SwerveSubsystem.distanceToTarget()),
-            Subsystems.m_hoodSubsystem.pitchHood(() -> SwerveSubsystem.distanceToTarget())
+            // Subsystems.m_shooterSubsystem.shoot(() -> SwerveSubsystem.distanceToTarget()),
+            // Subsystems.m_hoodSubsystem.pitchHood(() -> SwerveSubsystem.distanceToTarget())
         ));
 
         m_controller.faceDown().whileTrue(Subsystems.m_intakeExtension.retractIntake());
 
-        isReadyToShoot.whileTrue(Commands.parallel(
-            Subsystems.m_indexerRollerSubsystem.run(true),
-            Subsystems.m_indexerConveyor.run(),
-            Subsystems.m_kickerSubsystem.run(true),
-            Subsystems.m_secondaryKicker.run()
-        ));
+        // isReadyToShoot.whileTrue(Commands.parallel(
+        //     Subsystems.m_indexerRollerSubsystem.run(true),
+        //     Subsystems.m_indexerConveyor.run(),
+        //     Subsystems.m_kickerSubsystem.run(true),
+        //     Subsystems.m_secondaryKicker.run()
+        // ));
 
 
 
@@ -107,7 +107,7 @@ public class RobotContainer {
             Subsystems.m_swerveSubsystem.applyRequest(() ->
                 Subsystems.m_swerveSubsystem.getDrive().withVelocityX((m_controller.getLeftY() * Math.abs(m_controller.getLeftY())) * SwerveSubsystem.MaxSpeed) // Drive forward with negative Y (forward)
                     .withVelocityY((m_controller.getLeftX() * Math.abs(m_controller.getLeftX())) * SwerveSubsystem.MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate((-m_controller.getRightX() * Math.abs(m_controller.getRightX())) * SwerveSubsystem.MaxAngularRate) // Drive counterclockwise with negative X (left)
+                    .withRotationalRate(Math.pow(m_controller.getRightX(), 4) * Math.signum(-m_controller.getRightX()) * SwerveSubsystem.MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
         // SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();

@@ -2,11 +2,16 @@ package frc.robot.subsystems.drive;
 
 import static org.wpilib.units.Units.*;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Optional;
 import java.util.function.Supplier;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
+import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -14,6 +19,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest.RobotCentric;
 
 import org.wpilib.math.linalg.Matrix;
 import org.wpilib.math.controller.PIDController;
+import org.wpilib.math.filter.SlewRateLimiter;
 import org.wpilib.math.geometry.Pose2d;
 // import org.wpilib.math.geometry.Rectangle2d;
 import org.wpilib.math.geometry.Rotation2d;
@@ -22,6 +28,7 @@ import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
 import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.math.numbers.N1;
 import org.wpilib.math.numbers.N3;
+import org.wpilib.math.util.Units;
 import org.wpilib.driverstation.Alliance;
 import org.wpilib.driverstation.MatchState;
 import org.wpilib.driverstation.RobotState;
@@ -32,10 +39,12 @@ import org.wpilib.system.RobotController;
 // import org.wpilib.system.Timer;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
 // import org.wpilib.command2.Commands;
 import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.sysid.SysIdRoutine;
 
+import frc.robot.Constants.DrivebaseConstants;
 // import frc.robot.RobotContainer;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.ShooterConstants;
@@ -76,7 +85,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
 
     public static double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    public static double MaxAngularRate = RotationsPerSecond.of(1.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+    public static double MaxAngularRate = RotationsPerSecond.of(1.85).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
                 .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
@@ -545,4 +554,94 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     public ChassisVelocities getChassisVelocities() {
         return getState().Velocity;
     }
+
+public double[] getWheelRadiusCharacterizationPositions() {
+    
+    double[] values = new double[4];
+    for (int i = 0; i < 4; i++) {
+      values[i] = getModuleCharacterizationPosition(getModule(i));
+    }
+    return values;
+  }
+
+  public double getModuleCharacterizationPosition(SwerveModule<TalonFX, TalonFX, CANcoder> module){
+    return (module.getDriveMotor().getPosition().getValueAsDouble() / DrivebaseConstants.k_wheelRadiusMeters);
+  }
+
+    private static class WheelRadiusCharacterizationState {
+        double[] positions = new double[4];
+        Rotation2d lastAngle = new Rotation2d();
+        double gyroDelta = 0.0;
+     }
+
+
+    /** Measures the robot's wheel radius by spinning in a circle. */
+    public Command wheelRadiusCharacterization(SwerveSubsystem drive) {
+    SlewRateLimiter limiter = new SlewRateLimiter(DrivebaseConstants.k_wheelRadiusRampRate);
+    WheelRadiusCharacterizationState state = new WheelRadiusCharacterizationState();
+
+    return Commands.parallel(
+        // Drive control sequence
+        Commands.sequence(
+            // Reset acceleration limiter
+            Commands.runOnce(
+                () -> {
+                  limiter.reset(0.0);
+                }),
+
+            // Turn in place, accelerating up to full speed
+            Commands.run(
+                () -> {
+                  double speed = limiter.calculate(DrivebaseConstants.k_wheelRadiusMaxVelocity);
+                  drive.drive(new ChassisVelocities(0.0, 0.0, speed));
+                },
+                drive)),
+
+        // Measurement sequence
+        Commands.sequence(
+            // Wait for modules to fully orient before starting measurement
+            Commands.waitSeconds(1.0),
+
+            // Record starting measurement
+            Commands.runOnce(
+                () -> {
+                  state.positions = drive.getWheelRadiusCharacterizationPositions();
+                  state.lastAngle = drive.getPose().getRotation();
+                  state.gyroDelta = 0.0;
+                }),
+
+            //Update gyro delta
+            Commands.run(
+                    () -> {
+                      var rotation = drive.getPose().getRotation();
+                      state.gyroDelta += Math.abs(rotation.minus(state.lastAngle).getRadians());
+                      state.lastAngle = rotation;
+                    })
+
+                // When cancelled, calculate and print results
+                .finallyDo(
+                    () -> {
+                      double[] positions = drive.getWheelRadiusCharacterizationPositions();
+                      double wheelDelta = 0.0;
+                      for (int i = 0; i < 4; i++) {
+                        wheelDelta += Math.abs(positions[i] - state.positions[i]) / 4.0;
+                      }
+                      double wheelRadius =
+                          (state.gyroDelta * DrivebaseConstants.k_driveBaseRadius) / wheelDelta;
+
+                      NumberFormat formatter = new DecimalFormat("#0.000");
+                      System.out.println(
+                          "********** Wheel Radius Characterization Results **********");
+                      System.out.println(
+                          "\tWheel Delta: " + formatter.format(wheelDelta) + " radians");
+                      System.out.println(
+                          "\tGyro Delta: " + formatter.format(state.gyroDelta) + " radians");
+                      System.out.println(
+                          "\tWheel Radius: "
+                              + formatter.format(wheelRadius)
+                              + " meters, "
+                              + formatter.format(Units.metersToInches(wheelRadius))
+                              + " inches");
+                    })));
+  }
 }
