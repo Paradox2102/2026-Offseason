@@ -7,10 +7,14 @@ Autos.java:
     - Does the pose given to resetPose in the builder give the swerveSubsystem the starting pose? if so then yes, we should reset the pose because often we can't see an apriltag from out starting position.
 - Lines 22-23: `m_xPID` and `m_orientPID` are shared with SwerveSubsystem (and DrivePath). BLine resets these controllers every run and turns on continuous input for the heading one. Would separate controllers make tuning easier?
     - These PID Controllers are suppsoed to be used by SwerveSubsystem for auto aligning so I belive they should be used, What do you mean by it resets them? After a second auto is constructed are the new PID Gains 0?
+        - `JHG` The following is from BLine's WPILib_2027.md document:
+        Translation and cross-track PIDs take metres and produce m/s; the heading PID takes radians and produces rad/s. `BLine resets all three controllers at every execution and applies the path's endpoint tolerances. Controller gains, integral settings and period remain under team control.` Configure continuous heading behavior through the follower; it enables the controller's wrapped input. Use distinct controllers for drivetrains that can run concurrently. No track width is required by BLine's chassis limiter. Tank kinematics still need track width in your robot code.
+        I am not sure but it seems like you should use separate PID controllers that you can tune independent of the drive one. Perhaps you should just use the same one and if it doesn't cause a problem call it a day. 
 - Lines 29, 37: `firstAuto` is one static command that gets put inside `Commands.sequence(...)`. In Commands v2 a command can only be composed once, so what would happen if `testBLine()` were called a second time? Building the command inside the method would avoid that.
     - I was trying to find some architecture for this that I could copy over and I didn't know if building the command would actually get it to run, but I'll look into this more.
 - Line 32: The private constructor is never called, so `addRequirements` never runs. The builder already adds the drive requirement, so is this needed?
     - I didn't realize that so this should be unnessecary.
+        - `JHG` That is one reason (probably the only reason based on the comments) that you are passing in the subsystem.
 
 SwerveSubsystem.java:
 - (event) <s> Line 95: `robotRelatveDrive` uses the same 10% deadbands as teleop (about 0.45 m/s and 1.2 rad/s). If you are planning on having BLine use this that doesn't seem appropriate as it is really only for dealing with joysticks. </s>
@@ -24,6 +28,7 @@ Constants.java:
 - (event) <s>Line 326: `k_outRPS` have the wrong sign?</s>
 - (event) <s>Line 356: The intake roller config no longer gets `.withCurrentLimits(k_rollerLimitConfig)`. It was there before. Was it removed on purpose?</s>
     - It's there, It happens on the next line, 358, does it not?
+        - `JHG` Yes, it is there now but if you look at the previous version (the one I reviewed) it was not.
 - Line 347: You have the acceleration set pretty low. I assume this is only for testing and is on your TODO list?
 - Line 364: The extension's `MotionMagic` wupposed to be using the intake's motion magic config?
 - Line 337: Extension kV = 1.5 V per rps. This appears to be the feed forward value and is multiplied by the speed (in rps?). That would mean that it would reach 12v at 8rps so it would run at full speed for any setting above that. Is this what you are expecting?
