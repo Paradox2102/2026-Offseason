@@ -125,5 +125,10 @@ public class Robot extends TimedRobot {
     }
 
     @Override
+    public void autonomousExit() {
+        CommandScheduler.getInstance().cancel(m_autonomousCommand);
+    }
+    
+    @Override
     public void simulationPeriodic() {}
 }

@@ -46,8 +46,6 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
       DCMotor.getKrakenX60Foc(2), k_elevatorMass, k_elevatorDrimRadius, k_gearRatio),
        DCMotor.getKrakenX60Foc(2), 0.0, k_intakeMaxExtension, false, 0);
 
-    private final Timer m_stallTimer = new Timer();
-    private final double k_stallTimerThreshold = 0.15;
     
     public static enum TargetPosition {
         IN(0),
@@ -63,7 +61,6 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.setControl(m_followRequest);
-        m_stallTimer.start();
 
         // m_intakeExtensionLeader.setPosition(0);
         // m_intakeExtensionFollower.setPosition(0);
@@ -93,49 +90,27 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     }
 
     public Command retractIntake() {
-        return Commands.startRun(() -> {
-            m_stallTimer.reset();
+        return Commands.runOnce(() -> {
             m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(-10));
-        }, () -> {
-            if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
-                m_stallTimer.reset();
-        }, this).until(() -> isIntakeAtTarget(TargetPosition.IN)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+        }
+        ).until(() -> isIntakeAtTarget(TargetPosition.IN)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
     public Command extendIntake() {
-        return Commands.startRun(() -> {
-            m_stallTimer.reset();
+        return Commands.runOnce(() -> {
             m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(10));
-        }, () -> {
-            if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
-                m_stallTimer.reset();
         }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
-    }
-
-    public Command forceRetractIntake(){
-        return Commands.startEnd(() -> m_intakeExtensionLeader.setThrottle(-1), () ->{
-            m_intakeExtensionLeader.setThrottle(0);
-            m_intakeExtensionLeader.setPosition(0);
-        });
     }
     
     public Command retractIntakePower() {
-        return Commands.startRun(() -> {
-            m_stallTimer.reset();
+        return Commands.runOnce(() -> {
             m_intakeExtensionLeader.setThrottle(-0.5);
-        }, () -> {
-            if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
-                m_stallTimer.reset();
         }, this).until(() -> isIntakeAtTarget(TargetPosition.IN)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
     public Command extendIntakePower() {
-        return Commands.startRun(() -> {
-            m_stallTimer.reset();
+        return Commands.runOnce(() -> {
             m_intakeExtensionLeader.setThrottle(0.5);
-        }, () -> {
-            if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
-                m_stallTimer.reset();
         }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
@@ -152,7 +127,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
    talonFXSim.setSupplyVoltage(RobotController.getBatteryVoltage());
 
    // get the motor voltage of the TalonFX
-//    var motorVoltage = talonFXSim.getMotorVoltageMeasure();
+   // var motorVoltage = talonFXSim.getMotorVoltageMeasure();
 
    // use the motor voltage to calculate new position and velocity
    // using WPILib's DCMotorSim class for physics simulation

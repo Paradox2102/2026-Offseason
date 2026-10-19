@@ -36,7 +36,7 @@ public class RobotContainer {
 
     public RobotContainer() {
 
-        // configureDefaults();
+        configureDefaults();
         configureBindings();
         // m_controller.leftBumper().onTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
         // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());

@@ -324,7 +324,7 @@ public class Constants {
 
   public static class IntakeConstants {
     public static final double k_inRPS = 40;
-    public static final double k_outRPS = 30;
+    public static final double k_outRPS = -30;
 
     public static final TalonFXConfiguration m_intakeRollerConfigs = new TalonFXConfiguration();
     public static final TalonFXConfiguration m_intakeExtensionConfigs = new TalonFXConfiguration();

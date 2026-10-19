@@ -92,8 +92,9 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
             // TODO: Remember this is open loop
 
-    private final SwerveRequest.RobotCentric robotRelatveDrive = new RobotCentric().withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+    private final SwerveRequest.RobotCentric robotRelatveDrive = new RobotCentric().withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.05) // Lower Deadband for more precise driving
                 .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+                //TODO: Try to make this closed loop, acc using Motion Magic?
     
     private final SwerveRequest.ApplyFieldVelocity m_velocityDrive = new SwerveRequest.ApplyFieldVelocity().withDesaturateWheelVelocities(true)
     .withDriveRequestType(DriveRequestType.Velocity);

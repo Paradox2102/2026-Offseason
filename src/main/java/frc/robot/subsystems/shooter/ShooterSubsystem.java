@@ -46,7 +46,7 @@ public class ShooterSubsystem extends SubsystemBase{
 
 
     public boolean isAtSpeed() {
-        return Math.abs((m_shooterLeader.getVelocity().getValueAsDouble() + m_shooterFollower.getVelocity().getValueAsDouble()) / 2 - m_velocityRequest.Velocity) < 3;
+        return Math.abs((Math.abs(m_shooterLeader.getVelocity().getValueAsDouble()) + Math.abs(m_shooterFollower.getVelocity().getValueAsDouble())) / 2 - m_velocityRequest.Velocity) < 3;
     }
     public ShooterSubsystem() {
         m_shooterLeader.getConfigurator().apply(ShooterConstants.k_shooterConfigs);

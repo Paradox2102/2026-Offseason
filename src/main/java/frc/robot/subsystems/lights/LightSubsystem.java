@@ -18,6 +18,7 @@ import org.wpilib.hardware.led.LEDPattern;
 import org.wpilib.system.Timer;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.driverstation.Alliance;
+import org.wpilib.driverstation.DriverStation;
 import org.wpilib.util.Color;
 
 import frc.robot.Constants.LightConstants;
@@ -182,11 +183,11 @@ public class LightSubsystem extends SubsystemBase {
       // })
       // .withName("Toggle Disable Scrolling")
       // .ignoringDisable(true));
-    m_led.setLength(LightConstants.k_lightAmount);
-    m_led.setData(m_ledBuffer);
+    // m_led.setLength(LightConstants.k_lightAmount);
+    // m_led.setData(m_ledBuffer);
 
-    m_led.setStart(LightConstants.k_lightAmount);
-    new Trigger(() -> RobotState.isTeleop() && !RobotState.isDisabled()).onTrue(new ShiftCommand(false, k_shift1Time, 0));
+    // m_led.setStart(LightConstants.k_lightAmount);
+    new Trigger(() -> RobotState.isTeleop() && !RobotState.isDisabled()).onTrue(Commands.parallel(new ShiftCommand(false, k_shift1Time, 0), Commands.run(() -> m_shift = 0)));
     new Trigger(() -> m_timer.get() > k_shift1Time).onTrue(new ShiftCommand(true, k_shift2Time, 1));
     new Trigger(() -> m_timer.get() > k_shift2Time).onTrue(new ShiftCommand(false, k_shift3Time, 2));
     new Trigger(() -> m_timer.get() > k_shift3Time).onTrue(new ShiftCommand(true, k_shift4Time, 3));
@@ -196,6 +197,7 @@ public class LightSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    
     if (m_isOn){
       gameData = MatchState.getGameData();
       if (RobotState.isDisabled()){

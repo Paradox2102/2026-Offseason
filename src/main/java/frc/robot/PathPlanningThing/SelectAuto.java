@@ -18,7 +18,7 @@ public class SelectAuto {
      * This is the auto that has been selected through Smart Dashboard.
      * Make sure that you call checkSelectedAuto() in Disabled Periodic. 
      */
-    public static Command selectedAuto = new DrivePath();
+    public static Command selectedAuto;
     @SuppressWarnings("unused")
     private static final File autoDirectory = Paths.get("./src/main/java/frc/robot/PathPlanningThing/Autos/").toAbsolutePath().toFile();
 
