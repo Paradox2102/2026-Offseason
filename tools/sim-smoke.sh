@@ -10,13 +10,14 @@
 # root topic "RobotPose", the moving parts "Final Poses"; the sim's true pose is
 # /Telemetry/Sim/Truth Pose and the vision poses /Telemetry/Vision/... The run also writes a
 # .wpilog in logs/ that AdvantageScope can open afterwards.
+# SIM_SMOKE_ALLIANCE=red runs the auto as red (the auto checks are then given in the blue frame).
 set -u
 cd "$(dirname "$0")/.."
 LIB="$PWD/build/jni/release"
 LOG="$PWD/build/sim-smoke.log"
 rm -f "$LOG" build/sim-topics.txt
 sh ./gradlew build -q || { echo "FAIL: build"; exit 1; }
-SIM_SMOKE=1 SIM_SMOKE_STAY="${SIM_SMOKE_STAY:-0}" DYLD_LIBRARY_PATH="$LIB" LD_LIBRARY_PATH="$LIB" JAVA_TOOL_OPTIONS="-Djava.library.path=$LIB" \
+SIM_SMOKE=1 SIM_SMOKE_STAY="${SIM_SMOKE_STAY:-0}" SIM_SMOKE_ALLIANCE="${SIM_SMOKE_ALLIANCE:-blue}" DYLD_LIBRARY_PATH="$LIB" LD_LIBRARY_PATH="$LIB" JAVA_TOOL_OPTIONS="-Djava.library.path=$LIB" \
     sh ./gradlew run -q > "$LOG" 2>&1
 grep "SMOKE" "$LOG"
 if grep -nE "Exception|Error:|at frc\.robot\." "$LOG" | grep -v "JAVA_TOOL_OPTIONS" > /dev/null; then

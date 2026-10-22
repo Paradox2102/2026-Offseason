@@ -12,6 +12,7 @@ import org.wpilib.system.Timer;
 
 import frc.robot.RobotContainer;
 import frc.robot.commands.DriveCommands;
+import frc.robot.constants.FieldConstants;
 import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.drive.Drive;
 
@@ -24,6 +25,8 @@ import frc.robot.subsystems.drive.Drive;
  * script checks.
  */
 public class SimSmokeTest {
+    /** SIM_SMOKE_ALLIANCE=red: run the auto as red (teleop and the shooting step stay blue). */
+    private static final boolean kRedAuto = "red".equalsIgnoreCase(System.getenv("SIM_SMOKE_ALLIANCE"));
     /** SIM_SMOKE_STAY=<seconds>: keep the sim running after the script, to look at it in AdvantageScope. */
     private static final double kStaySeconds = parseStay();
     private final RobotContainer m_container;
@@ -95,7 +98,10 @@ public class SimSmokeTest {
         } else if (t < 20) {
             step(13, "teleop: shoot from (2.5, 3.0) in the blue zone", RobotMode.TELEOPERATED, true);
         } else if (t < 21) {
-            step(4, "disabled", RobotMode.TELEOPERATED, false);
+            step(4, kRedAuto ? "disabled, alliance set to red" : "disabled", RobotMode.TELEOPERATED, false);
+            if (kRedAuto) {
+                DriverStationSim.setAllianceStationId(AllianceStationID.RED_1);
+            }
         } else if (t < 41) {
             step(5, "auto: Right trench + bump x2 (20 s)", RobotMode.AUTONOMOUS, true);
         } else if (t < 42) {
@@ -136,9 +142,11 @@ public class SimSmokeTest {
             m_fed |= m_container.getFeeder().isFeeding();
             m_lastFlywheel = m_container.getFlywheel().getSpeed();
         }
-        // The rack must be out (lower) before the robot reaches the trench.
-        var pose = m_drive.getPose();
-        if (m_step == 5) {
+        // The rack must be out (lower) before the robot reaches the trench. The auto checks use the
+        // blue frame: a red pose is turned 180 degrees about the field center first.
+        var pose = toBlueFrame(m_drive.getPose());
+        // From the start pose on (the first loop of the auto still has the teleop pose).
+        if (m_step == 5 && m_autoStartReported) {
             if (m_container.getFeeder().isFeeding()) {
                 m_autoFeedTime += 0.020;
             }
@@ -156,7 +164,8 @@ public class SimSmokeTest {
         }
         if (m_step == 5 && !m_autoStartReported && t > 21.1) {
             m_autoStartReported = true;
-            System.out.println("SMOKE auto start pose: " + m_drive.getPose());
+            System.out.println("SMOKE auto start pose" + (kRedAuto ? " (red, in the blue frame): " : ": ") + toBlueFrame(m_drive.getPose())
+                + (kRedAuto ? "  field: " + m_drive.getPose() : ""));
         }
         if (m_step == 12 && !m_blockReported && t > 12.8) {
             m_blockReported = true;
@@ -229,13 +238,24 @@ public class SimSmokeTest {
                 m_headingAtRelease, m_drive.getHeading().getDegrees());
         }
         if (step == 6) {
-            System.out.println("SMOKE auto: " + m_container.getAutos().status());
+            System.out.println("SMOKE auto: " + m_container.getAutos().status()
+                + (kRedAuto ? ", last target " + m_container.getSuperstructure().getShot().target()
+                    + " (red hub " + FieldConstants.hub(true) + ")" : ""));
             System.out.printf("SMOKE auto bounds: lowest y %.2f m (wall 0) at x %.2f, t %.1f s; highest x %.2f m (center line 8.27)%n",
                 m_autoMinY, m_autoMinYX, m_autoMinYT, m_autoMaxX);
             System.out.printf("SMOKE auto feed time %.1f s%n", m_autoFeedTime);
             m_drive.getSim().kickPose();
             report("after kick");
         }
+    }
+
+    /** Red poses turned 180 degrees about the field center, so they compare with the blue numbers. */
+    private static Pose2d toBlueFrame(Pose2d pose) {
+        if (!kRedAuto) {
+            return pose;
+        }
+        return new Pose2d(FieldConstants.kFieldLength - pose.getX(), FieldConstants.kFieldWidth - pose.getY(),
+            pose.getRotation().plus(Rotation2d.k180deg));
     }
 
     private static double parseStay() {
