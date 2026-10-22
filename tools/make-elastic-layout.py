@@ -83,6 +83,12 @@ tuning += [
     command("Wheel Radius", "/Tunables/Tuning/Wheel Radius", 0, 4, 3, 1),
     command("Sim: Kick Pose", "/Tunables/Sim/Kick Pose", 3, 4, 3, 1),
     w("Open loop teleop", "Toggle Switch", "/Tunables/Drive/Open loop teleop", 6, 4, 2, 1),
+    # Sim only: the fuel (see sim/FuelSim.java).
+    command("Sim: Reset Fuel", "/Tunables/Sim/Reset Fuel", 0, 5, 3, 1),
+    text("Sim hopper", "/Telemetry/Sim/Fuel/Hopper", 3, 5, 2, 1),
+    text("Sim picked up", "/Telemetry/Sim/Fuel/Picked Up", 5, 5, 2, 1),
+    text("Sim scored blue", "/Telemetry/Sim/Fuel/Scored Blue", 7, 5, 2, 1),
+    text("Sim scored red", "/Telemetry/Sim/Fuel/Scored Red", 9, 5, 2, 1),
 ]
 
 intake = [

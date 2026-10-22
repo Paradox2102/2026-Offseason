@@ -20,6 +20,7 @@ import frc.robot.Constants.Subsystems;
 import frc.robot.autos.AutoRoutines;
 import frc.robot.commands.DriveCommands;
 import frc.robot.health.SwerveHealth;
+import frc.robot.sim.FuelSim;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.IntakeRack;
 import frc.robot.subsystems.intake.IntakeRoller;
@@ -66,6 +67,10 @@ public class RobotContainer {
     private final Superstructure m_superstructure =
         new Superstructure(m_drive, m_turret, m_hood, m_flywheel, m_feeder, m_intakeRoller);
     private final AutoRoutines m_autos = new AutoRoutines(m_drive, m_intakeRack, m_intakeRoller, m_superstructure);
+    /** Simulator only: the balls on the field (null on the robot). */
+    private final FuelSim m_fuelSim = RobotBase.isSimulation() && m_drive.getSim() != null
+        ? new FuelSim(m_drive, m_intakeRack, m_intakeRoller, m_feeder, m_flywheel, m_hood, m_turret)
+        : null;
 
     /** Fallback for the first robot test of the closed-loop drive gains. */
     private final TunableBoolean m_openLoopTeleop = Tunables.addBoolean("Drive/Open loop teleop", false);
@@ -141,6 +146,7 @@ public class RobotContainer {
         Tunables.publish("Pit/Zero turret (in jig)", m_turret.zeroInJig());
         if (RobotBase.isSimulation() && m_drive.getSim() != null) {
             Tunables.publish("Sim/Kick Pose", Commands.runOnce(m_drive.getSim()::kickPose).ignoringDisable(true).withName("Kick Pose"));
+            Tunables.publish("Sim/Reset Fuel", Commands.runOnce(m_fuelSim::reset).ignoringDisable(true).withName("Reset Fuel"));
         }
     }
 
@@ -185,6 +191,11 @@ public class RobotContainer {
 
     public IntakeRoller getIntakeRoller() {
         return m_intakeRoller;
+    }
+
+    /** Simulator only: the fuel (null on the robot). */
+    public FuelSim getFuelSim() {
+        return m_fuelSim;
     }
 
     /** For the sim smoke test: pick an auto without the dashboard. */

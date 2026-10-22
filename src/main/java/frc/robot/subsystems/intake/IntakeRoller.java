@@ -115,6 +115,11 @@ public class IntakeRoller extends SubsystemBase {
         m_talon.setControl(m_brake);
     }
 
+    /** The speed the rollers are asked for, roller rps (positive = in). */
+    public double getTargetSpeed() {
+        return m_target;
+    }
+
     @Override
     public void periodic() {
         // Old jams leave the window here, so the count and the alert also update after the

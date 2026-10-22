@@ -545,8 +545,9 @@ it runs on the robot.
 
 - Bumps: four, x 4.00-5.25 m (blue) and 11.29-12.54 m (red), y 1.283-3.440 and 4.629-6.786 m.
   A triangle in x: 0.165 m (6.5 in) high at the center (x 4.6255 / 11.9155), 15 degree ramps.
-- Hub: base about 1.2 m square around (4.625, 4.035) and the red mirror; the funnel top is at
-  1.83 m (72 in); a ball that falls through a 0.53 m radius circle there scores.
+- Hub: solid up to its top, modeled as a 0.6 m radius cylinder around (4.625, 4.035) and the red
+  mirror (the funnel top is a hexagon about 1.2 m across; a square box caught diagonal shots on
+  its corners); the top is at 1.83 m (72 in); a ball that falls through a 0.53 m radius circle there scores.
 - Fuel: 0.15 m, 0.23 kg. The field model stages 456 balls; the 408 on the field are the start
   positions (360 neutral zone, 24 in each depot; the 48 in the outpost chutes are left out).
   The robot starts with 8 (the preload).

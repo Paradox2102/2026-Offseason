@@ -60,6 +60,9 @@ public class SimSmokeTest {
     private double m_readyTime = Double.NaN;
     private boolean m_fed = false;
     private double m_lastFlywheel = 0;
+    private double m_autoMaxZ = 0;
+    private double m_autoMaxPitchDeg = 0;
+    private double m_autoMaxTruthError = 0;
 
     public SimSmokeTest(RobotContainer container, Drive drive) {
         m_container = container;
@@ -154,6 +157,12 @@ public class SimSmokeTest {
             if (m_container.getFeeder().isFeeding()) {
                 m_autoFeedTime += 0.020;
             }
+            // Over the bump: how high and how steep, and how far odometry runs from the truth.
+            var truth3d = m_drive.getSim().truthPose3d();
+            m_autoMaxZ = Math.max(m_autoMaxZ, truth3d.getZ());
+            m_autoMaxPitchDeg = Math.max(m_autoMaxPitchDeg, Math.toDegrees(Math.abs(truth3d.getRotation().getY())));
+            m_autoMaxTruthError = Math.max(m_autoMaxTruthError,
+                m_drive.getPose().getTranslation().getDistance(m_drive.getSim().truthPose().getTranslation()));
             // Intake leading: in the neutral zone, while moving, how far the robot front (the
             // intake) points from the direction of travel.
             var v = m_drive.getFieldVelocity();
@@ -255,6 +264,7 @@ public class SimSmokeTest {
                     System.out.println("SMOKE alert " + level + ": " + text);
                 }
             }
+            printFuel("teleop so far");
         }
         if (step == 11) {
             // Step 3 (stick released) just ended: the heading should not have moved.
@@ -271,9 +281,18 @@ public class SimSmokeTest {
             System.out.printf("SMOKE auto intake leading while collecting: mean %.0f deg, max %.0f deg off the travel direction (%.1f s)%n",
                 m_leadSum / m_leadTime, m_leadMax, m_leadTime);
             System.out.println("SMOKE auto intake leading worst at " + m_leadMaxAt);
+            printFuel("auto");
+            System.out.printf("SMOKE auto bump: highest z %.3f m, steepest pitch %.1f deg, odometry off the truth by up to %.2f m%n",
+                m_autoMaxZ, m_autoMaxPitchDeg, m_autoMaxTruthError);
             m_drive.getSim().kickPose();
             report("after kick");
         }
+    }
+
+    private void printFuel(String when) {
+        var fuel = m_container.getFuelSim().getField();
+        System.out.printf("SMOKE fuel (%s): picked up %d, shots %d, scored blue %d red %d, hopper %d, balls on the field %d%n",
+            when, fuel.pickedUp(), fuel.shots(), fuel.scored(false), fuel.scored(true), fuel.hopper(), fuel.ballCount());
     }
 
     /** Red poses turned 180 degrees about the field center, so they compare with the blue numbers. */

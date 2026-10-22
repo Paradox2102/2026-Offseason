@@ -64,8 +64,9 @@ public class Vision extends SubsystemBase {
                 m_simResetCount = driveSim.resetCount();
                 m_sim.resetRobotPose(driveSim.truthPose());
             }
-            // The sim cameras look from the true pose, not from the estimate that vision corrects.
-            m_sim.update(driveSim.truthPose());
+            // The sim cameras look from the true pose, not from the estimate that vision corrects,
+            // and in 3D: on a bump the robot tilts, and so do its cameras.
+            m_sim.update(driveSim.truthPose3d());
         }
 
         List<Pose2d> accepted = new ArrayList<>();

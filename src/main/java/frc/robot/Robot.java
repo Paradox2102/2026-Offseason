@@ -47,6 +47,8 @@ public class Robot extends TimedRobot {
         NetworkTableInstance.getDefault().getStructTopic("RobotPose", Pose2d.struct).publish();
     private final StructArrayPublisher<Pose3d> m_componentPublisher =
         NetworkTableInstance.getDefault().getStructArrayTopic("Final Poses", Pose3d.struct).publish();
+    /** Simulator only: the true robot pose in 3D, with the bump under its wheels. */
+    private StructPublisher<Pose3d> m_pose3dPublisher = null;
 
     /* log and replay timestamp and joystick data */
     private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
@@ -124,6 +126,9 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
+        if (m_robotContainer.getFuelSim() != null) {
+            m_robotContainer.getFuelSim().reset(); // a match starts with the staged fuel and the preload
+        }
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
         if (m_autonomousCommand != null) {
             CommandScheduler.getInstance().schedule(m_autonomousCommand);
@@ -147,6 +152,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void simulationInit() {
+        m_pose3dPublisher = NetworkTableInstance.getDefault().getStructTopic("RobotPose3d", Pose3d.struct).publish();
         if ("1".equals(System.getenv("SIM_SMOKE"))) {
             m_smokeTest = new SimSmokeTest(m_robotContainer, Subsystems.m_drive);
         }
@@ -154,6 +160,10 @@ public class Robot extends TimedRobot {
 
     @Override
     public void simulationPeriodic() {
+        if (m_robotContainer.getFuelSim() != null) {
+            m_robotContainer.getFuelSim().periodic();
+            m_pose3dPublisher.set(Subsystems.m_drive.getSim().truthPose3d());
+        }
         if (m_smokeTest != null) {
             m_smokeTest.periodic();
         }
