@@ -147,6 +147,7 @@ public class RobotContainer {
         if (RobotBase.isSimulation() && m_drive.getSim() != null) {
             Tunables.publish("Sim/Kick Pose", Commands.runOnce(m_drive.getSim()::kickPose).ignoringDisable(true).withName("Kick Pose"));
             Tunables.publish("Sim/Reset Fuel", Commands.runOnce(m_fuelSim::reset).ignoringDisable(true).withName("Reset Fuel"));
+            m_drive.getSim().setRackOut(m_intakeRack::getPosition);
         }
     }
 

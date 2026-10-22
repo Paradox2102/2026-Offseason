@@ -10,8 +10,11 @@
 # root topic "RobotPose", the moving parts "Final Poses"; the sim's true pose is
 # /Telemetry/Sim/Truth Pose and the vision poses /Telemetry/Vision/... The run also writes a
 # .wpilog in logs/ that AdvantageScope can open afterwards.
-# Fuel and the bump: in the 3D field, set the robot to "RobotPose3d" (it climbs the bumps) and add
-# "Sim/Fuel" as Fuel game pieces. The fuel resets at auto start (Tuning tab: "Sim: Reset Fuel").
+# Fuel and the bump: in AdvantageScope, File > Import Layout > tools/advantagescope-sim-layout.json.
+# Its "Sim 3D" tab shows the true robot ("RobotPose3d", it climbs the bumps and stops at the field
+# structures), the odometry estimate as a green ghost ("RobotPose"), and the balls ("Sim/Fuel" as
+# Fuel game pieces; the field's own staged balls hide once a game piece source is there). The fuel
+# resets at auto start (Elastic Tuning tab: "Sim: Reset Fuel").
 # SIM_SMOKE_ALLIANCE=red runs the auto as red (the auto checks are then given in the blue frame).
 set -u
 cd "$(dirname "$0")/.."

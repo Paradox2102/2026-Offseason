@@ -63,6 +63,8 @@ public class SimSmokeTest {
     private double m_autoMaxZ = 0;
     private double m_autoMaxPitchDeg = 0;
     private double m_autoMaxTruthError = 0;
+    private int m_autoContactsAtStart = -1;
+    private double m_autoMinHeadroom = Double.POSITIVE_INFINITY;
 
     public SimSmokeTest(RobotContainer container, Drive drive) {
         m_container = container;
@@ -163,6 +165,13 @@ public class SimSmokeTest {
             m_autoMaxPitchDeg = Math.max(m_autoMaxPitchDeg, Math.toDegrees(Math.abs(truth3d.getRotation().getY())));
             m_autoMaxTruthError = Math.max(m_autoMaxTruthError,
                 m_drive.getPose().getTranslation().getDistance(m_drive.getSim().truthPose().getTranslation()));
+            // Under the trench: how much room is left above the robot (the intake must be out).
+            var sim = m_drive.getSim();
+            if (m_autoContactsAtStart < 0) {
+                m_autoContactsAtStart = sim.contacts();
+            }
+            m_autoMinHeadroom = Math.min(m_autoMinHeadroom, frc.robot.sim.field.FieldObstacles.trenchHeadroom(
+                sim.truthPose(), sim.rackOut(), IntakeConstants.kRackStroke, truth3d.getZ()));
             // Intake leading: in the neutral zone, while moving, how far the robot front (the
             // intake) points from the direction of travel.
             var v = m_drive.getFieldVelocity();
@@ -284,6 +293,8 @@ public class SimSmokeTest {
             printFuel("auto");
             System.out.printf("SMOKE auto bump: highest z %.3f m, steepest pitch %.1f deg, odometry off the truth by up to %.2f m%n",
                 m_autoMaxZ, m_autoMaxPitchDeg, m_autoMaxTruthError);
+            System.out.printf("SMOKE auto field contacts: %d loops touching a structure (last: %s); trench headroom %.3f m%n",
+                m_drive.getSim().contacts() - m_autoContactsAtStart, m_drive.getSim().lastContact(), m_autoMinHeadroom);
             m_drive.getSim().kickPose();
             report("after kick");
         }

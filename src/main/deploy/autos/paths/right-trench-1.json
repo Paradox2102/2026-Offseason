@@ -19,20 +19,20 @@
     },
     {
       "type": "translation",
-      "x_meters": 3.45,
+      "x_meters": 3.2,
       "y_meters": 1.6,
-      "intermediate_handoff_radius_meters": 0.35
+      "intermediate_handoff_radius_meters": 0.3
     },
     {
       "type": "translation",
-      "x_meters": 3.95,
-      "y_meters": 0.9,
-      "intermediate_handoff_radius_meters": 0.35
+      "x_meters": 3.15,
+      "y_meters": 0.72,
+      "intermediate_handoff_radius_meters": 0.15
     },
     {
       "type": "translation",
       "x_meters": 4.5,
-      "y_meters": 0.72,
+      "y_meters": 0.7,
       "intermediate_handoff_radius_meters": 0.35
     },
     {
@@ -97,6 +97,11 @@
   ],
   "constraints": {
     "max_velocity_meters_per_sec": [
+      {
+        "value": 1.5,
+        "start_ordinal": 1,
+        "end_ordinal": 2
+      },
       {
         "value": 2.0,
         "start_ordinal": 1,

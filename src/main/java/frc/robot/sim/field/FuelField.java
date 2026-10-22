@@ -44,22 +44,19 @@ public class FuelField {
     /** Hub (blue; red is turned 180 degrees about the field center). */
     public static final double kHubBlueX = 4.625;
     public static final double kHubY = 4.035;
+    /** Below its panel tops (1.27 m) the hub is a 1.19 m square; above, the funnel is round enough. */
+    public static final double kHubHalfSize = 0.597;
+    private static final double kHubPanelTopZ = 1.27;
     public static final double kHubRadius = 0.6;
     public static final double kHubTopZ = 1.83;
     public static final double kHubOpeningRadius = 0.53;
-    /** A scored ball comes back out this far from the hub center, on the neutral-zone side. */
-    private static final double kHubExitDistance = 0.9;
+    /**
+     * A scored ball rolls down the ramp inside the hub and out of the gap above the rear panel
+     * (0.77 m high, on the neutral-zone side).
+     */
+    private static final double kHubExitZ = 0.85;
     private static final double kHubExitSpeed = 1.5;
 
-    /**
-     * Robot outline, robot frame (+x = the intake side), meters: the bumpers from the robot
-     * model; the intake front is at kIntakeInFront when in, plus the rack travel x cos 20 degrees.
-     */
-    public static final double kBumperHalfLength = 0.41;
-    public static final double kBumperHalfWidth = 0.45;
-    public static final double kIntakeInFront = 0.325;
-    public static final double kIntakeHalfWidth = 0.36;
-    private static final double kRackCos = Math.cos(Math.toRadians(20));
 
     /** What the robot does this step. Velocities are field-relative. */
     public record RobotInput(Pose2d pose, double vx, double vy, double omega, double rackOut, double rackStroke,
@@ -202,13 +199,13 @@ public class FuelField {
         // Out on the neutral-zone side, spread along the hub face so the balls do not stack.
         double toNeutral = red ? -1 : 1;
         double spread = ((m_exitCount++ % 5) - 2) * 0.18;
-        b.x = hubX(red) + toNeutral * kHubExitDistance;
+        b.x = hubX(red) + toNeutral * (kHubHalfSize + kRadius + 0.01);
         b.y = hubY(red) + spread;
-        b.z = kRadius;
+        b.z = kHubExitZ;
         b.vx = toNeutral * kHubExitSpeed;
         b.vy = 0;
         b.vz = 0;
-        b.inAir = false;
+        b.inAir = true;
     }
 
     private void roll(Ball b, double dt) {
@@ -244,8 +241,8 @@ public class FuelField {
     }
 
     /**
-     * The hub is solid up to its top: a cylinder of kHubRadius (the funnel top is a hexagon about
-     * 1.2 m across). Balls bounce off its side.
+     * The hub is solid up to its top. Below the panel tops it is a square; above, the funnel (a
+     * hexagon about 1.2 m across) is a cylinder of kHubRadius. Balls bounce off its sides.
      */
     private void hubBase(Ball b) {
         if (b.z > kHubTopZ) {
@@ -254,6 +251,19 @@ public class FuelField {
         for (boolean red : new boolean[] {false, true}) {
             double dx = b.x - hubX(red);
             double dy = b.y - hubY(red);
+            if (b.z < kHubPanelTopZ) {
+                double reach = kHubHalfSize + kRadius;
+                if (Math.abs(dx) < reach && Math.abs(dy) < reach) {
+                    if (reach - Math.abs(dx) < reach - Math.abs(dy)) {
+                        b.x = hubX(red) + Math.copySign(reach, dx);
+                        b.vx = Math.copySign(Math.abs(b.vx) * kWallBounce, dx);
+                    } else {
+                        b.y = hubY(red) + Math.copySign(reach, dy);
+                        b.vy = Math.copySign(Math.abs(b.vy) * kWallBounce, dy);
+                    }
+                }
+                continue;
+            }
             double d = Math.hypot(dx, dy);
             double reach = kHubRadius + kRadius;
             if (d < reach && d > 0) {
@@ -284,22 +294,23 @@ public class FuelField {
         double lx = rx * cos + ry * sin;
         double ly = -rx * sin + ry * cos;
 
-        double intakeFront = kIntakeInFront + robot.rackOut() * kRackCos;
-        boolean intakeOut = intakeFront > kBumperHalfLength + 0.02;
+        double intakeFront = RobotOutline.intakeFront(robot.rackOut());
+        boolean intakeOut = RobotOutline.intakeOut(robot.rackOut());
         boolean collecting = robot.rollersIn() && robot.rackOut() > robot.rackStroke() / 2 && m_hopper < kHopperCapacity;
-        if (intakeOut && lx > kBumperHalfLength - kRadius && lx < intakeFront + kRadius
-                && Math.abs(ly) < kIntakeHalfWidth + kRadius) {
+        if (intakeOut && lx > RobotOutline.kFrontX - kRadius && lx < intakeFront + kRadius
+                && Math.abs(ly) < RobotOutline.kIntakeHalfWidth + kRadius) {
             if (collecting) {
                 m_hopper++;
                 m_pickedUp++;
                 return true;
             }
             // Out the front or the side: the bumper behind the intake is solid too.
-            push(b, robot, lx, ly, cos, sin, -kBumperHalfLength, intakeFront, kIntakeHalfWidth);
+            push(b, robot, lx, ly, cos, sin, RobotOutline.kBackX, intakeFront, RobotOutline.kIntakeHalfWidth);
             return false;
         }
-        if (Math.abs(lx) < kBumperHalfLength + kRadius && Math.abs(ly) < kBumperHalfWidth + kRadius) {
-            push(b, robot, lx, ly, cos, sin, -kBumperHalfLength, kBumperHalfLength, kBumperHalfWidth);
+        if (lx > RobotOutline.kBackX - kRadius && lx < RobotOutline.kFrontX + kRadius
+                && Math.abs(ly) < RobotOutline.kHalfWidth + kRadius) {
+            push(b, robot, lx, ly, cos, sin, RobotOutline.kBackX, RobotOutline.kFrontX, RobotOutline.kHalfWidth);
         }
         return false;
     }

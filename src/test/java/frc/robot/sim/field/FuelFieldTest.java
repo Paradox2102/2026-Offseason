@@ -71,7 +71,7 @@ class FuelFieldTest {
             field.step(0.02, driving(x, 4.0, 2.0, 0, false));
         }
         var p = field.positions()[0];
-        assertTrue(p.getX() > 8.8 + FuelField.kBumperHalfLength, "the ball stays in front of the bumper");
+        assertTrue(p.getX() > 8.8 + RobotOutline.kFrontX, "the ball stays in front of the bumper");
     }
 
     @Test
@@ -91,7 +91,7 @@ class FuelFieldTest {
         field.step(0.02, still(8.0, 4.0, kStroke, false));
         assertEquals(1, field.ballCount());
         assertEquals(0, field.hopper());
-        assertTrue(field.positions()[0].getX() > 8.0 + FuelField.kIntakeInFront + kStroke * Math.cos(Math.toRadians(20)));
+        assertTrue(field.positions()[0].getX() > 8.0 + RobotOutline.intakeFront(kStroke));
     }
 
     @Test
@@ -116,11 +116,11 @@ class FuelFieldTest {
         var field = empty(1);
         field.launch(new Translation3d(FuelField.kHubBlueX, FuelField.kHubY, 2.5), 0, 0, 0);
         assertEquals(0, field.hopper());
-        run(field, 1, null);
+        run(field, 2, null);
         assertEquals(1, field.scored(false));
         assertEquals(0, field.scored(true));
         var p = field.positions()[0];
-        assertTrue(p.getX() > FuelField.kHubBlueX + FuelField.kHubRadius, "out on the neutral-zone side");
+        assertTrue(p.getX() > FuelField.kHubBlueX + FuelField.kHubHalfSize, "out on the neutral-zone side");
         assertEquals(0, field.airCount());
     }
 
@@ -128,9 +128,9 @@ class FuelFieldTest {
     void redHubScoresForRed() {
         var field = empty(1);
         field.launch(new Translation3d(kLength - FuelField.kHubBlueX, kWidth - FuelField.kHubY, 2.5), 0, 0, 0);
-        run(field, 1, null);
+        run(field, 2, null);
         assertEquals(1, field.scored(true));
-        assertTrue(field.positions()[0].getX() < kLength - FuelField.kHubBlueX - FuelField.kHubRadius);
+        assertTrue(field.positions()[0].getX() < kLength - FuelField.kHubBlueX - FuelField.kHubHalfSize);
     }
 
     @Test

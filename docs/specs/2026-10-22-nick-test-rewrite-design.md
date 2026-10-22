@@ -579,3 +579,23 @@ it runs on the robot.
 - The fuel resets (staged balls, preload of 8) at the start of auto and with "Sim/Reset Fuel".
 - Smoke test: balls picked up, shots and balls scored in the teleop shot and in auto; highest
   robot z and pitch in auto.
+
+### Collisions and the AdvantageScope layout (user, 2026-10-22)
+
+The user saw no balls and a robot that clipped through the trench and the bump. Cause: the saved
+AdvantageScope 3D tab drew the robot from `RobotPose` (2D, at floor height) and had no game-piece
+source, so the field's staged balls stayed. `tools/advantagescope-sim-layout.json` (File > Import
+Layout) sets it up: robot `RobotPose3d`, components `Final Poses`, odometry `RobotPose` as a green
+ghost, `Sim/Fuel` as Fuel.
+
+- `sim/field/FieldObstacles`: the true robot (bumpers, and the intake when out) stops at the hubs
+  (x 4.029-5.223, y 3.438-4.631), the trench walls between each trench lane and its bump (y
+  1.279-1.583 and 6.486-6.790), the tower uprights and the field walls; and at a trench arm
+  (underside 0.565 m) when the robot is too tall: 0.559 m with the intake out, 0.67 m with it in
+  (`sim/field/RobotOutline`, from the robot model).
+- Found with it: path 1's lineup cut the corner of the trench wall. The robot now goes down to
+  y 0.72 at x 3.15-3.2 (intake front still short of the wall) at 1.5 m/s, then along the lane.
+- Under the trench arm the robot has 6 mm of headroom with the intake fully out (model heights).
+  Check on the real robot and field.
+- Fuel: below its panel tops (1.27 m) the hub is a 1.19 m square; scored balls leave through the
+  gap above the rear panel (0.85 m) on the neutral-zone side.

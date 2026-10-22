@@ -5,9 +5,13 @@ import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Transform2d;
 import org.wpilib.math.kinematics.SwerveDriveOdometry;
+import java.util.function.DoubleSupplier;
+
 import org.wpilib.telemetry.Telemetry;
 
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.sim.field.BumpTerrain;
+import frc.robot.sim.field.FieldObstacles;
 
 /**
  * Simulator only: where the simulated robot "really" is.
@@ -21,6 +25,10 @@ import frc.robot.sim.field.BumpTerrain;
  * slip: {@link BumpTerrain#groundFactor}). The truth moves that much less, so the drive's odometry
  * runs ahead of it there and vision must pull it back, as on the real robot.
  *
+ * <p>The truth also stops at the field structures ({@link FieldObstacles}): the hub, the trench
+ * walls, the tower, the field walls, and a trench arm when the intake is not out. The wheels keep
+ * turning against them, so odometry runs on, and vision must correct it there too.
+ *
  * <p>To see vision work: run "Sim/Kick Pose" from the Tuning tab. It moves the drive's pose 0.5 m
  * and 10 degrees off. Vision should pull "Drive/Pose" back to "Sim/Truth Pose" in a few seconds.
  */
@@ -31,6 +39,9 @@ public class DriveSim {
     private Pose2d m_lastWheels;
     private Pose2d m_truth;
     private int m_resetCount = 0;
+    private DoubleSupplier m_rackOut = () -> 0;
+    private int m_contacts = 0;
+    private String m_lastContact = "none";
 
     DriveSim(Drive drive) {
         m_drive = drive;
@@ -49,8 +60,33 @@ public class DriveSim {
         double factor = BumpTerrain.groundFactor(m_truth);
         m_truth = m_truth.plus(new Transform2d(move.getTranslation().times(factor), move.getRotation()));
         m_lastWheels = wheels;
+        var contact = FieldObstacles.resolve(m_truth, m_rackOut.getAsDouble(), IntakeConstants.kRackStroke, truthPose3d().getZ());
+        if (contact.obstacle() != null) {
+            m_truth = contact.pose();
+            m_contacts++;
+            m_lastContact = contact.obstacle();
+        }
         Telemetry.log("Sim/Truth Pose", truthPose());
         Telemetry.log("Sim/Ground Factor", factor);
+        Telemetry.log("Sim/Touching", contact.obstacle() == null ? "" : contact.obstacle());
+    }
+
+    /** The intake travel, so the sim knows whether the robot fits under a trench arm. */
+    public void setRackOut(DoubleSupplier rackOut) {
+        m_rackOut = rackOut;
+    }
+
+    public double rackOut() {
+        return m_rackOut.getAsDouble();
+    }
+
+    /** Loops in which the robot touched a field structure, since the start. */
+    public int contacts() {
+        return m_contacts;
+    }
+
+    public String lastContact() {
+        return m_lastContact;
     }
 
     public Pose2d truthPose() {
