@@ -191,7 +191,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         for(double[] values : ShooterConstants.k_scoreShotTimes){
             m_shotTimeInt.put(values[0], values[1]);
         }
-        getState().Pose = new Pose2d(0, 0,new Rotation2d(Math.PI));
+        resetPose(new Pose2d(0, 0,new Rotation2d(Math.PI)));
     }
 
     /**
@@ -220,7 +220,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         for(double[] values : ShooterConstants.k_scoreShotTimes){
             m_shotTimeInt.put(values[0], values[1]);
         }
-        getState().Pose = new Pose2d(0, 0,new Rotation2d(Math.PI));
+        resetPose(new Pose2d(0, 0,new Rotation2d(Math.PI)));
         
     }
 
@@ -258,7 +258,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         for(double[] values : ShooterConstants.k_scoreShotTimes){
             m_shotTimeInt.put(values[0], values[1]);
         }
-        getState().Pose = new Pose2d(0, 0,new Rotation2d((3/4.0) * Math.PI));
+        resetPose(new Pose2d(0, 0,new Rotation2d((3/4.0) * Math.PI)));
     }
 
 
@@ -318,10 +318,10 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         }
 
         Telemetry.log("GyroAngle", getState().Pose.getRotation().getDegrees());
-        Telemetry.log("FrontLeftModulePosition", getModule(0).getEncoder().getAbsolutePosition());
-        Telemetry.log("frontRightPosition", getModule(1).getEncoder().getAbsolutePosition());
-        Telemetry.log("BackLeftModulePosition", getModule(2).getEncoder().getAbsolutePosition());
-        Telemetry.log("BackrightModulePosition", getModule(3).getEncoder().getAbsolutePosition());
+        Telemetry.log("FrontLeftModulePosition", getModule(0).getEncoder().getAbsolutePosition().getValueAsDouble());
+        Telemetry.log("frontRightPosition", getModule(1).getEncoder().getAbsolutePosition().getValueAsDouble());
+        Telemetry.log("BackLeftModulePosition", getModule(2).getEncoder().getAbsolutePosition().getValueAsDouble());
+        Telemetry.log("BackrightModulePosition", getModule(3).getEncoder().getAbsolutePosition().getValueAsDouble());
 
         vision.updatePoseEstimation(this);
 

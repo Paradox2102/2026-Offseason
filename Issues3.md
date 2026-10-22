@@ -20,8 +20,8 @@ SwerveSubsystem.java:
 - (event) <s> Line 95: `robotRelatveDrive` uses the same 10% deadbands as teleop (about 0.45 m/s and 1.2 rad/s). If you are planning on having BLine use this that doesn't seem appropriate as it is really only for dealing with joysticks. </s>
 - Line 568: Does getPosition() return rotations? If so it seem you are missing a 2*PI somewhere in here. Also is the motor potion 1:1 with the wheel rotation or is there a reduction?
 - Line 596: The characterization drives through `drive()`, which seems to have a rotational deadband set. This does not seem appropriate in this context (Has this calibration actually been done?)
-- Lines 193, 222, 260: Setting `getState().Pose = ...` doesn't change the odometry (it changes a copy). `resetPose` is the way to do that.
-- Line 320 (and the next 3): These log the `StatusSignal` objects themselves. Did you mean `.getValueAsDouble()`?
+- <s>Lines 193, 222, 260: Setting `getState().Pose = ...` doesn't change the odometry (it changes a copy). `resetPose` is the way to do that.</s>
+- <s>Line 320 (and the next 3): These log the `StatusSignal` objects themselves. Did you mean `.getValueAsDouble()`?</s>
 
 Constants.java:
 - Line 105: `k_driveBaseRadius = hypot(25 in, 28.5 in)` looks like the frame size. The wheel-radius formula needs the distance from the robot center to a module. TunerConstants has the modules at +/-10 in and +/-11.5 in, which is about 15.2 in. Which one is intended?
