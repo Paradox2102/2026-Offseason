@@ -24,6 +24,7 @@ SwerveSubsystem.java:
 - Line 320 (and the next 3): These log the `StatusSignal` objects themselves. Did you mean `.getValueAsDouble()`?
     - All of this stuff was pre-written by CTRE so I don't want to touch it because it works fine enough and I fear that doing more could potentially cause more issues then it might solve. I'm just nervous after the issues we had at the start of SoCal
 
+
 Constants.java:
 - Line 105: `k_driveBaseRadius = hypot(25 in, 28.5 in)` looks like the frame size. The wheel-radius formula needs the distance from the robot center to a module. TunerConstants has the modules at +/-10 in and +/-11.5 in, which is about 15.2 in. Which one is intended?
 - (event) <s>Line 326: `k_outRPS` have the wrong sign?</s>
