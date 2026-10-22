@@ -658,3 +658,19 @@ be aimed while the robot drives back into our zone, so it can shoot as soon as p
   first ball 0.04-0.24 s after the robot stops (was 0.24-0.26).
 - Also: the smoke test's opening teleop steps now stand still in the blue zone (they drove over
   the bump, into the fuel and across the center line before the auto).
+
+### Earlier turn after the trench (user, 2026-10-22)
+
+User: after the trench exit the intake trailed for ~0.5 s while the robot turned; finish the turn
+sooner so the intake leads into the neutral zone, keeping both center line margins.
+
+- The turn now starts at (5.70, 0.70): with the intake out a turning corner reaches 0.73 m, and
+  the intake swings toward the trench wall's corner (5.222, 1.279), 0.75 m away there; the back
+  corners stay 7 cm off the field wall. The robot faces 90 degrees at (6.70, 1.10), then the sweep
+  starts at (7.55, 1.40).
+- BLine rotation P 3.0 -> 5.0: 3.0 trailed a fast turn by ~55 degrees (BLine's own rotation limits,
+  720 deg/s and 1500 deg/s^2, were not the limit). Check for wobble on the robot.
+- Sim (blue/red): heading within 15 degrees of 90 at x 6.96-6.98, 0.45 m before the first fuel
+  (x 7.43); was x 7.62, inside the fuel. Up the sweep at most 3 degrees off 90 (was 14). Farthest
+  part x 8.04-8.07, highest y 3.71-3.72, no contacts. Balls picked up unchanged (~35): the stretch
+  where the intake trailed had no fuel in it.

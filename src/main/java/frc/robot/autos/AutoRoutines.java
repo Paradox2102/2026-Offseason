@@ -37,7 +37,7 @@ public class AutoRoutines {
      * so they must not be shared with other code.
      */
     private static final double kTranslationP = 2.0; // m/s per meter of path left
-    private static final double kRotationP = 3.0; // rad/s per radian of heading error (1.0 turned 180 degrees in ~5 s)
+    private static final double kRotationP = 5.0; // rad/s per radian of heading error (1.0 turned 180 degrees in ~5 s; 3.0 trailed a turn by ~55 degrees)
     private static final double kCrossTrackP = 0.2; // m/s per meter off the line (6.0 made the robot snake)
 
     private final Drive m_drive;

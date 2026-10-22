@@ -74,6 +74,11 @@ public class SimSmokeTest {
     private double m_autoMaxPartY = Double.NEGATIVE_INFINITY;
     private String m_autoMaxPartXAt = "";
     private boolean m_autoWasInZone = true;
+    private double m_autoHeadingAt65 = Double.NaN;
+    private double m_autoHeadingAt70 = Double.NaN;
+    private double m_autoTurnDone = Double.NaN;
+    private String m_autoTurnDoneAt = "never";
+    private double m_autoSweepHeadingErr = 0;
     private double m_autoStopTime = Double.NaN;
     private final java.util.List<String> m_autoReturns = new java.util.ArrayList<>();
     private String m_autoMaxPartYAt = "";
@@ -203,6 +208,25 @@ public class SimSmokeTest {
         if (m_step == 5 && m_autoStartReported) {
             if (m_container.getFeeder().isFeeding()) {
                 m_autoFeedTime += 0.020;
+            }
+            // After the trench: how soon the robot faces the center line (90 degrees, intake leading
+            // up the sweep). Only on the way out (before the first return).
+            if (m_autoReturns.isEmpty()) {
+                double heading = pose.getRotation().getDegrees();
+                if (Double.isNaN(m_autoHeadingAt65) && pose.getX() > 6.5) {
+                    m_autoHeadingAt65 = heading;
+                }
+                if (Double.isNaN(m_autoHeadingAt70) && pose.getX() > 7.0) {
+                    m_autoHeadingAt70 = heading;
+                }
+                if (Double.isNaN(m_autoTurnDone) && pose.getX() > 5.3 && Math.abs(heading - 90) < 15) {
+                    m_autoTurnDone = t - 21;
+                    m_autoTurnDoneAt = String.format("(%.2f, %.2f) at t %.1f s", pose.getX(), pose.getY(), t - 21);
+                }
+                // Overshoot or wobble once turned, up the sweep.
+                if (!Double.isNaN(m_autoTurnDone) && pose.getX() > 7.3 && pose.getY() < 2.9) {
+                    m_autoSweepHeadingErr = Math.max(m_autoSweepHeadingErr, Math.abs(heading - 90));
+                }
             }
             // Back into our zone: is the turret already on the hub, and how long after the robot
             // stops does the first ball go?
@@ -399,6 +423,9 @@ public class SimSmokeTest {
                 m_leadSum / m_leadTime, m_leadMax, m_leadTime);
             System.out.println("SMOKE auto intake leading worst at " + m_leadMaxAt);
             printFuel("auto");
+            System.out.printf("SMOKE auto turn after the trench: heading %.0f deg at x 6.5, %.0f deg at x 7.0; within 15 deg of 90 at %s"
+                    + " (fuel starts at x 7.43); up the sweep at most %.0f deg off 90%n", m_autoHeadingAt65, m_autoHeadingAt70,
+                m_autoTurnDoneAt, m_autoSweepHeadingErr);
             for (int i = 0; i < m_autoReturns.size(); i++) {
                 System.out.println("SMOKE auto return " + (i + 1) + ": " + m_autoReturns.get(i));
             }
