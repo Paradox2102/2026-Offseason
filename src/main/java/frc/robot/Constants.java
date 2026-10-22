@@ -19,7 +19,7 @@ import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearVelocity;
 
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.drive.SwerveSubsystem;
+import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.indexer.IndexerConveyorSubsystem;
 import frc.robot.subsystems.indexer.IndexerRollerSubsystem;
 import frc.robot.subsystems.intake.IntakeExtensionSubsystem;
@@ -38,7 +38,7 @@ public class Constants {
     
 
     public static class Subsystems {
-        public static final SwerveSubsystem m_swerveSubsystem;
+        public static final Drive m_drive;
         public static final IntakeExtensionSubsystem m_intakeExtension = new IntakeExtensionSubsystem();
         public static final IntakeRollerSubsystem m_intakeRoller = new IntakeRollerSubsystem();
         // public static final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
@@ -50,32 +50,13 @@ public class Constants {
         // public static final IndexerRollerSubsystem m_indexerRollerSubsystem = new IndexerRollerSubsystem();
         public static final LightSubsystem m_lightSubsystem = new LightSubsystem();
         static {
-            m_swerveSubsystem = TunerConstants.createDrivetrain();
+            m_drive = TunerConstants.createDrivetrain();
         }
     }
 
-    public static class DrivebaseConstants {
-        //Wheel Calibration
-    public static final double k_wheelRadiusMaxVelocity = 0.5; // Rad/Sec
-    public static final double k_wheelRadiusRampRate = 0.25; // Rad/Sec^2
 
-    // Distance from the robot center to a wheel, in meters. Read it from the
-    // swerve module positions so there is only one place to change it.
-    public static final double k_driveBaseRadius = Math.hypot(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY);
-    }
 
-    public static class VisionConstants {
 
-        public static final Translation3d frontRightPosition = new Translation3d(Units.inchesToMeters(-12.2212), Units.inchesToMeters(12.6202), Units.inchesToMeters(12.3281));
-        public static final Rotation3d frontRightRotation = new Rotation3d(Units.degreesToRadians(25), Units.degreesToRadians(-2.012), Units.degreesToRadians(148));
-        public static final Translation3d sideLeftPosition = new Translation3d(Units.inchesToMeters(-11.0169), Units.inchesToMeters(-13.0384), Units.inchesToMeters(11.9732));
-        public static final Rotation3d sideLeftRotation = new Rotation3d(Units.degreesToRadians(25), Units.degreesToRadians(11.148), Units.degreesToRadians(65));
-        //public static final Translation3d sideLeftPosition = new Translation3d(Units.inchesToMeters(-3.8793),Units.inchesToMeters(14.0335), Units.inchesToMeters(5.3676));
-        //public static final Rotation3d sideLeftRotation = new Rotation3d();
-        public static final Translation3d frontLeftPos = new Translation3d(Units.inchesToMeters(-12.1548), Units.inchesToMeters(-8.6186), Units.inchesToMeters(12.00));
-        public static final Rotation3d frontLeftRot = new Rotation3d(Units.degreesToRadians(25), Units.degreesToRadians(1.823), Units.degreesToRadians(147.168));
-
-    }
 
     public static class LightConstants {
     public static final int k_lightPort = 0; // may be different on actual robot

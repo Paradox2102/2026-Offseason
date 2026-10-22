@@ -4,34 +4,34 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.HootAutoReplay;
-import com.ctre.phoenix6.SignalLogger;
-
-import frc.robot.constants.CanIds;
-import frc.robot.Constants.Subsystems;
-import frc.robot.health.HealthMonitor;
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Pose3d;
-import org.wpilib.networktables.NetworkTableInstance;
-import org.wpilib.networktables.StructArrayPublisher;
-import org.wpilib.networktables.StructPublisher;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
+import org.wpilib.driverstation.DriverStation;
+import org.wpilib.driverstation.MatchState;
 import org.wpilib.framework.TimedRobot;
 import org.wpilib.hardware.power.PowerDistribution;
 import org.wpilib.hardware.power.PowerDistribution.ModuleType;
-import org.wpilib.command2.Command;
-import org.wpilib.command2.CommandScheduler;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.net.WebServer;
+import org.wpilib.system.DataLogManager;
+import org.wpilib.system.Filesystem;
+import org.wpilib.telemetry.Telemetry;
+
+import com.ctre.phoenix6.HootAutoReplay;
+import com.ctre.phoenix6.SignalLogger;
+
+import frc.robot.Constants.Subsystems;
+import frc.robot.constants.CanIds;
+import frc.robot.health.HealthMonitor;
+import frc.robot.lib.util.AlertPublisher;
+import frc.robot.sim.SimSmokeTest;
 
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
-
     private final RobotContainer m_robotContainer;
+    private SimSmokeTest m_smokeTest = null;
 
-
-    private StructPublisher<Pose2d> m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("RobotPose", Pose2d.struct).publish();
-    private StructArrayPublisher<Pose3d> zeroedComponentPoses = NetworkTableInstance.getDefault()
-        .getStructArrayTopic("Zeroed Poses", Pose3d.struct).publish();
-    private StructArrayPublisher<Pose3d> finalComponentPoses = NetworkTableInstance.getDefault()
-        .getStructArrayTopic("Final Poses", Pose3d.struct).publish();
     /* log and replay timestamp and joystick data */
     private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
         .withTimestampReplay()
@@ -40,13 +40,28 @@ public class Robot extends TimedRobot {
     /* log PDH channel currents into the hoot log, next to the Talon signals */
     private final PowerDistribution m_pdh = new PowerDistribution(CanIds.k_pdhPort, CanIds.pdh, ModuleType.REV);
 
-    // private final boolean kUseLimelight = false;
-
     public Robot() {
+        /*
+         * Logs. WPILib 2027 sends Telemetry to NetworkTables only; DataLogManager records every
+         * NetworkTables value to a .wpilog file (/home/systemcore/logs, or /u/logs with a USB
+         * drive), and startDataLog adds the driver station and joystick data. The CTRE devices go
+         * to a separate hoot log; open both together in AdvantageScope.
+         */
+        DataLogManager.start();
+        DriverStation.startDataLog(DataLogManager.getLog());
+        if (isReal()) {
+            SignalLogger.start();
+        } else {
+            SignalLogger.enableAutoLogging(false); // no hoot files on the laptop in sim
+        }
+
+        // Elastic downloads its layout (deploy/elastic-layout.json) from this web server.
+        WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
+
         m_robotContainer = new RobotContainer();
 
-        /* watch CAN buses, devices, battery and cameras; see utils/HealthMonitor.java */
-        HealthMonitor.registerDrivetrain(Subsystems.m_swerveSubsystem);
+        /* watch CAN buses, devices, battery and cameras; see health/HealthMonitor.java */
+        HealthMonitor.registerDrivetrain(Subsystems.m_drive);
         HealthMonitor.start();
     }
 
@@ -57,78 +72,54 @@ public class Robot extends TimedRobot {
         SignalLogger.writeDouble("PDH/Voltage", m_pdh.getVoltage(), "V");
         HealthMonitor.periodic();
         CommandScheduler.getInstance().run();
+        m_robotContainer.periodic();
 
-        Pose2d robotPose = Subsystems.m_swerveSubsystem.getPose();
+        Telemetry.log("Match Time", MatchState.getMatchTime());
+        Telemetry.log("RobotPose", Subsystems.m_drive.getPose());
+        Telemetry.log("Final Poses", componentPoses(), Pose3d.struct);
+        AlertPublisher.publish();
+    }
 
-        m_posePublisher.set(robotPose);
-        
-        // Rotation2d rot = new Rotation2d(Subsystems.m_turretAimSubsystem.getShooterAzimuth().getPosition().getValueAsDouble() * Constants.ShooterConstants.k_shooterGearReduction);
-        //Rotation3d rot = new Rotation3d(Math.cos(Timer.getTimestamp()), Math.tan(Timer.getTimestamp()), Math.sin(Timer.getTimestamp()));
-        // Rotation3d hoodRot = new Rotation3d(Subsystems.m_hoodSubsystem.getAngle(), 0, rot.getRadians());
-        //Rotation3d hoodRot = new Rotation3d(Math.sin(-Timer.getTimestamp()-100), Math.cos(-Timer.getTimestamp()-100), Math.tan(Timer.getTimestamp()-100));
-        
-        // Pose3d turret = new Pose3d(
-        //     new Translation3d(-0.16,
-        //         0.19,
-        //         0.38),
-        //     new Rotation3d(rot));
-
-        // FUN DO NOT REMOVE!!!!!!!!!!!!!!!!!!!!!
-        // Pose3d turret = new Pose3d(
-        //     new Translation3d(Math.sin(-Timer.getTimestamp()-100)*0.1, Math.cos(-Timer.getTimestamp()-100)*-0.1, Math.tan(Timer.getTimestamp()-100)*0.1),
-        //     //new Rotation3d(rot)
-        //     rot);
-
-        // Pose3d hood = new Pose3d(
-        //     new Translation3d(-0.16,
-        //         0.275,
-        //         0.455),
-        //     hoodRot);
-
-        //ex: 0.13
-        //ret: -0.15
-
-        double retracted = -0.15;
-        double extended = 0.13;
-        double extension = 0;
-        
-        // Pose3d intake = new Pose3d(
-        //     new Translation3d(extension * ((extended-retracted)/1) + retracted,
-        //         0,
-        //         0.31 + -extension*((extended-retracted)/1) * Math.tan(Math.toRadians(-15.133))),
-        //     new Rotation3d(0, Math.toRadians(15.133), 0));
-        // zeroedComponentPoses.set(new Pose3d[] {new Pose3d(), new Pose3d(), new Pose3d()});
-        // finalComponentPoses.set(new Pose3d[] {turret, hood, intake});
-        //m_intakePublisher(Subsystems.m_intakeExtension.)
-        
-
-
+    /**
+     * Poses of the moving parts for the AdvantageScope 3D model (robot asset "2102 2026 Offseason"):
+     * turret, hood, intake, in that order, relative to the robot. Sub-projects 2 and 3 fill in the
+     * real mechanism positions; until then each part sits at its zero position.
+     */
+    private Pose3d[] componentPoses() {
+        Pose3d turret = new Pose3d(-0.16, 0.19, 0.38, Rotation3d.ZERO);
+        Pose3d hood = new Pose3d(-0.16, 0.275, 0.455, Rotation3d.ZERO);
+        Pose3d intake = new Pose3d(-0.15, 0, 0.31, new Rotation3d(0, Math.toRadians(15.133), 0));
+        return new Pose3d[] {turret, hood, intake};
     }
 
     @Override
-    public void disabledInit() {}
-
-    @Override
-    public void disabledPeriodic() {}
-
-    @Override
-    public void disabledExit() {}
-
-    @Override
     public void autonomousInit() {
-        // Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(Units.degreesToRadians(SwerveSubsystem.isRedAlliance() ? 0 : 180))));
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-
         if (m_autonomousCommand != null) {
             CommandScheduler.getInstance().schedule(m_autonomousCommand);
         }
     }
 
     @Override
-    public void autonomousExit() {
-        CommandScheduler.getInstance().cancel(m_autonomousCommand);
+    public void teleopInit() {
+        // In a match the robot goes through disabled, which ends the auto. In practice it can go
+        // straight from auto to teleop, so stop the auto here too.
+        if (m_autonomousCommand != null) {
+            CommandScheduler.getInstance().cancel(m_autonomousCommand);
+        }
     }
-    
+
     @Override
-    public void simulationPeriodic() {}
+    public void simulationInit() {
+        if ("1".equals(System.getenv("SIM_SMOKE"))) {
+            m_smokeTest = new SimSmokeTest(m_robotContainer, Subsystems.m_drive);
+        }
+    }
+
+    @Override
+    public void simulationPeriodic() {
+        if (m_smokeTest != null) {
+            m_smokeTest.periodic();
+        }
+    }
 }

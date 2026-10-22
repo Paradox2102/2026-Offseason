@@ -30,7 +30,7 @@ import org.wpilib.util.Alert.Level;
 import frc.robot.Robot;
 import frc.robot.lib.util.AlertPublisher;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.drive.SwerveSubsystem;
+import frc.robot.subsystems.drive.Drive;
 
 /**
  * Live health checks for the swerve drive. HealthMonitor creates one and calls {@link #periodic()}
@@ -363,7 +363,7 @@ public final class SwerveHealth {
      *
      * <p>Put the robot on carpet with about 1 m of space around it, and enable.
      */
-    public static Command clockingSelfTest(SwerveSubsystem drive) {
+    public static Command clockingSelfTest(Drive drive) {
         final double k_rate = 1.0; // rad/s, slow, so the test is safe in the pit
         SwerveRequest.RobotCentric spin = new SwerveRequest.RobotCentric(); // no deadband
         SelfTestState test = new SelfTestState(drive.getModules().length);
@@ -382,7 +382,7 @@ public final class SwerveHealth {
     }
 
     /** Point every wheel straight ahead, for a quick visual check that the modules are clocked right. */
-    public static Command wheelsForward(SwerveSubsystem drive) {
+    public static Command wheelsForward(Drive drive) {
         SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt().withModuleDirection(Rotation2d.ZERO);
         return Commands.run(() -> drive.setControl(point), drive)
             .finallyDo(() -> drive.setControl(new SwerveRequest.RobotCentric()))

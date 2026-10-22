@@ -25,7 +25,7 @@ import frc.robot.constants.CanIds;
 import frc.robot.constants.FieldConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
-import frc.robot.subsystems.drive.SwerveSubsystem;
+import frc.robot.subsystems.drive.Drive;
 import frc.robot.utils.DoubleNumber;
 import frc.robot.utils.ParadoxTalon;
 
@@ -60,9 +60,9 @@ public class TurretAimSubsystem extends SubsystemBase{
     }
 
     private double getTargetRotation(){ 
-        Pose3d hubPose = new Pose3d(Subsystems.m_swerveSubsystem.getSotmHubAimPos()).plus(new Transform3d(ShooterConstants.k_turretOffset, new Rotation3d(0, 0, Subsystems.m_swerveSubsystem.getSotmHubAimPos().getRotation().getRadians())));
+        Pose3d hubPose = new Pose3d(Subsystems.m_drive.getPose()).plus(new Transform3d(ShooterConstants.k_turretOffset, new Rotation3d(0, 0, Subsystems.m_drive.getPose().getRotation().getRadians())));
 
-        var rotationTriangle = new Translation2d(hubPose.getX() - (SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub.getX() : FieldConstants.k_blueHub.getX()), (hubPose.getY() - (SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub.getY() : FieldConstants.k_blueHub.getY())));
+        var rotationTriangle = new Translation2d(hubPose.getX() - (Drive.isRedAlliance() ? FieldConstants.k_redHub.getX() : FieldConstants.k_blueHub.getX()), (hubPose.getY() - (Drive.isRedAlliance() ? FieldConstants.k_redHub.getY() : FieldConstants.k_blueHub.getY())));
         
         var targetRotation = Math.atan2(rotationTriangle.getY(), rotationTriangle.getX());
         double bestRotation = targetRotation;
