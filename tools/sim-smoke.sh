@@ -15,6 +15,8 @@
 # structures), the odometry estimate as a green ghost ("RobotPose"), and the balls ("Sim/Fuel" as
 # Fuel game pieces; the field's own staged balls hide once a game piece source is there). The fuel
 # resets at auto start (Elastic Tuning tab: "Sim: Reset Fuel").
+# The "Trench guard" tab graphs the intake position (left axis), the hood angle (right axis) and
+# "Near Trench" (stripes): watch the teleop trench run at the end of the script.
 # SIM_SMOKE_ALLIANCE=red runs the auto as red (the auto checks are then given in the blue frame).
 set -u
 cd "$(dirname "$0")/.."

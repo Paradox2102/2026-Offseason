@@ -145,6 +145,61 @@
               "controllerUUID": "04qtyn6wo2pdsb8m24crrmfpxsw53kz8",
               "renderer": null,
               "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Trench guard",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/Telemetry/Intake/Rack/Position m",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/Telemetry/Shooter/Hood/Position deg",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#3b875a"
+                    }
+                  }
+                ],
+                "discreteSources": [
+                  {
+                    "type": "stripes",
+                    "logKey": "NT:/Telemetry/Shooter/Near Trench",
+                    "logType": "Boolean",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b"
+                    }
+                  }
+                ],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "rightUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "leftFilter": 0,
+                "rightFilter": 0,
+                "showRobotMode": true
+              },
+              "controllerUUID": "l4n871bynwq8bsav9i1bavgj5piwby2u",
+              "renderer": null,
+              "controlsHeight": 200
             }
           ]
         }
