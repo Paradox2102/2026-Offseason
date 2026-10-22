@@ -73,6 +73,9 @@ public class SimSmokeTest {
     private double m_autoMinPartXMax = Double.NEGATIVE_INFINITY;
     private double m_autoMaxPartY = Double.NEGATIVE_INFINITY;
     private String m_autoMaxPartXAt = "";
+    private boolean m_autoWasInZone = true;
+    private double m_autoStopTime = Double.NaN;
+    private final java.util.List<String> m_autoReturns = new java.util.ArrayList<>();
     private String m_autoMaxPartYAt = "";
     private double m_hoodBeforeTrench = Double.NaN;
     private double m_rackBeforeTrench = Double.NaN;
@@ -200,6 +203,26 @@ public class SimSmokeTest {
         if (m_step == 5 && m_autoStartReported) {
             if (m_container.getFeeder().isFeeding()) {
                 m_autoFeedTime += 0.020;
+            }
+            // Back into our zone: is the turret already on the hub, and how long after the robot
+            // stops does the first ball go?
+            var sup = m_container.getSuperstructure();
+            boolean inZone = pose.getX() < FieldConstants.k_blueZoneTransition;
+            if (inZone && !m_autoWasInZone) {
+                m_autoReturns.add(String.format("entered the zone at t %.1f s, turret %.0f deg off the hub", t - 21,
+                    (sup.getShot().turretAimRot() - m_container.getTurret().getPosition()) * 360));
+                m_autoStopTime = Double.NaN;
+            }
+            m_autoWasInZone = inZone;
+            double speedNow = Math.hypot(m_drive.getFieldVelocity().vx, m_drive.getFieldVelocity().vy);
+            if (inZone && Double.isNaN(m_autoStopTime) && speedNow < 0.15 && !m_autoReturns.isEmpty()) {
+                m_autoStopTime = t;
+            }
+            if (inZone && !Double.isNaN(m_autoStopTime) && m_container.getFeeder().isFeeding()
+                    && !m_autoReturns.isEmpty() && !m_autoReturns.get(m_autoReturns.size() - 1).contains("first ball")) {
+                int last = m_autoReturns.size() - 1;
+                m_autoReturns.set(last, m_autoReturns.get(last) + String.format(", stopped at t %.1f s, first ball %.2f s after the stop",
+                    m_autoStopTime - 21, t - m_autoStopTime));
             }
             // Over the bump: how high and how steep, and how far odometry runs from the truth.
             var truth3d = m_drive.getSim().truthPose3d();
@@ -376,6 +399,9 @@ public class SimSmokeTest {
                 m_leadSum / m_leadTime, m_leadMax, m_leadTime);
             System.out.println("SMOKE auto intake leading worst at " + m_leadMaxAt);
             printFuel("auto");
+            for (int i = 0; i < m_autoReturns.size(); i++) {
+                System.out.println("SMOKE auto return " + (i + 1) + ": " + m_autoReturns.get(i));
+            }
             System.out.printf("SMOKE auto bump: highest z %.3f m, steepest pitch %.1f deg, odometry off the truth by up to %.2f m%n",
                 m_autoMaxZ, m_autoMaxPitchDeg, m_autoMaxTruthError);
             System.out.printf("SMOKE auto center lines: farthest part at x %.2f, nearest part at most x %.2f"

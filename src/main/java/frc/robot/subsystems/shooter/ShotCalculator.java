@@ -60,14 +60,32 @@ public class ShotCalculator {
     }
 
     /**
+     * True if the robot is in our zone now, or will be within {@code lookahead} seconds at its
+     * present velocity: on the way home the shot is set up for the hub before the robot gets there.
+     */
+    public static boolean inOurZoneSoon(Pose2d robot, ChassisVelocities fieldVelocity, boolean red, double lookahead) {
+        var ahead = new Pose2d(robot.getX() + fieldVelocity.vx * lookahead, robot.getY() + fieldVelocity.vy * lookahead,
+            robot.getRotation());
+        return inOurZone(robot, red) || inOurZone(ahead, red);
+    }
+
+    /** The shot for where the robot is now (no look ahead). */
+    public Shot calculate(Pose2d robot, ChassisVelocities fieldVelocity, double omega, boolean red, double currentTurretRot) {
+        return calculate(robot, fieldVelocity, omega, red, currentTurretRot, 0);
+    }
+
+    /**
      * @param robot robot pose on the field
      * @param fieldVelocity robot velocity in the field frame
      * @param omega robot turn rate, rad/s
      * @param red our alliance is red (false also when not known)
      * @param currentTurretRot where the turret is now, rotations (to pick which way round)
+     * @param zoneLookahead pick the hub if the robot will be in our zone this many seconds ahead
+     *     (0 = only if it is in now). The aim itself is always from where the robot is now.
      */
-    public Shot calculate(Pose2d robot, ChassisVelocities fieldVelocity, double omega, boolean red, double currentTurretRot) {
-        boolean scoring = inOurZone(robot, red);
+    public Shot calculate(Pose2d robot, ChassisVelocities fieldVelocity, double omega, boolean red, double currentTurretRot,
+                          double zoneLookahead) {
+        boolean scoring = inOurZoneSoon(robot, fieldVelocity, red, zoneLookahead);
         Translation2d target;
         if (scoring) {
             target = FieldConstants.hub(red);

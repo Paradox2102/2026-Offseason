@@ -57,6 +57,19 @@ class ShotCalculatorTest {
     }
 
     @Test
+    void drivingHomeAimsAtTheHubBeforeTheZone() {
+        // 1 m outside our zone, driving home at 2 m/s: in the zone within 0.5 s.
+        var robot = new Pose2d(FieldConstants.k_blueZoneTransition + 1.0, 2.5, Rotation2d.ZERO);
+        var home = new ChassisVelocities(-2.0, 0, 0);
+        assertFalse(m_calc.calculate(robot, home, 0, false, 0, 0).scoring(), "no look ahead: still a pass");
+        var shot = m_calc.calculate(robot, home, 0, false, 0, 1.0);
+        assertTrue(shot.scoring());
+        assertEquals(FieldConstants.hub(false), shot.target());
+        assertFalse(m_calc.calculate(robot, new ChassisVelocities(2.0, 0, 0), 0, false, 0, 1.0).scoring(),
+            "driving away from home: still a pass");
+    }
+
+    @Test
     void redRobotAimsAtTheRedHub() {
         var shot = m_calc.calculate(new Pose2d(14.0, 4.0, Rotation2d.k180deg), kStill, 0, true, 0);
         assertTrue(shot.scoring());

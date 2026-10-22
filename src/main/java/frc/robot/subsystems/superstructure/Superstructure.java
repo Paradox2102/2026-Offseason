@@ -47,6 +47,13 @@ public class Superstructure extends SubsystemBase {
     private static final double kKeepFeedingSpeedFraction = 0.85;
     private static final double kKeepFeedingTurretDeg = 3.0;
     private static final double kKeepFeedingHoodDeg = 2.0;
+    /**
+     * Until the driver shoots, set the shot up for where the robot will be this far ahead, seconds:
+     * on the way home the turret turns to the hub (and the hood and flywheel get its shot) before
+     * the robot reaches the zone, so it can shoot as soon as it stops. While shooting, the target
+     * is from where the robot is now, so a pass from the neutral zone still goes to the pass target.
+     */
+    private static final double kZoneLookahead = 1.0;
     /** The hood counts as down (fits under a trench) below this, degrees. */
     private static final double kHoodDownDeg = 1.0;
 
@@ -86,7 +93,8 @@ public class Superstructure extends SubsystemBase {
 
     private Shot compute() {
         return m_calculator.calculate(m_drive.getPose(), m_drive.getFieldVelocity(),
-            m_drive.getRobotVelocity().omega, Drive.isRedAlliance(), m_turret.getPosition());
+            m_drive.getRobotVelocity().omega, Drive.isRedAlliance(), m_turret.getPosition(),
+            m_shooting ? 0 : kZoneLookahead);
     }
 
     @Override
@@ -123,9 +131,13 @@ public class Superstructure extends SubsystemBase {
         return m_nearTrench ? 0 : m_shot.hoodDeg();
     }
 
-    /** The shot may go: not near a trench, and the intake fully out (we cannot shoot with it in). */
+    /**
+     * The shot may go: not near a trench, the intake fully out (we cannot shoot with it in), and a
+     * shot at the hub only from inside our zone (the look ahead aims at it a little early).
+     */
     private boolean allowed() {
-        return !m_nearTrench && m_intakeRack.isExtended();
+        boolean inZoneForHub = !m_shot.scoring() || ShotCalculator.inOurZone(m_drive.getPose(), Drive.isRedAlliance());
+        return !m_nearTrench && m_intakeRack.isExtended() && inZoneForHub;
     }
 
     /**

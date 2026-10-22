@@ -642,3 +642,19 @@ fine); stay off the long center line, where our partner's auto runs.
   0.5 s after the trench exit while the robot turns (mean 46 degrees off the travel direction while
   collecting, from x 6.4).
 - `Path.flip()` is deprecated in BLine beta.3: `setFlipped(red)`.
+
+### Aim on the way home (user, 2026-10-22)
+
+User: in the auto the turret waited until the robot was in place to turn to the target; it must
+be aimed while the robot drives back into our zone, so it can shoot as soon as possible.
+
+- Cause: outside our zone the shot target is a pass target (the outpost or depot), so on the way
+  home the turret pointed there and swung about 120 degrees once the robot crossed into the zone.
+- `ShotCalculator.calculate(..., zoneLookahead)`: the hub is the target if the robot is in our
+  zone now or will be within the look ahead at its velocity (tested). The superstructure uses 1.0 s
+  until the driver shoots, 0 while shooting (so a pass from the neutral zone still passes), and
+  feeds a hub shot only from inside the zone.
+- Sim (blue/red): turret 0-3 degrees off the hub when the robot enters the zone (was 119-125);
+  first ball 0.04-0.24 s after the robot stops (was 0.24-0.26).
+- Also: the smoke test's opening teleop steps now stand still in the blue zone (they drove over
+  the bump, into the fuel and across the center line before the auto).
