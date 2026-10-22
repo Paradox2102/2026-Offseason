@@ -44,11 +44,12 @@ public class TunerConstants {
     // routine drives in amps, so its results go here unchanged):
     // X60 FOC torque constant 0.0194 Nm/A, ratio 7.36, wheel radius 0.055 m, robot about 60 kg:
     // kP 3 A per rotor rps means 0.5 m/s of error (10.6 rotor rps) gives 32 A per wheel, about
-    // 5 m/s^2. kS 2 A covers friction. kV is about 0, because at a steady speed the motor only
-    // needs current to beat friction.
+    // 5 m/s^2. kS 8 A covers friction: with 2 A, a slow turn (BLine's last few degrees) could
+    // not beat the sim's drive friction (0.2 V = about 8 A in torque mode) and an auto stalled.
+    // kV is about 0, because at a steady speed the motor only needs current to beat friction.
     private static final Slot0Configs driveGains = new Slot0Configs()
         .withKP(3.0).withKI(0).withKD(0)
-        .withKS(2.0).withKV(0.0);
+        .withKS(8.0).withKV(0.0);
 
     // The closed-loop output type to use for the steer motors;
     // This affects the PID/FF gains for the steer motors

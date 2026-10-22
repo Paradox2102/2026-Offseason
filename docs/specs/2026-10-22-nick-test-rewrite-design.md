@@ -488,3 +488,39 @@ code: +-250 degrees from the jig), shot speeds and hood angles per distance, tim
 - The AdvantageScope model was rebuilt from this export (it was built from the 2026-10-08 export:
   old belt motors and camera mounts). The model shows the intake OUT; `Final Poses` slides it back
   along the slope.
+
+---
+
+## Sub-project 4: autos
+
+### Decisions (user, 2026-10-22)
+
+- First routine: **Right double sweep** (the students' RightDoubleSwipe, blue frame; BLine turns it
+  180 degrees for red).
+- Start on a real start pose: (3.51, 2.66) m, heading 0 (intake toward the neutral zone), the
+  students' start point. Every routine resets the pose to its first waypoint.
+- No ball sensor: a `shoot` event feeds for a set time (`Auto/Shoot Time s`, start 2.5 s).
+
+### Routine: "Right trench + bump x2" (user, 2026-10-22)
+
+The user changed the route while it was built: under the trench with the intake down, intake,
+back over the bump and shoot; out over the bump, a tighter sweep, back over the bump, shoot the
+last hopper until auto ends. (It replaces the students' four-path RightDoubleSwipe, which did not
+fit in 20 s.)
+
+| Step | Path / command | Notes |
+|---|---|---|
+| 1 | `right-trench-1` | start (3.51, 2.66) heading 0; `intake` at once (out = lower, to fit under the trench); curve down to the trench line y 0.70, through the trench (3.0 m/s), sweep the center line (x 7.70), back over the right bump (2.0 m/s) to (3.40, 2.55); `prepare` on the bump |
+| 2 | stop and shoot | for `Auto/Shoot Time s` (2.5) |
+| 3 | `right-trench-2` | out over the bump, tighter sweep (x 7.20-7.65, y 1.95-3.20), back over the bump; `prepare` |
+| 4 | shoot | until auto ends |
+
+- `prepare` = flywheel to speed and hood up, no feed, so the shot is ready when the robot stops.
+- The robot stops to shoot: shoot-on-the-move is off until time of flight is measured.
+- Segments that end in a sharp corner are slow (2.0-2.5 m/s): at 4 m/s BLine ran 1.1 m past a
+  corner (over the center line) and 0.5 m past the trench line (into the wall) in the sim.
+- Found in the sim: BLine rotation P 1.0 turned 180 degrees in ~5 s (now 3.0); drive kS 2 A could
+  not beat friction on a slow turn (now 8 A), so a path never finished.
+
+- Sim check (smoke test): start pose, intake out at the trench entry, lowest y and highest x
+  (wall and center line), shots and feed time.

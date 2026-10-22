@@ -131,6 +131,12 @@ public class Robot extends TimedRobot {
     }
 
     @Override
+    public void autonomousExit() {
+        // Commands started by path events (intake, shoot) outlive their path: stop them too.
+        m_robotContainer.cancelAutoEvents();
+    }
+
+    @Override
     public void teleopInit() {
         // In a match the robot goes through disabled, which ends the auto. In practice it can go
         // straight from auto to teleop, so stop the auto here too.

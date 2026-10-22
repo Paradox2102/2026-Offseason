@@ -65,7 +65,7 @@ public class RobotContainer {
     private final Feeder m_feeder = new Feeder();
     private final Superstructure m_superstructure =
         new Superstructure(m_drive, m_turret, m_hood, m_flywheel, m_feeder, m_intakeRoller);
-    private final AutoRoutines m_autos = new AutoRoutines(m_drive);
+    private final AutoRoutines m_autos = new AutoRoutines(m_drive, m_intakeRack, m_intakeRoller, m_superstructure);
 
     /** Fallback for the first robot test of the closed-loop drive gains. */
     private final TunableBoolean m_openLoopTeleop = Tunables.addBoolean("Drive/Open loop teleop", false);
@@ -144,8 +144,18 @@ public class RobotContainer {
         }
     }
 
+    /** Stop the auto's event commands (intake, shoot). */
+    public void cancelAutoEvents() {
+        m_autos.cancelEvents();
+    }
+
+    public AutoRoutines getAutos() {
+        return m_autos;
+    }
+
     /** Call every loop. */
     public void periodic() {
+        m_autos.periodic();
         Telemetry.log("Drive/SysId Routine", m_sysIdRoutine.name());
     }
 

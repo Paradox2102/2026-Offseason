@@ -43,6 +43,13 @@ public class SimSmokeTest {
     private double m_secondExtendTime = Double.NaN;
     private boolean m_hitDone = false;
     private boolean m_blockReported = false;
+    private boolean m_autoStartReported = false;
+    private boolean m_trenchReported = false;
+    private double m_autoMinY = Double.POSITIVE_INFINITY;
+    private double m_autoMaxX = Double.NEGATIVE_INFINITY;
+    private double m_autoMinYX = Double.NaN;
+    private double m_autoMinYT = Double.NaN;
+    private double m_autoFeedTime = 0;
     private double m_readyTime = Double.NaN;
     private boolean m_fed = false;
     private double m_lastFlywheel = 0;
@@ -50,7 +57,7 @@ public class SimSmokeTest {
     public SimSmokeTest(RobotContainer container, Drive drive) {
         m_container = container;
         m_drive = drive;
-        m_container.selectAuto("B-Line Test (shop only, no tags)");
+        m_container.selectAuto("Right trench + bump x2");
         // Start in the blue zone, where the cameras can see tags.
         m_drive.resetPose(new Pose2d(3.0, 2.0, Rotation2d.ZERO));
         DriverStationSim.setAllianceStationId(AllianceStationID.BLUE_1);
@@ -89,21 +96,21 @@ public class SimSmokeTest {
             step(13, "teleop: shoot from (2.5, 3.0) in the blue zone", RobotMode.TELEOPERATED, true);
         } else if (t < 21) {
             step(4, "disabled", RobotMode.TELEOPERATED, false);
-        } else if (t < 33) {
-            step(5, "auto: B-Line Test", RobotMode.AUTONOMOUS, true);
-        } else if (t < 34) {
-            step(6, "disabled, kick pose", RobotMode.AUTONOMOUS, false);
         } else if (t < 41) {
+            step(5, "auto: Right trench + bump x2 (20 s)", RobotMode.AUTONOMOUS, true);
+        } else if (t < 42) {
+            step(6, "disabled, kick pose", RobotMode.AUTONOMOUS, false);
+        } else if (t < 49) {
             step(7, "disabled, vision corrects", RobotMode.AUTONOMOUS, false);
         } else if (m_step != 99) {
             step(99, "script done", RobotMode.TELEOPERATED, false);
             report("end");
             writeTopicList();
-            if (t >= 41 + kStaySeconds) {
+            if (t >= 49 + kStaySeconds) {
                 System.exit(0);
             }
             System.out.println("SMOKE staying up for " + kStaySeconds + " s (SIM_SMOKE_STAY) for AdvantageScope");
-        } else if (t >= 41 + kStaySeconds) {
+        } else if (t >= 49 + kStaySeconds) {
             System.exit(0);
         }
         // The scheduler drops a command scheduled while disabled, so wait for the enable.
@@ -128,6 +135,28 @@ public class SimSmokeTest {
             }
             m_fed |= m_container.getFeeder().isFeeding();
             m_lastFlywheel = m_container.getFlywheel().getSpeed();
+        }
+        // The rack must be out (lower) before the robot reaches the trench.
+        var pose = m_drive.getPose();
+        if (m_step == 5) {
+            if (m_container.getFeeder().isFeeding()) {
+                m_autoFeedTime += 0.020;
+            }
+            if (pose.getY() < m_autoMinY) {
+                m_autoMinY = pose.getY();
+                m_autoMinYX = pose.getX();
+                m_autoMinYT = t - 21;
+            }
+            m_autoMaxX = Math.max(m_autoMaxX, pose.getX());
+        }
+        if (m_step == 5 && !m_trenchReported && pose.getY() < 1.0 && pose.getX() > 3.6) {
+            m_trenchReported = true;
+            System.out.printf("SMOKE auto trench entry at t=%.1f: intake %.0f %% out%n", t - 21,
+                100 * m_container.getIntakeRack().getExtensionFraction());
+        }
+        if (m_step == 5 && !m_autoStartReported && t > 21.1) {
+            m_autoStartReported = true;
+            System.out.println("SMOKE auto start pose: " + m_drive.getPose());
         }
         if (m_step == 12 && !m_blockReported && t > 12.8) {
             m_blockReported = true;
@@ -200,6 +229,10 @@ public class SimSmokeTest {
                 m_headingAtRelease, m_drive.getHeading().getDegrees());
         }
         if (step == 6) {
+            System.out.println("SMOKE auto: " + m_container.getAutos().status());
+            System.out.printf("SMOKE auto bounds: lowest y %.2f m (wall 0) at x %.2f, t %.1f s; highest x %.2f m (center line 8.27)%n",
+                m_autoMinY, m_autoMinYX, m_autoMinYT, m_autoMaxX);
+            System.out.printf("SMOKE auto feed time %.1f s%n", m_autoFeedTime);
             m_drive.getSim().kickPose();
             report("after kick");
         }

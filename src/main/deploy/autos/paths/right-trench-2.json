@@ -1,0 +1,107 @@
+{
+  "path_elements": [
+    {
+      "type": "translation",
+      "x_meters": 3.4,
+      "y_meters": 2.55,
+      "intermediate_handoff_radius_meters": 0.3
+    },
+    {
+      "type": "translation",
+      "x_meters": 5.7,
+      "y_meters": 2.45,
+      "intermediate_handoff_radius_meters": 0.4
+    },
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 7.2,
+        "y_meters": 1.95,
+        "intermediate_handoff_radius_meters": 0.4
+      },
+      "rotation_target": {
+        "rotation_radians": 0.0,
+        "profiled_rotation": true
+      }
+    },
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 7.65,
+        "y_meters": 2.4,
+        "intermediate_handoff_radius_meters": 0.4
+      },
+      "rotation_target": {
+        "rotation_radians": 0.0,
+        "profiled_rotation": true
+      }
+    },
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 7.65,
+        "y_meters": 3.2,
+        "intermediate_handoff_radius_meters": 0.4
+      },
+      "rotation_target": {
+        "rotation_radians": 0.0,
+        "profiled_rotation": true
+      }
+    },
+    {
+      "type": "translation",
+      "x_meters": 5.7,
+      "y_meters": 2.6,
+      "intermediate_handoff_radius_meters": 0.4
+    },
+    {
+      "type": "event_trigger",
+      "lib_key": "prepare",
+      "t_ratio": 0.3
+    },
+    {
+      "type": "translation",
+      "x_meters": 3.4,
+      "y_meters": 2.6,
+      "intermediate_handoff_radius_meters": 0.4
+    }
+  ],
+  "constraints": {
+    "max_velocity_meters_per_sec": [
+      {
+        "value": 2.0,
+        "start_ordinal": 1,
+        "end_ordinal": 1
+      },
+      {
+        "value": 2.0,
+        "start_ordinal": 2,
+        "end_ordinal": 4
+      },
+      {
+        "value": 3.0,
+        "start_ordinal": 5,
+        "end_ordinal": 5
+      },
+      {
+        "value": 2.0,
+        "start_ordinal": 6,
+        "end_ordinal": 6
+      },
+      {
+        "value": 4.0,
+        "start_ordinal": 0,
+        "end_ordinal": 6
+      }
+    ],
+    "max_acceleration_meters_per_sec2": [
+      {
+        "value": 6.0,
+        "start_ordinal": 0,
+        "end_ordinal": 6
+      }
+    ],
+    "end_translation_tolerance_meters": 0.05,
+    "end_rotation_tolerance_deg": 3.0
+  }
+}

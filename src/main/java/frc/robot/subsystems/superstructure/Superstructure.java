@@ -114,6 +114,16 @@ public class Superstructure extends SubsystemBase {
             m_feeder.feedWhen(this::feedGate)).finallyDo(() -> m_feeding = false).withName("Shoot");
     }
 
+    /**
+     * Spin up and raise the hood for the shot, but do not feed. Used on the way to a shot spot,
+     * so the shot is ready when the robot stops. A shoot() that follows takes over.
+     */
+    public Command prepare() {
+        return Commands.parallel(
+            m_flywheel.spin(() -> m_shot.flywheelRps()),
+            m_hood.aim(() -> m_shot.hoodDeg())).withName("Prepare Shot");
+    }
+
     /** Hold to eject: the feed path and the intake rollers run out. */
     public Command eject() {
         return Commands.parallel(m_feeder.eject(), m_intakeRoller.runOut()).withName("Eject");
