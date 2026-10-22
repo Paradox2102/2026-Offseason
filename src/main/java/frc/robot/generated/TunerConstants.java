@@ -40,7 +40,8 @@ public class TunerConstants {
     // The drive uses TorqueCurrentFOC (Pro): the gains are in AMPS, not volts. Current makes
     // torque, so the same error gives the same push at 12.5 V or at 10 V, and the slip current
     // below caps the torque (traction control).
-    // Start values (2026-10-22), to replace with SysId (Tuning tab, "Translation" routine):
+    // Start values (2026-10-22), to replace with SysId (Tuning tab, "Translation" routine; that
+    // routine drives in amps, so its results go here unchanged):
     // X60 FOC torque constant 0.0194 Nm/A, ratio 7.36, wheel radius 0.055 m, robot about 60 kg:
     // kP 3 A per rotor rps means 0.5 m/s of error (10.6 rotor rps) gives 32 A per wheel, about
     // 5 m/s^2. kS 2 A covers friction. kV is about 0, because at a steady speed the motor only
@@ -67,6 +68,10 @@ public class TunerConstants {
 
     // The stator current at which the wheels start to slip;
     // This needs to be tuned to your individual robot
+    // With TorqueCurrentFOC this is the real torque limit of each drive motor, both directions.
+    // To measure: put the robot against a wall, raise the drive current slowly (Tuner X, Torque
+    // Current FOC) and watch the wheel speed; the current where the wheel starts to spin is the
+    // slip current. 110 A is the old guess, not a measurement.
     private static final Current kSlipCurrent = Amps.of(110);
 
     // Initial configs for the drive and steer motors and the azimuth encoder; these cannot be null.
@@ -96,7 +101,8 @@ public class TunerConstants {
     // All swerve devices must share the same CAN bus
     public static final CANBus kCANBus = CanIds.k_canBus2;
 
-    // Measured robot speed (m/s) at 12 V applied output;
+    // Robot speed (m/s) at 12 V. 4.54 is the X60 FOC free speed (5800 rpm / 7.36 x wheel), not
+    // a measurement: drive straight at full output and read Drive/Speed mps (issue #8);
     // This is NOT the desired max robot speed - see DriveConstants.kMaxSpeed;
     // This needs to be tuned to your individual robot
     public static final LinearVelocity kSpeedAt12Volts = MetersPerSecond.of(4.54);

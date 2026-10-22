@@ -60,7 +60,14 @@ public class AutoRoutines {
             .withTelemetry(Telemetry.getTable("Auto/BLine"));
 
         m_chooser.addDefault("Do nothing", Commands.none().withName("Do nothing"));
-        add("B-Line Test", () -> follow("first-straight", true));
+        /*
+         * "first-straight" starts at the field corner (0, 0). With the pose reset, the robot
+         * thinks it is at the corner, which is right only in the shop with no tags in view. On a
+         * field the cameras correct the pose at once and BLine then drives to the real point
+         * (2.0, 0.8) near the blue corner, wherever the robot is. Make match paths in the BLine
+         * editor from the real start position.
+         */
+        add("B-Line Test (shop only, no tags)", () -> follow("first-straight", true));
 
         Tunables.publish("Auto Selection", m_chooser);
     }

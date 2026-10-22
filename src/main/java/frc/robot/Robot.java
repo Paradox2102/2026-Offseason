@@ -83,7 +83,8 @@ public class Robot extends TimedRobot {
     /**
      * Poses of the moving parts for the AdvantageScope 3D model (robot asset "2102 2026 Offseason"):
      * turret, hood, intake, in that order, relative to the robot. Sub-projects 2 and 3 fill in the
-     * real mechanism positions; until then each part sits at its zero position.
+     * real mechanism positions; until then each part sits at its zero position. The numbers are
+     * the students' poses from the old Robot.java, which match that AdvantageScope model.
      */
     private Pose3d[] componentPoses() {
         Pose3d turret = new Pose3d(-0.16, 0.19, 0.38, Rotation3d.ZERO);

@@ -13,6 +13,7 @@ import org.wpilib.command2.sysid.SysIdRoutine;
 import org.wpilib.driverstation.Alliance;
 import org.wpilib.driverstation.MatchState;
 import org.wpilib.driverstation.RobotState;
+import org.wpilib.framework.TimedRobot;
 import org.wpilib.math.filter.SlewRateLimiter;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
@@ -69,14 +70,20 @@ public class Drive extends TunerSwerveDrivetrain implements Subsystem {
     /** Which SysId test the Tuning buttons run. */
     public enum Routine { TRANSLATION, STEER, ROTATION }
 
+    /*
+     * Translation: the drive gains are in amps (TorqueCurrentFOC), so this test pushes with a
+     * current, not a voltage. SysId only knows "volts": here "volts" means amps and "volts per
+     * second" means amps per second. See SysIdSwerveTranslationTorque for the SysId tool setup.
+     */
+    private final SysIdSwerveTranslationTorque m_translationCharacterization = new SysIdSwerveTranslationTorque();
     private final SysIdRoutine m_sysIdTranslation = new SysIdRoutine(
         new SysIdRoutine.Config(
-            null, // default ramp rate 1 V/s
-            Volts.of(4), // dynamic step 4 V, not 7, to stay clear of a brownout
+            Volts.of(3).per(Second), // quasistatic: +3 A per second
+            Volts.of(20), // dynamic: a 20 A step (about 3.5 m/s^2 for a 60 kg robot)
             null, // default timeout 10 s
             state -> SignalLogger.writeString("SysIdTranslation_State", state.toString())),
         new SysIdRoutine.Mechanism(
-            output -> setControl(new SwerveRequest.SysIdSwerveTranslation().withVolts(output)), null, this));
+            output -> setControl(m_translationCharacterization.withAmps(output.in(Volts))), null, this));
 
     private final SysIdRoutine m_sysIdSteer = new SysIdRoutine(
         new SysIdRoutine.Config(
@@ -169,7 +176,13 @@ public class Drive extends TunerSwerveDrivetrain implements Subsystem {
 
     /** Closed-loop drive at a robot-relative speed. BLine uses this. */
     public void driveRobotRelative(ChassisVelocities velocity) {
-        setControl(m_robotVelocity.withVelocity(velocity));
+        /*
+         * Discretize: a robot that drives and turns at the same time, with the same speeds held
+         * for a whole loop, drifts sideways, because the "forward" direction turns during the loop.
+         * discretize() corrects the speeds for that. FieldCentric does it inside Phoenix;
+         * ApplyRobotVelocity does not, so we do it here (dt = one robot loop, 20 ms).
+         */
+        setControl(m_robotVelocity.withVelocity(velocity.discretize(TimedRobot.DEFAULT_PERIOD)));
     }
 
     /** Runs a request every loop while the command is scheduled. */
@@ -238,8 +251,14 @@ public class Drive extends TunerSwerveDrivetrain implements Subsystem {
                     for (int i = 0; i < 4; i++) {
                         wheelDelta += Math.abs(end[i] - startPositions[i]) / 4.0;
                     }
-                    double radius = gyroDelta[0] * DriveConstants.kDriveBaseRadius / wheelDelta;
                     var f = new DecimalFormat("#0.0000");
+                    if (gyroDelta[0] < Math.PI / 2 || wheelDelta < 1e-3) {
+                        // Stopped in the first second, or turned too little to measure well.
+                        System.out.println("Wheel radius test: too short (turned " + f.format(gyroDelta[0])
+                            + " rad). Run it for at least one full turn.");
+                        return;
+                    }
+                    double radius = gyroDelta[0] * DriveConstants.kDriveBaseRadius / wheelDelta;
                     System.out.println("********** Wheel Radius Characterization **********");
                     System.out.println("  Wheel delta: " + f.format(wheelDelta) + " rad");
                     System.out.println("  Gyro delta:  " + f.format(gyroDelta[0]) + " rad");

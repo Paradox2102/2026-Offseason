@@ -1,7 +1,10 @@
 package frc.robot.lib.phoenix;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
+import org.wpilib.util.Alert;
 import org.wpilib.util.Alert.Level;
 
 import com.ctre.phoenix6.StatusCode;
@@ -11,6 +14,8 @@ import frc.robot.lib.util.AlertPublisher;
 /** Small helpers for Phoenix 6 devices. */
 public final class PhoenixUtil {
     private static final int kTries = 5;
+    /** One alert per device name: making a second Alert with the same id throws. */
+    private static final Map<String, Alert> s_alerts = new HashMap<>();
 
     private PhoenixUtil() {}
 
@@ -31,12 +36,16 @@ public final class PhoenixUtil {
         for (int i = 0; i < kTries; i++) {
             status = apply.get();
             if (status.isOK()) {
+                var alert = s_alerts.get(name);
+                if (alert != null) {
+                    alert.set(false); // a later try (after a reboot) worked
+                }
                 return true;
             }
         }
-        AlertPublisher.create("Health", "config/" + name,
-            "Config failed on " + name + " (" + status.getName() + "): it runs with old settings",
-            Level.HIGH).set(true);
+        Alert alert = s_alerts.computeIfAbsent(name, n -> AlertPublisher.create("Health", "config/" + n, "", Level.HIGH));
+        alert.setText("Config failed on " + name + " (" + status.getName() + "): it runs with old settings");
+        alert.set(true);
         return false;
     }
 }

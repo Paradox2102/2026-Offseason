@@ -10,8 +10,11 @@ import frc.robot.generated.TunerConstants;
 public final class DriveConstants {
     private DriveConstants() {}
 
-    /** Full stick speed. Measured top speed at 12 V (re-measure with FOC on, issue #8). */
-    public static final double kMaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+    /**
+     * Full stick speed: 90 % of the free speed at 12 V. Closed loop cannot reach 100 %: under load
+     * and at 11 V the motors run out of voltage, and then a turn asked at full speed is lost.
+     */
+    public static final double kMaxSpeed = 0.9 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
     /** Full stick turn rate, rad/s. */
     public static final double kMaxAngularRate = RotationsPerSecond.of(1.85).in(RadiansPerSecond);
 

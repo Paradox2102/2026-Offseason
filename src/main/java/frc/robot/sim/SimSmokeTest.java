@@ -39,7 +39,7 @@ public class SimSmokeTest {
     public SimSmokeTest(RobotContainer container, Drive drive) {
         m_container = container;
         m_drive = drive;
-        m_container.selectAuto("B-Line Test");
+        m_container.selectAuto("B-Line Test (shop only, no tags)");
         // Start in the blue zone, where the cameras can see tags.
         m_drive.resetPose(new Pose2d(3.0, 2.0, Rotation2d.ZERO));
         DriverStationSim.setAllianceStationId(AllianceStationID.BLUE_1);

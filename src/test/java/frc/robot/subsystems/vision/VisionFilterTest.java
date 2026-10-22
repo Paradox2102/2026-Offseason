@@ -32,8 +32,9 @@ class VisionFilterTest {
 
     @Test
     void moreTagsAreTrustedMore() {
-        var two = evaluate(pose(3, 4, 0), 2, 2.0, 0);
-        var four = evaluate(pose(3, 4, 0), 4, 2.0, 0);
+        // 4 m: far enough that neither value is at the minimum.
+        var two = evaluate(pose(3, 4, 0), 2, 4.0, 0);
+        var four = evaluate(pose(3, 4, 0), 4, 4.0, 0);
         assertEquals(two.xyStdDev() / 2, four.xyStdDev(), 1e-9);
     }
 
@@ -42,6 +43,21 @@ class VisionFilterTest {
         var single = evaluate(pose(3, 4, 0), 1, 2.0, 0.05);
         assertTrue(single.accepted());
         assertTrue(single.thetaStdDev() >= 1e5, "one tag cannot give a good heading");
+    }
+
+    @Test
+    void multiTagHeadingFollowsTheTrustSwitch() {
+        var result = evaluate(pose(3, 4, 0), 3, 2.0, 0);
+        if (VisionFilter.kTrustVisionHeading) {
+            assertTrue(result.thetaStdDev() < 1);
+        } else {
+            assertTrue(result.thetaStdDev() >= 1e5, "heading must not be used until the cameras are checked");
+        }
+    }
+
+    @Test
+    void nearTagsStopAtTheMinimum() {
+        assertEquals(VisionFilter.kMinXyStdDev, evaluate(pose(3, 4, 0), 4, 0.5, 0).xyStdDev(), 1e-12);
     }
 
     @Test

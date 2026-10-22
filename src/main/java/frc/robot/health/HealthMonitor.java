@@ -326,6 +326,9 @@ public final class HealthMonitor {
                 m_faults.add(new StickyFault(talon.getStickyFault_BootDuringEnable(false), name + " rebooted while enabled", Level.HIGH));
                 m_faults.add(new StickyFault(talon.getStickyFault_BridgeBrownout(false), name + " motor output browned out", Level.MEDIUM));
                 m_faults.add(new StickyFault(talon.getStickyFault_DeviceTemp(false), name + " is too hot: let it cool, and check for binding", Level.MEDIUM));
+                // Pro control (TorqueCurrentFOC, the swerve drive) on a Talon with no Pro license:
+                // the Talon stays neutral. A replacement motor needs its license (issue #8).
+                m_faults.add(new StickyFault(talon.getStickyFault_UnlicensedFeatureInUse(false), name + " has no Pro license: it will not drive (add the license in Tuner X)", Level.HIGH));
             } else if (device instanceof CANcoder encoder) {
                 m_faults.add(new StickyFault(encoder.getStickyFault_BootDuringEnable(false), name + " rebooted while enabled", Level.HIGH));
             } else if (device instanceof Pigeon2 pigeon) {

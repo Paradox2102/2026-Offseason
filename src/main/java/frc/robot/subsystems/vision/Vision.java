@@ -8,6 +8,8 @@ import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.framework.RobotBase;
+import org.wpilib.math.filter.Debouncer;
+import org.wpilib.math.filter.Debouncer.DebounceType;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
@@ -34,6 +36,11 @@ public class Vision extends SubsystemBase {
     private final List<VisionCamera> m_cameras = new ArrayList<>();
     private VisionSystemSim m_sim = null;
     private int m_simResetCount = 0;
+    /*
+     * A camera at 30 fps sends no frame in many 20 ms loops, so "accepted this loop" blinks.
+     * Stay true for 0.2 s after the last accepted pose.
+     */
+    private final Debouncer m_hasTarget = new Debouncer(0.2, DebounceType.FALLING);
 
     public Vision(Drive drive) {
         m_drive = drive;
@@ -84,7 +91,7 @@ public class Vision extends SubsystemBase {
         Telemetry.log("Vision/Accepted Poses", accepted, Pose2d.struct);
         Telemetry.log("Vision/Rejected Poses", rejected, Pose2d.struct);
         Telemetry.log("Vision/Seen Tags", tags, Pose3d.struct);
-        Telemetry.log("Vision/Has Target", !accepted.isEmpty());
+        Telemetry.log("Vision/Has Target", m_hasTarget.calculate(!accepted.isEmpty()));
         var field = Telemetry.getTable("Field");
         field.log("Vision Accepted", accepted, Pose2d.struct);
         field.log("Vision Rejected", rejected, Pose2d.struct);

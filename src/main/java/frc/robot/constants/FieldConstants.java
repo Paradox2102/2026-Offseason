@@ -25,8 +25,13 @@ public final class FieldConstants {
         return red ? k_redHub : k_blueHub;
     }
 
+    /** Blue hub center (from the old code; check it against the field drawing). */
     public static final Translation2d k_blueHub = new Translation2d(4.62, 4.03);
-    public static final Translation2d k_redHub = new Translation2d(11.92, 4.03);
+    /**
+     * Red hub: the blue hub turned 180 degrees about the field center (the 2026 field is
+     * symmetric that way), so it fits whichever field layout kField is.
+     */
+    public static final Translation2d k_redHub = new Translation2d(kFieldLength - k_blueHub.getX(), kFieldWidth - k_blueHub.getY());
 
     public static Translation2d k_blueOutpost = new Translation2d(1, 1);
     public static Translation2d k_blueDepot = new Translation2d(1, 7);
