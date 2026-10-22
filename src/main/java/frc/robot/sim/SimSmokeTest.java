@@ -27,6 +27,8 @@ import frc.robot.subsystems.drive.Drive;
 public class SimSmokeTest {
     /** SIM_SMOKE_ALLIANCE=red: run the auto as red (teleop and the shooting step stay blue). */
     private static final boolean kRedAuto = "red".equalsIgnoreCase(System.getenv("SIM_SMOKE_ALLIANCE"));
+    /** SIM_SMOKE_AUTO=left runs the left trench auto; its checks are mirrored onto the right side. */
+    private static final boolean kLeftAuto = "left".equalsIgnoreCase(System.getenv("SIM_SMOKE_AUTO"));
     /** SIM_SMOKE_STAY=<seconds>: keep the sim running after the script, to look at it in AdvantageScope. */
     private static final double kStaySeconds = parseStay();
     /** The script ends here; then it stays up kStaySeconds. */
@@ -95,7 +97,7 @@ public class SimSmokeTest {
     public SimSmokeTest(RobotContainer container, Drive drive) {
         m_container = container;
         m_drive = drive;
-        m_container.selectAuto("Right trench + bump x2");
+        m_container.selectAuto(kLeftAuto ? "Left trench + bump x2" : "Right trench + bump x2");
         // Start in the blue zone, where the cameras can see tags.
         m_drive.resetPose(new Pose2d(3.0, 2.0, Rotation2d.ZERO));
         DriverStationSim.setAllianceStationId(AllianceStationID.BLUE_1);
@@ -138,7 +140,7 @@ public class SimSmokeTest {
                 DriverStationSim.setAllianceStationId(AllianceStationID.RED_1);
             }
         } else if (t < 41) {
-            step(5, "auto: Right trench + bump x2 (20 s)", RobotMode.AUTONOMOUS, true);
+            step(5, "auto: " + (kLeftAuto ? "Left" : "Right") + " trench + bump x2 (20 s)", RobotMode.AUTONOMOUS, true);
         } else if (t < 42) {
             step(6, "disabled, kick pose", RobotMode.AUTONOMOUS, false);
         } else if (t < 49) {
@@ -284,7 +286,7 @@ public class SimSmokeTest {
             var v = m_drive.getFieldVelocity();
             double speed = Math.hypot(v.vx, v.vy);
             double vxBlue = kRedAuto ? -v.vx : v.vx;
-            double vyBlue = kRedAuto ? -v.vy : v.vy;
+            double vyBlue = (kRedAuto ? -v.vy : v.vy) * (kLeftAuto ? -1 : 1);
             // Only the collecting part: after the turn at the trench exit (it backs out of the
             // trench, intake trailing, on purpose) and along the center line, not the drive back.
             if (pose.getX() > 6.4 && speed > 0.5 && vxBlue > -0.5 * speed) {
@@ -312,7 +314,8 @@ public class SimSmokeTest {
         }
         if (m_step == 5 && !m_autoStartReported && t > 21.1) {
             m_autoStartReported = true;
-            System.out.println("SMOKE auto start pose" + (kRedAuto ? " (red, in the blue frame): " : ": ") + toBlueFrame(m_drive.getPose())
+            System.out.println("SMOKE auto start pose" + (kLeftAuto ? " (left auto, mirrored onto the right side)" : "")
+                + (kRedAuto ? " (red, in the blue frame): " : ": ") + toBlueFrame(m_drive.getPose())
                 + (kRedAuto ? "  field: " + m_drive.getPose() : ""));
             // A robot must start with some part over its starting line (blue frame x 3.978-4.029).
             double lo = Double.POSITIVE_INFINITY;
@@ -472,11 +475,11 @@ public class SimSmokeTest {
 
     /** Red poses turned 180 degrees about the field center, so they compare with the blue numbers. */
     private static Pose2d toBlueFrame(Pose2d pose) {
-        if (!kRedAuto) {
-            return pose;
-        }
-        return new Pose2d(FieldConstants.kFieldLength - pose.getX(), FieldConstants.kFieldWidth - pose.getY(),
-            pose.getRotation().plus(Rotation2d.k180deg));
+        Pose2d blue = !kRedAuto ? pose : new Pose2d(FieldConstants.kFieldLength - pose.getX(),
+            FieldConstants.kFieldWidth - pose.getY(), pose.getRotation().plus(Rotation2d.k180deg));
+        // The left auto mirrored about the long center line, onto the right auto's side (the
+        // same mirror tools/mirror-paths.py makes), so every check reads the same.
+        return !kLeftAuto ? blue : new Pose2d(blue.getX(), FieldConstants.kFieldWidth - blue.getY(), blue.getRotation().unaryMinus());
     }
 
     private static double parseStay() {

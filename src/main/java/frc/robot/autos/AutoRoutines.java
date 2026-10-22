@@ -108,13 +108,13 @@ public class AutoRoutines {
          * (x 8.27) to the other alliance, and below the long center line (y 4.03), where our
          * partner's auto runs.
          */
-        add("Right trench + bump x2", () -> Commands.sequence(
-            startAt("right-trench-1"),
-            m_rack.extend().withTimeout(1.0),
-            follow("right-trench-1", false),
-            shootFor(),
-            follow("right-trench-2", false),
-            countShot(m_superstructure.shoot()))); // until auto ends
+        add("Right trench + bump x2", () -> trenchAndBump("right"));
+        /*
+         * The same route on the left (high-y) side: the right paths mirrored about the long
+         * center line (tools/mirror-paths.py writes left-trench-*.json from right-trench-*.json;
+         * edit the right ones and run it).
+         */
+        add("Left trench + bump x2", () -> trenchAndBump("left"));
 
         Tunables.publish("Auto Selection", m_chooser);
     }
@@ -167,6 +167,21 @@ public class AutoRoutines {
             m_shootEvents++;
             m_lastShotStart = Timer.getTimestamp() - m_routineStart;
         });
+    }
+
+    /**
+     * The trench + bump route on one side ("right" or "left"): pose on the starting line, wait
+     * for the intake (the robot fits under the trench only with it out), path 1, shoot, path 2,
+     * shoot until auto ends.
+     */
+    private Command trenchAndBump(String side) {
+        return Commands.sequence(
+            startAt(side + "-trench-1"),
+            m_rack.extend().withTimeout(1.0),
+            follow(side + "-trench-1", false),
+            shootFor(),
+            follow(side + "-trench-2", false),
+            countShot(m_superstructure.shoot())); // until auto ends
     }
 
     /** Set the pose to a path's first point (flipped for red), without moving. */

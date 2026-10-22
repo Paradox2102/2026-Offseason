@@ -674,3 +674,20 @@ sooner so the intake leads into the neutral zone, keeping both center line margi
   (x 7.43); was x 7.62, inside the fuel. Up the sweep at most 3 degrees off 90 (was 14). Farthest
   part x 8.04-8.07, highest y 3.71-3.72, no contacts. Balls picked up unchanged (~35): the stretch
   where the intake trailed had no fuel in it.
+
+### Left trench auto (user, 2026-10-22)
+
+"Left trench + bump x2": the right route mirrored about the long center line for the high-y
+trench, with the same start-on-the-line rule, trench guard and center line margins.
+
+- `tools/mirror-paths.py` writes `left-trench-1/2.json` from `right-trench-1/2.json`
+  (y -> 8.043 - y, heading -> -heading; 8.043 = the AndyMark field, as for BLine's red flip).
+  Edit the right paths and run it; do not edit the left ones by hand.
+- `AutoRoutines.trenchAndBump(side)` builds both routines: pose on the line, wait for the intake,
+  path 1, shoot, path 2, shoot until auto ends.
+- Smoke test: `SIM_SMOKE_AUTO=left` runs it and mirrors the robot onto the right side, so the
+  same checks apply. Sim (blue/red): start x 3.355-4.206 over the line (field y 7.39), intake 100 %
+  out before the arm, turn done at x 6.96, farthest part x 8.05-8.06, nearest the long center
+  line 3.70-3.72 m from the right wall's frame (i.e. y 4.32-4.34, tape to 4.085), no contacts,
+  44-45 of 44-45 scored.
+- The depot and outpost are not mirrored on the field, but the route does not go near either.
