@@ -43,6 +43,9 @@ public class SimSmokeTest {
     private double m_secondExtendTime = Double.NaN;
     private boolean m_hitDone = false;
     private boolean m_blockReported = false;
+    private double m_readyTime = Double.NaN;
+    private boolean m_fed = false;
+    private double m_lastFlywheel = 0;
 
     public SimSmokeTest(RobotContainer container, Drive drive) {
         m_container = container;
@@ -82,23 +85,25 @@ public class SimSmokeTest {
         } else if (t < 16) {
             step(12, "teleop: intake extend, left side blocked at 0.15 m for 2 s", RobotMode.TELEOPERATED, true);
             m_container.getIntakeRack().simBlockLeft(t < 13 ? 0.15 : Double.NaN);
-        } else if (t < 17) {
+        } else if (t < 20) {
+            step(13, "teleop: shoot from (2.5, 3.0) in the blue zone", RobotMode.TELEOPERATED, true);
+        } else if (t < 21) {
             step(4, "disabled", RobotMode.TELEOPERATED, false);
-        } else if (t < 29) {
+        } else if (t < 33) {
             step(5, "auto: B-Line Test", RobotMode.AUTONOMOUS, true);
-        } else if (t < 30) {
+        } else if (t < 34) {
             step(6, "disabled, kick pose", RobotMode.AUTONOMOUS, false);
-        } else if (t < 37) {
+        } else if (t < 41) {
             step(7, "disabled, vision corrects", RobotMode.AUTONOMOUS, false);
         } else if (m_step != 99) {
             step(99, "script done", RobotMode.TELEOPERATED, false);
             report("end");
             writeTopicList();
-            if (t >= 37 + kStaySeconds) {
+            if (t >= 41 + kStaySeconds) {
                 System.exit(0);
             }
             System.out.println("SMOKE staying up for " + kStaySeconds + " s (SIM_SMOKE_STAY) for AdvantageScope");
-        } else if (t >= 37 + kStaySeconds) {
+        } else if (t >= 41 + kStaySeconds) {
             System.exit(0);
         }
         // The scheduler drops a command scheduled while disabled, so wait for the enable.
@@ -115,6 +120,14 @@ public class SimSmokeTest {
         var rack = m_container.getIntakeRack();
         if (m_step == 3 && Double.isNaN(m_secondExtendTime) && rack.getPosition() > IntakeConstants.kRackStroke - 0.01) {
             m_secondExtendTime = t - m_intakeStart;
+        }
+        if (m_step == 13) {
+            var sup = m_container.getSuperstructure();
+            if (Double.isNaN(m_readyTime) && sup.isReady()) {
+                m_readyTime = t - 16;
+            }
+            m_fed |= sup.isReady();
+            m_lastFlywheel = m_container.getFlywheel().getSpeed();
         }
         if (m_step == 12 && !m_blockReported && t > 12.8) {
             m_blockReported = true;
@@ -164,8 +177,18 @@ public class SimSmokeTest {
             m_pendingIntake = rack.retract();
         } else if (step == 12) {
             m_pendingIntake = rack.extend();
-        } else if (step == 4) {
+        } else if (step == 13) {
             System.out.println("SMOKE intake after the blocked extend: " + rack.status());
+            m_drive.resetPose(new Pose2d(2.5, 3.0, Rotation2d.ZERO));
+            m_pendingIntake = m_container.getSuperstructure().shoot();
+        } else if (step == 4) {
+            var sup = m_container.getSuperstructure();
+            var shot = sup.getShot();
+            System.out.printf("SMOKE shoot: scoring %b, distance %.2f m, ready after %.2f s, fed %b, turret error %.2f deg,"
+                    + " hood %.1f/%.1f deg, flywheel %.1f/%.1f rps%n",
+                shot.scoring(), shot.distance(), m_readyTime, m_fed,
+                (shot.turretRot() - m_container.getTurret().getPosition()) * 360,
+                m_container.getHood().getAngleDeg(), shot.hoodDeg(), m_lastFlywheel, shot.flywheelRps());
             for (var level : org.wpilib.util.Alert.Level.values()) {
                 for (var text : frc.robot.lib.util.AlertPublisher.active("Health", level)) {
                     System.out.println("SMOKE alert " + level + ": " + text);

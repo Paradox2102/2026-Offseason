@@ -40,7 +40,7 @@ import frc.robot.Robot;
  * <p>Ideas from FRC 6328's 2026 code: CAN bus error counters, debounced "device disconnected"
  * alerts, and a log of every command that starts and ends.
  *
- * <p>Every ParadoxTalon registers itself. Robot registers the drivetrain, and each vision camera
+ * <p>Every subsystem registers its Talons. Robot registers the drivetrain, and each vision camera
  * registers itself. Robot calls {@link #start()} once and {@link #periodic()} every loop.
  */
 public final class HealthMonitor {
@@ -247,7 +247,7 @@ public final class HealthMonitor {
 
     /** For example "TalonFX 20 on CAN_S4". */
     private static String describe(ParentDevice device) {
-        // ParadoxTalon is a TalonFX, so call it that in the alert text.
+        // Name a Talon by its type in the alert text.
         String type = device instanceof TalonFX ? "TalonFX" : device.getClass().getSimpleName();
         return type + " " + device.getDeviceID() + " on " + device.getNetwork().getName();
     }

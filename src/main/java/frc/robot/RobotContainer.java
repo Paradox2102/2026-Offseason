@@ -23,6 +23,11 @@ import frc.robot.health.SwerveHealth;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.IntakeRack;
 import frc.robot.subsystems.intake.IntakeRoller;
+import frc.robot.subsystems.shooter.Feeder;
+import frc.robot.subsystems.shooter.Flywheel;
+import frc.robot.subsystems.shooter.Hood;
+import frc.robot.subsystems.shooter.Turret;
+import frc.robot.subsystems.superstructure.Superstructure;
 import frc.robot.subsystems.vision.Vision;
 
 /**
@@ -36,6 +41,8 @@ import frc.robot.subsystems.vision.Vision;
  *   <li>D-pad (hold): turn to 0, 90, 180 or 270 degrees, seen from the driver.
  *   <li>B (hold): X-lock the wheels.
  *   <li>Start: "the robot faces away from me now" (resets the heading).
+ *   <li>Right trigger (hold): shoot. The turret always tracks the target; the balls are fed only
+ *       when the flywheel, hood and turret are ready. Y (hold): eject.
  *   <li>Left trigger (hold): extend the intake and run the rollers; on release the rollers stop and
  *       the rack stays out. A: retract the intake.
  * </ul>
@@ -52,6 +59,12 @@ public class RobotContainer {
     private final Vision m_vision = new Vision(m_drive);
     private final IntakeRack m_intakeRack = new IntakeRack();
     private final IntakeRoller m_intakeRoller = new IntakeRoller();
+    private final Turret m_turret = new Turret();
+    private final Hood m_hood = new Hood();
+    private final Flywheel m_flywheel = new Flywheel();
+    private final Feeder m_feeder = new Feeder();
+    private final Superstructure m_superstructure =
+        new Superstructure(m_drive, m_turret, m_hood, m_flywheel, m_feeder, m_intakeRoller);
     private final AutoRoutines m_autos = new AutoRoutines(m_drive);
 
     /** Fallback for the first robot test of the closed-loop drive gains. */
@@ -89,6 +102,11 @@ public class RobotContainer {
         m_driver.leftTrigger().whileTrue(Commands.sequence(m_intakeRack.extend(), m_intakeRoller.runIn())
             .withName("Intake"));
         m_driver.faceDown().onTrue(m_intakeRack.retract());
+
+        // Shooter: the turret always tracks the target. Hold the right trigger to shoot (the balls
+        // go only when the shot is ready). Hold Y to eject everything.
+        m_driver.rightTrigger().whileTrue(m_superstructure.shoot());
+        m_driver.faceUp().whileTrue(m_superstructure.eject());
     }
 
     private void configureTest() {
@@ -120,6 +138,7 @@ public class RobotContainer {
         Tunables.publish("Pit/Swerve Self-Test", SwerveHealth.clockingSelfTest(m_drive));
         Tunables.publish("Pit/Wheels Forward", SwerveHealth.wheelsForward(m_drive));
         Tunables.publish("Pit/Reset Heading", DriveCommands.resetHeading(m_drive));
+        Tunables.publish("Pit/Zero turret (in jig)", m_turret.zeroInJig());
         if (RobotBase.isSimulation() && m_drive.getSim() != null) {
             Tunables.publish("Sim/Kick Pose", Commands.runOnce(m_drive.getSim()::kickPose).ignoringDisable(true).withName("Kick Pose"));
         }
@@ -132,6 +151,22 @@ public class RobotContainer {
 
     public IntakeRack getIntakeRack() {
         return m_intakeRack;
+    }
+
+    public Superstructure getSuperstructure() {
+        return m_superstructure;
+    }
+
+    public Flywheel getFlywheel() {
+        return m_flywheel;
+    }
+
+    public Turret getTurret() {
+        return m_turret;
+    }
+
+    public Hood getHood() {
+        return m_hood;
     }
 
     public IntakeRoller getIntakeRoller() {

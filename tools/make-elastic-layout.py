@@ -111,8 +111,25 @@ for w_ in intake:
     if w_["title"].endswith("rebooted"):
         w_["properties"]["true_color"], w_["properties"]["false_color"] = RED, GREEN
 
+shooter = [
+    boolbox("Ready to shoot", "/Telemetry/Shooter/Ready", 0, 0, 2, 1),
+    boolbox("Scoring (else pass)", "/Telemetry/Shooter/Scoring", 2, 0, 2, 1),
+    text("Distance m", "/Telemetry/Shooter/Distance m", 4, 0, 2, 1),
+    text("Feeder", "/Telemetry/Shooter/Feeder/State", 6, 0, 2, 1),
+    boolbox("Turret zeroed", "/Telemetry/Shooter/Turret/Zeroed", 8, 0, 2, 1),
+    boolbox("Hood homed", "/Telemetry/Shooter/Hood/Homed", 10, 0, 2, 1),
+    graph("Turret error deg", "/Telemetry/Shooter/Turret/Error deg", 0, 1, cw=4, color=ORANGE, min_value=-10, max_value=10),
+    graph("Turret position deg", "/Telemetry/Shooter/Turret/Position deg", 4, 1, cw=4, color=BLUE),
+    graph("Hood deg", "/Telemetry/Shooter/Hood/Position deg", 8, 1, cw=4, color=GREEN),
+    graph("Flywheel rps", "/Telemetry/Shooter/Flywheel/Speed rps", 0, 3, cw=6, color=RED),
+    graph("Flywheel target rps", "/Telemetry/Shooter/Flywheel/Target rps", 6, 3, cw=6, color=BLUE),
+    command("Zero turret (in jig)", "/Tunables/Pit/Zero turret (in jig)", 0, 5, 3, 1),
+]
+pit.append(command("Zero turret (in jig)", "/Tunables/Pit/Zero turret (in jig)", 11, 0))
+driver.append(boolbox("Shot ready", "/Telemetry/Shooter/Ready", 10, 1, 2, 1))
+
 layout = {"version": 1.0, "grid_size": G, "tabs": [
     {"name": n, "grid_layout": {"layouts": [], "containers": c}}
-    for n, c in [("Driver", driver), ("Pit", pit), ("Drive", drive), ("Vision", vision), ("Intake", intake), ("Tuning", tuning)]]}
+    for n, c in [("Driver", driver), ("Pit", pit), ("Drive", drive), ("Vision", vision), ("Intake", intake), ("Shooter", shooter), ("Tuning", tuning)]]}
 json.dump(layout, open(sys.argv[1], "w"), indent=2)
 print(sum(len(t["grid_layout"]["containers"]) for t in layout["tabs"]), "widgets")

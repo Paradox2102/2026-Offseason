@@ -3,271 +3,33 @@ package frc.robot;
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 
-import org.wpilib.hardware.bus.CANPort;
-
-import com.ctre.phoenix6.CANBus;
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.signals.InvertedValue;
-
-import org.wpilib.math.geometry.Rotation3d;
-import org.wpilib.math.geometry.Translation2d;
-import org.wpilib.math.geometry.Translation3d;
-import org.wpilib.math.util.Units;
 import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearVelocity;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.indexer.IndexerConveyorSubsystem;
-import frc.robot.subsystems.indexer.IndexerRollerSubsystem;
 import frc.robot.subsystems.lights.LightSubsystem;
-import frc.robot.subsystems.shooter.SecondaryKicker;
-import frc.robot.subsystems.shooter.HoodSubsystem;
-import frc.robot.subsystems.shooter.KickerSubsystem;
-import frc.robot.subsystems.shooter.ShooterSubsystem;
-import frc.robot.subsystems.shooter.TurretAimSubsystem;
-import frc.robot.utils.DoubleNumber;
 
+/**
+ * What is left of the old constants. Each mechanism now has its own constants class next to it
+ * (DriveConstants, IntakeConstants, ShooterConstants, VisionConstants); CAN IDs are in
+ * constants/CanIds and field facts in constants/FieldConstants.
+ */
 public class Constants {
-
-
-    
 
     public static class Subsystems {
         public static final Drive m_drive;
-        // public static final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
-        // public static final HoodSubsystem m_hoodSubsystem = new HoodSubsystem();
-        // public static final TurretAimSubsystem m_turretAimSubsystem = new TurretAimSubsystem();
-        // public static final KickerSubsystem m_kickerSubsystem = new KickerSubsystem();
-        // public static final SecondaryKicker m_secondaryKicker = new SecondaryKicker();
-        // public static final IndexerConveyorSubsystem m_indexerConveyor = new IndexerConveyorSubsystem();
-        // public static final IndexerRollerSubsystem m_indexerRollerSubsystem = new IndexerRollerSubsystem();
         public static final LightSubsystem m_lightSubsystem = new LightSubsystem();
         static {
             m_drive = TunerConstants.createDrivetrain();
         }
     }
 
-
-
-
-
     public static class LightConstants {
-    public static final int k_lightPort = 0; // may be different on actual robot
-    public static final int k_lightAmount = 100;
+        public static final int k_lightPort = 0; // may be different on actual robot
+        public static final int k_lightAmount = 100;
 
-    public static LinearVelocity k_disabledVelocity = MetersPerSecond.of(0.2);
-    public static Distance k_ledSpacing = Meters.of(1 / 120.0);
-    
-  }
-  public static class ShooterConstants {
-    public static final double k_shooterGearReduction = (67.86);
-    
-    public static final double k_kickInRPS = 30;
-    public static final double k_kickOutRPS = 20;
-
-    public static final double k_secondaryKickerRPS = 30;
-
-    public static final double k_upKickerMOI = 0.00000494 * 2;
-    public static final double k_kickerMOI = 0.0000356;
-    public static final double k_shooterMOI = 0.0004812;
-
-    public static final TalonFXConfiguration k_hoodConfig = new TalonFXConfiguration();
-    public static final TalonFXConfiguration k_shooterConfigs = new TalonFXConfiguration();
-    public static final TalonFXConfiguration k_turretConfig = new TalonFXConfiguration();
-    public static final TalonFXConfiguration k_kickerConfig = new TalonFXConfiguration();
-    public static final TalonFXConfiguration k_secondaryKickerConfig = new TalonFXConfiguration();
-
-    public static final double k_hoodG = 0.0;
-    public static final double k_hoodS = 0;
-    public static final double k_hoodP = 0.1;
-    public static final double k_hoodD = 0;
-
-    public static final double k_shooterP = 0.3;
-    public static final double k_shooterS = 0.01;
-    public static final double k_shooterV = 0.11966;
-
-    public static final double k_kickerP = 0.01;
-    public static final double k_kickerS = 0.01;
-    public static final double k_kickerV = 0.118;
-
-    public static final double k_secondaryKickerP = 0.0;
-    public static final double k_secondaryKickerS = 0.01;
-    public static final double k_secondaryKickerV = 0.1195;
-
-    public static final double k_turretI = 0.0;
-    public static final double k_turretP = 0.0;
-    public static final double k_turretD = 0.0;
-    public static final double k_turretV = 0.0;
-    public static final double k_turretS = 0.0;
-    
-    public static final Translation3d k_turretOffset = new Translation3d(Units.inchesToMeters(-5.965), Units.inchesToMeters(7.5429), Units.inchesToMeters(10.3851));
-
-    public static final DoubleNumber k_turretBounds = new DoubleNumber(-250, 250);
-    public static final double[][] k_scoreHoodAngle = {
-        {1.125, 0},
-      {1.25, 0},
-      {1.5, 10},
-      {1.75, 12.5},
-      {2, 15},
-      {2.25, 17.5},
-      {2.5, 19},
-      {2.75, 21},
-      {3, 22},
-      {4, 22},
-      {4.5, 23},
-      {5, 25},
-      {10, 35}
-    };
-
-    public static final double[][] k_scoreShotSpeeds = {
-        {1.125, 40},
-      {2.25, 45},
-      {2.75, 47},
-      {3.25, 50},
-      {4, 55},
-      {4.75, 60}
-    };
-
-    public static final double[][] k_scoreShotTimes = {
-        {0, 0}
-    };
-    public static final double[][] k_passHoodAngle = {
-      {1.125, 0},
-      {1.25, 0},
-      {1.5, 10},
-      {1.75, 12.5},
-      {2, 15},
-      {2.25, 17.5},
-      {2.5, 19},
-      {2.75, 21},
-      {3, 22},
-      {4, 22},
-      {4.5, 23},
-      {5, 25},
-      {10, 35}
-    };
-
-    public static final double[][] k_passShotSpeeds = {
-        {1.125, 40},
-      {2.25, 45},
-      {2.75, 47},
-      {3.25, 50},
-      {4, 55},
-      {4.75, 60}
-    };
-
-    public static final double[][] k_passShotTimes = {
-        {0, 0}
-    };
-
-    public static final double k_staticShotSpeed = 40;
-    public static final double k_staticShotAngle = 20;
-    public static final double k_hoodMOI = 0.02635296; 
-    public static final double k_hoodArmLength = 0.20860766;
-    public static final double k_hoodMaxAngle = 90;
-    
-    public static final double k_hoodSupplyLimit = 26;
-    public static final double k_kickerSupplyLimit = 23;
-    public static final double k_secondaryKickerSupplyLimit = 23;
-    public static final double k_shooterSupplyLimit = 37;
-    public static final double k_aimingSupplyLimit = 29;
-
-    public static final CurrentLimitsConfigs k_hoodLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_hoodSupplyLimit);
-    public static final CurrentLimitsConfigs k_kickerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_kickerSupplyLimit);
-    public static final CurrentLimitsConfigs k_secondaryKickerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_secondaryKickerSupplyLimit);
-    public static final CurrentLimitsConfigs k_aimingLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_aimingSupplyLimit);
-    public static final CurrentLimitsConfigs k_shooterLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_shooterSupplyLimit);
-
-    static {
-        k_shooterConfigs.withCurrentLimits(k_shooterLimitConfig);
-        k_shooterConfigs.Slot0.kP = k_shooterP;
-        k_shooterConfigs.Slot0.kS = k_shooterS;
-        k_shooterConfigs.Slot0.kV = k_shooterV;
-
-        k_kickerConfig.withCurrentLimits(k_kickerLimitConfig);
-        k_kickerConfig.Slot0.kP = k_kickerP;
-        k_kickerConfig.Slot0.kS = k_kickerS;
-        k_kickerConfig.Slot0.kV = k_kickerV;
-
-        k_secondaryKickerConfig.withMotorOutput(k_secondaryKickerConfig.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive)).withCurrentLimits(k_secondaryKickerLimitConfig);
-        k_secondaryKickerConfig.Slot0.kP = k_secondaryKickerP;
-        k_secondaryKickerConfig.Slot0.kS = k_secondaryKickerS;
-        k_secondaryKickerConfig.Slot0.kV = k_secondaryKickerV;
-
-        k_turretConfig.withCurrentLimits(k_aimingLimitConfig);
-        //k_turretConfig.Slot0.kV = k_turretV;
-        //k_turretConfig.Slot0.kI = k_turretI;
-        k_turretConfig.Slot0.kP = k_turretP;
-        k_turretConfig.Slot0.kD = k_turretD;
-        k_turretConfig.Slot0.kS = k_turretS;
-
-        k_hoodConfig.withCurrentLimits(k_hoodLimitConfig);
-        k_hoodConfig.withMotorOutput(k_hoodConfig.MotorOutput.clone().withInverted(InvertedValue.CounterClockwise_Positive));
-        // k_hoodConfig.Slot0.kG = k_hoodG;
-        // k_hoodConfig.Slot0.kS = k_hoodS;
-        k_hoodConfig.Slot0.kP = k_hoodP;
-        // k_hoodConfig.Slot0.kD = k_hoodD;
+        public static LinearVelocity k_disabledVelocity = MetersPerSecond.of(0.2);
+        public static Distance k_ledSpacing = Meters.of(1 / 120.0);
     }
-  }
-
-
-
-  
-
-
-    public static class IndexerConstants {
-        public static final double k_rollerInRPS = 25;
-        public static final double k_rollerOutRPS = -10;
-
-        public static final double k_conveyorRPS = 20;
-
-        public static final int k_jamThreshold = 6; // should be tuned to not happen too much
-
-        public static final TalonFXConfiguration m_indexerRollerConfigs = new TalonFXConfiguration();
-        public static final TalonFXConfiguration m_indexerConveyorConfigs = new TalonFXConfiguration();
-        public static final double k_indexerRollerMOI = 0.00045822;
-        public static final double k_indexerConveyorMOI = 0.00001722;
-
-        public static final double k_rollerP = 0.0;
-        public static final double k_rollerS = 0.0;
-        public static final double k_rollerV = 0.125;
-
-        public static final double k_conveyorP = 0.0;
-        public static final double k_conveyorS = 0.0;
-        public static final double k_conveyorV = 0.1;
-
-        public static final double k_conveyorMotionMagicAcceleration = 40.0;
-        public static final double k_rollerMotionMagicAcceleration = 20.0;
-
-        public static final double k_conveyorSupplyLimit = 18;
-        public static final double k_rollerSupplyLimit = 25;
-
-        public static final CurrentLimitsConfigs m_conveyorLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_conveyorSupplyLimit);
-        public static final CurrentLimitsConfigs m_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
-
-        public static final MotionMagicConfigs m_indexerConveyorMotionMagicConfig = m_indexerConveyorConfigs.MotionMagic.withMotionMagicAcceleration(k_conveyorMotionMagicAcceleration);
-        public static final MotionMagicConfigs m_indexerRollerMotionMagicConfig = m_indexerRollerConfigs.MotionMagic.withMotionMagicAcceleration(k_rollerMotionMagicAcceleration);
-
-        static {
-
-            m_indexerRollerMotionMagicConfig.MotionMagicAcceleration = k_rollerMotionMagicAcceleration;
-
-            m_indexerRollerConfigs.withCurrentLimits(m_rollerLimitConfig).withMotorOutput(m_indexerRollerConfigs.MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
-            m_indexerRollerConfigs.Slot0.kP = k_rollerP;
-            m_indexerRollerConfigs.Slot0.kS = k_rollerS;
-            m_indexerRollerConfigs.Slot0.kV = k_rollerV;
-
-            
-            m_indexerConveyorMotionMagicConfig.withMotionMagicAcceleration(k_conveyorMotionMagicAcceleration);
-            
-            m_indexerConveyorConfigs.withCurrentLimits(m_conveyorLimitConfig);
-            m_indexerConveyorConfigs.Slot0.kP = k_conveyorP;
-            m_indexerConveyorConfigs.Slot0.kS = k_conveyorS;
-            m_indexerConveyorConfigs.Slot0.kV = k_conveyorV;
-            
-        }
-  }
 }

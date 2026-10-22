@@ -101,6 +101,22 @@
               "topic": "/Telemetry/Alerts/Health",
               "period": 0.06
             }
+          },
+          {
+            "title": "Shot ready",
+            "x": 1280,
+            "y": 128,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Ready",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
           }
         ]
       }
@@ -254,6 +270,20 @@
               "time_displayed": 10.0,
               "color": 4280391411,
               "line_width": 2.0
+            }
+          },
+          {
+            "title": "Zero turret (in jig)",
+            "x": 1408,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Pit/Zero turret (in jig)",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
             }
           }
         ]
@@ -941,6 +971,195 @@
               "topic": "/Telemetry/Intake/Roller/Recent Jams",
               "period": 0.06,
               "show_submit_button": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Shooter",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "Ready to shoot",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Ready",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Scoring (else pass)",
+            "x": 256,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Scoring",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Distance m",
+            "x": 512,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Distance m",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Feeder",
+            "x": 768,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Feeder/State",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Turret zeroed",
+            "x": 1024,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Turret/Zeroed",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Hood homed",
+            "x": 1280,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Hood/Homed",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Turret error deg",
+            "x": 0,
+            "y": 128,
+            "width": 512,
+            "height": 256,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Turret/Error deg",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0,
+              "min_value": -10,
+              "max_value": 10
+            }
+          },
+          {
+            "title": "Turret position deg",
+            "x": 512,
+            "y": 128,
+            "width": 512,
+            "height": 256,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Turret/Position deg",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Hood deg",
+            "x": 1024,
+            "y": 128,
+            "width": 512,
+            "height": 256,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Hood/Position deg",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4283215696,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Flywheel rps",
+            "x": 0,
+            "y": 384,
+            "width": 768,
+            "height": 256,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Flywheel/Speed rps",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294198070,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Flywheel target rps",
+            "x": 768,
+            "y": 384,
+            "width": 768,
+            "height": 256,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Flywheel/Target rps",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Zero turret (in jig)",
+            "x": 0,
+            "y": 640,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Pit/Zero turret (in jig)",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
             }
           }
         ]

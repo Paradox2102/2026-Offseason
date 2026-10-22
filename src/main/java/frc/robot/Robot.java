@@ -14,6 +14,8 @@ import org.wpilib.hardware.power.PowerDistribution.ModuleType;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.math.geometry.Transform3d;
+import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.net.WebServer;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.networktables.StructArrayPublisher;
@@ -100,8 +102,15 @@ public class Robot extends TimedRobot {
      * the students' poses from the old Robot.java, which match that AdvantageScope model.
      */
     private Pose3d[] componentPoses() {
-        Pose3d turret = new Pose3d(-0.16, 0.19, 0.38, Rotation3d.ZERO);
-        Pose3d hood = new Pose3d(-0.16, 0.275, 0.455, Rotation3d.ZERO);
+        // Turret: turns about its vertical axis. Assumes the model shows the turret at its jig
+        // angle (pointing left); if the 3D turret is off by a fixed angle, add it here.
+        double turretYaw = m_robotContainer.getTurret().getPosition() * 2 * Math.PI;
+        Pose3d turret = new Pose3d(-0.16, 0.19, 0.38, new Rotation3d(0, 0, turretYaw));
+        // Hood: rides on the turret and tilts about its own axis (the old pose turned it about the
+        // wrong point when the turret turned).
+        double hoodRad = Math.toRadians(m_robotContainer.getHood().getAngleDeg());
+        Pose3d hood = turret.transformBy(new Transform3d(new Translation3d(0, 0.275 - 0.19, 0.455 - 0.38),
+            new Rotation3d(hoodRad, 0, 0)));
         // The students' intake formula: 0 = in (x -0.15), 1 = out (x +0.13), along the model's 15 degree slide.
         double extension = m_robotContainer.getIntakeRack().getExtensionFraction();
         double travel = extension * (0.13 - (-0.15));
