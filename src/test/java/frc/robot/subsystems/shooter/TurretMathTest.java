@@ -30,16 +30,18 @@ class TurretMathTest {
 
     @Test
     void unwindsAtTheWiringLimit() {
-        // The real limits: one full turn each way from the jig, aim range 5 degrees inside them.
+        // The real limits: wiring one full turn each way from the jig, soft limits 10 degrees
+        // inside it (+-350), aim range 5 degrees inside those (+-345).
         double min = ShooterConstants.kTurretAimMinRot;
         double max = ShooterConstants.kTurretAimMaxRot;
-        // At +350 degrees, a target that moved on to 380 is past the limit: the turret unwinds
-        // back round to +20 (the same direction), not on past +355.
-        assertEquals(20.0 / 360, TurretMath.chooseAngle(20.0 / 360, 350.0 / 360, min, max), 1e-9);
+        assertEquals(345.0 / 360, max, 1e-9);
+        // At +340 degrees, a target that moved on to 370 is past the limit: the turret unwinds
+        // back round to +10 (the same direction), not on past +345.
+        assertEquals(10.0 / 360, TurretMath.chooseAngle(10.0 / 360, 340.0 / 360, min, max), 1e-9);
         // The same at the other end.
-        assertEquals(-20.0 / 360, TurretMath.chooseAngle(-20.0 / 360, -350.0 / 360, min, max), 1e-9);
-        // Before the limit it keeps going the short way: at +340, the direction 350 stays +350.
-        assertEquals(350.0 / 360, TurretMath.chooseAngle(-10.0 / 360, 340.0 / 360, min, max), 1e-9);
+        assertEquals(-10.0 / 360, TurretMath.chooseAngle(-10.0 / 360, -340.0 / 360, min, max), 1e-9);
+        // Before the limit it keeps going the short way: at +330, the direction 340 stays +340.
+        assertEquals(340.0 / 360, TurretMath.chooseAngle(-20.0 / 360, 330.0 / 360, min, max), 1e-9);
         // In the middle of the range it takes the nearer way, never past a limit.
         double a = TurretMath.chooseAngle(0.9, 0.0, min, max);
         assertEquals(-0.1, a, 1e-9);

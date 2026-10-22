@@ -6,7 +6,7 @@ import org.wpilib.math.util.Units;
 /**
  * Shooter values. Turret angles are turret rotations (0 = the jig position, pointing to the
  * robot's left); hood angles are degrees above its lower stop; flywheel speeds are wheel rps;
- * feed speeds are motor rps (the old code's units).
+ * feed speeds are motor rps.
  */
 public final class ShooterConstants {
     private ShooterConstants() {}
@@ -17,12 +17,14 @@ public final class ShooterConstants {
     public static final double kTurretRatio = 67.86;
     /** In the jig at power-on, the shooter points to the robot's left: turret 0 = robot +90 degrees. */
     public static final double kTurretZeroOnRobotDeg = 90;
+    /** Wiring limits (user, 2026-10-22): one full turn each way from the jig, 720 degrees in all. */
+    public static final double kTurretWiringRot = 1.0;
     /**
-     * Wiring limits (user, 2026-10-22): one full turn each way from the jig, 720 degrees in all.
-     * The Talon's soft limits sit here, so the turret can never go past them.
+     * The Talon's soft limits: 10 degrees inside the wiring limits, room for an overshoot or a
+     * small zero error (a jig zero that is off, or a position restored after a reboot).
      */
-    public static final double kTurretMinRot = -1.0;
-    public static final double kTurretMaxRot = 1.0;
+    public static final double kTurretMinRot = -kTurretWiringRot + 10.0 / 360;
+    public static final double kTurretMaxRot = kTurretWiringRot - 10.0 / 360;
     /**
      * The aim uses 5 degrees less each way, so the turret never presses the wiring at its end. At
      * the edge of this range, a target that keeps moving makes the turret unwind the other way
@@ -50,6 +52,11 @@ public final class ShooterConstants {
     public static final double kTurretStatorLimit = 40; // A
     /** On target within this angle. */
     public static final double kTurretToleranceDeg = 1.5;
+    /**
+     * The turret cannot turn more than this in one 20 ms loop, rotations (270 deg/s is 5.4
+     * degrees a loop). A bigger jump in its reading is a reboot (it reads 0 again), not a move.
+     */
+    public static final double kTurretMaxStepRot = 15.0 / 360;
 
     // ---- Hood (Talon 41, Kraken X44, CAN_S3) ----
 
@@ -72,8 +79,14 @@ public final class ShooterConstants {
     public static final double kHoodCruise = 0.5; // hood rps
     public static final double kHoodAcceleration = 3; // hood rps^2
     public static final double kHoodStatorLimit = 30; // A
-    /** Push down into the lower stop with this current to find zero, amps. */
-    public static final double kHoodHomeCurrent = -3;
+    /**
+     * Find zero: drive down into the lower stop at this voltage. A voltage caps the speed (about
+     * 40 deg/s at 85:1, with gravity helping a little more), where a current push sped up until it
+     * hit the stop at ~500 deg/s. Stalled, 1 V still gives ~20 A, enough to break friction, so a
+     * stall is the stop and not a sticky hood. Check on the robot: the hood must reach the stop
+     * from its top in about 1 s.
+     */
+    public static final double kHoodHomeVolts = -1.0;
     public static final double kHoodToleranceDeg = 1.0;
 
     // ---- Flywheel (Talons 42 + 43, Kraken X60, CAN_S3) ----
@@ -90,17 +103,39 @@ public final class ShooterConstants {
     /** Moment of inertia of the flywheel, kg m^2, for the sim only (old code). */
     public static final double kFlywheelMoi = 0.0004812;
 
-    // ---- Feed path, motor rps (old code values) ----
+    // ---- Feed path, motor rps ----
 
-    public static final double kIndexerRollerRps = 25; // Talon 30, CAN_S1
-    /**
-     * Talons 31 and 32 (X44, CAN_S1). The old code asked for 20 with a duty-cycle kV of 0.1 per
-     * rps (= 200 % output), so the belts really ran flat out. 90 motor rps keeps that speed with
-     * a real velocity loop (X44 free speed ~125 rps).
+    /*
+     * Speeds: what the code that ran at CAEL (7ba98388, testRun) gave each stage as duty cycle,
+     * as a speed: duty x 12 V / kV (the stage's speed at that duty with no load). The velocity
+     * loop then runs each stage at about the CAEL speed whatever the battery does. Measure the
+     * fire rate on the robot and tune from here. kV: V per motor rps (old code; X44 12 V / 125 rps).
      */
-    public static final double kBeltTunnelRps = 90;
-    public static final double kScottyRps = 30; // Talon 45 (code name "goUp")
-    public static final double kVerticalRollerRps = 30; // Talon 40 (code name "kicker")
+    public static final double kIndexerRollerKv = 0.125; // Talon 30, X60, CAN_S1
+    public static final double kIndexerRollerRps = 1.0 * 12 / kIndexerRollerKv;
+    public static final double kBeltTunnelKv = 0.096; // Talons 31 and 32, X44, CAN_S1
+    public static final double kTopBeltRps = 1.0 * 12 / kBeltTunnelKv;
+    public static final double kBottomBeltRps = 0.9 * 12 / kBeltTunnelKv;
+    public static final double kScottyKv = 0.1195; // Talon 45 (code name "goUp"), X60, CAN_S3
+    public static final double kScottyRps = 1.0 * 12 / kScottyKv;
+    public static final double kVerticalRollerKv = 0.118; // Talon 40 (code name "kicker"), X60, CAN_S3
+    public static final double kVerticalRollerRps = 0.9 * 12 / kVerticalRollerKv;
+    /** Motor rps per second: the fastest stage (125 rps) is at speed in about 0.2 s. */
+    public static final double kFeedAcceleration = 600;
+    /** Stator limits, amps. Start values: measure each stage's current, empty and loaded. */
+    public static final double kFeedStatorLimitX60 = 60;
+    public static final double kFeedStatorLimitX44 = 40;
+    /** A stage stalled: slower than this fraction of its speed with more than this fraction of its stator limit ... */
+    public static final double kFeedJamSpeedFraction = 0.2;
+    public static final double kFeedJamCurrentFraction = 0.75;
+    /** ... for this long is a jam, seconds; then every stage runs back for kFeedUnjamTime. */
+    public static final double kFeedJamTime = 0.25;
+    public static final double kFeedUnjamTime = 0.3;
+    /** Alert after this many jams within kFeedJamWindow seconds. */
+    public static final int kFeedJamAlertCount = 3;
+    public static final double kFeedJamWindow = 5.0;
+    /** When the feed stops, the vertical roller (40) runs on this long, so it does not hold a ball against the wheel. */
+    public static final double kFeedRunOnTime = 0.25;
     /** Eject: every feed motor runs out at this fraction of its feed speed. */
     public static final double kEjectFraction = -0.5;
 

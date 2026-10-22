@@ -74,16 +74,19 @@ public class Flywheel extends SubsystemBase {
             m_follower.setControl(m_follow);
         }
         double speed = getSpeed();
-        m_isReady = m_ready.calculate(m_target > 0
+        // A Talon that stops answering keeps its last reading (the target): the wheel would look
+        // ready while it coasts down (CAEL Q40: Talons 42 and 43 went silent).
+        m_isReady = m_ready.calculate(m_target > 0 && m_leader.isConnected()
             && Math.abs(speed - m_target) <= ShooterConstants.kFlywheelTolerance * m_target);
         Telemetry.log("Shooter/Flywheel/Target rps", m_target);
         Telemetry.log("Shooter/Flywheel/Speed rps", speed);
         Telemetry.log("Shooter/Flywheel/Ready", m_isReady);
+        Telemetry.log("Shooter/Flywheel/Connected", m_leader.isConnected());
     }
 
-    /** Wheel speed, rps. */
+    /** Wheel speed, rps; 0 while the leader (Talon 42) does not answer (its last reading is not true). */
     public double getSpeed() {
-        return m_leader.getVelocity().getValueAsDouble();
+        return m_leader.isConnected() ? m_leader.getVelocity().getValueAsDouble() : 0;
     }
 
     /** At the target speed (within 3 %) for 0.1 s. */

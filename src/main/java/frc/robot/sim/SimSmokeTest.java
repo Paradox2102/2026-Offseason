@@ -455,6 +455,8 @@ public class SimSmokeTest {
             for (var text : frc.robot.lib.util.AlertPublisher.active("Health", org.wpilib.util.Alert.Level.HIGH)) {
                 System.out.println("SMOKE auto alert HIGH: " + text);
             }
+            System.out.println("SMOKE feeder: recent jams " + m_container.getFeeder().recentJams()
+                + ", hood " + String.format("%.1f", m_container.getHood().getAngleDeg()) + " deg");
             System.out.println("SMOKE auto: " + m_container.getAutos().status()
                 + (kRedAuto ? ", last target " + m_container.getSuperstructure().getShot().target()
                     + " (red hub " + FieldConstants.hub(true) + ")" : ""));

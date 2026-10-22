@@ -48,6 +48,15 @@ public class Turret extends SubsystemBase {
     private final NeutralOut m_neutral = new NeutralOut();
     private final Alert m_lostZeroAlert = AlertPublisher.create("Health", "shooter/turret/zero",
         "Turret Talon 44 rebooted: its zero is lost. Turret stopped: put it in the jig and press Pit > Zero turret", Level.HIGH);
+    private final Alert m_restoredAlert = AlertPublisher.create("Health", "shooter/turret/restored", "", Level.MEDIUM);
+    /** The last reading we trust (connected, no jump), rotations; NaN before the first one. */
+    private double m_lastGood = Double.NaN;
+    /** A reboot: give the Talon this position (retried until it takes it); NaN = nothing to do. */
+    private double m_restore = Double.NaN;
+    /** After a restore or a jig zero, the reading takes a few updates to show the new value. */
+    private double m_settleUntil = Double.NEGATIVE_INFINITY;
+    /** Jig zero asked for and not yet taken by the Talon. */
+    private boolean m_jigZeroPending = false;
     private final double m_startTime = Timer.getTimestamp();
     private boolean m_zeroed = true; // in the jig at power-on
     private double m_goal = 0;
@@ -94,14 +103,39 @@ public class Turret extends SubsystemBase {
 
     @Override
     public void periodic() {
+        double now = Timer.getTimestamp();
         boolean reset = m_talon.hasResetOccurred();
-        if (reset && Timer.getTimestamp() - m_startTime > 3.0) {
-            m_zeroed = false;
-            m_lostZeroAlert.set(true);
+        if (reset && now - m_startTime > 3.0) {
+            if (m_zeroed && !Double.isNaN(m_lastGood)) {
+                // The Talon reads 0 again. Through 67.86:1 the turret hardly moves while its Talon
+                // reboots, so its last good reading is still about right: give it back.
+                m_restore = m_lastGood;
+                m_restoredAlert.setText(String.format("Turret Talon 44 rebooted: position restored to %.1f deg"
+                    + " from before the reboot. Zero it in the jig after the match", m_restore * 360));
+                m_restoredAlert.set(true);
+            } else {
+                m_zeroed = false;
+                m_lostZeroAlert.set(true);
+            }
         }
+        if (!Double.isNaN(m_restore) && m_talon.setPosition(m_restore).isOK()) {
+            m_restore = Double.NaN;
+            m_settleUntil = now + 0.1;
+        }
+        if (m_jigZeroPending && m_talon.setPosition(0).isOK()) {
+            m_jigZeroPending = false;
+            m_lastGood = 0;
+            m_goal = 0;
+            m_zeroed = true;
+            m_settleUntil = now + 0.1;
+            m_lostZeroAlert.set(false);
+            m_restoredAlert.set(false);
+        }
+        trackLastGood(now);
+        boolean restoring = !Double.isNaN(m_restore) || now < m_settleUntil;
         if (!RobotState.isEnabled()) {
             // Disabled: the Talon is neutral anyway; send nothing (at code start it may not be up).
-        } else if (m_zeroed) {
+        } else if (m_zeroed && !restoring) {
             m_talon.setControl(m_request.withPosition(m_goal));
         } else {
             m_talon.setControl(m_neutral);
@@ -110,6 +144,17 @@ public class Turret extends SubsystemBase {
         Telemetry.log("Shooter/Turret/Position deg", getPosition() * 360);
         Telemetry.log("Shooter/Turret/Error deg", (m_goal - getPosition()) * 360);
         Telemetry.log("Shooter/Turret/Zeroed", m_zeroed);
+    }
+
+    /** Keep the last reading that can be trusted: from a connected Talon, with no reboot jump. */
+    private void trackLastGood(double now) {
+        if (!m_talon.isConnected() || !Double.isNaN(m_restore) || now < m_settleUntil || m_jigZeroPending) {
+            return;
+        }
+        double position = getPosition();
+        if (Double.isNaN(m_lastGood) || Math.abs(position - m_lastGood) < ShooterConstants.kTurretMaxStepRot) {
+            m_lastGood = position;
+        }
     }
 
     /** Turret angle, rotations from the jig. */
@@ -121,14 +166,15 @@ public class Turret extends SubsystemBase {
         return m_zeroed;
     }
 
-    /** Zeroed and within the tolerance of {@code goal}. */
+    /** Zeroed, not restoring after a reboot, and within the tolerance of {@code goal}. */
     public boolean isOnTarget(double goal) {
         return isOnTarget(goal, ShooterConstants.kTurretToleranceDeg);
     }
 
     /** Zeroed, on CAN (a lost Talon's last reading stays frozen), and within {@code toleranceDeg}. */
     public boolean isOnTarget(double goal, double toleranceDeg) {
-        return m_zeroed && m_talon.isConnected() && Math.abs(getPosition() - goal) * 360 < toleranceDeg;
+        boolean restoring = !Double.isNaN(m_restore) || Timer.getTimestamp() < m_settleUntil;
+        return m_zeroed && !restoring && m_talon.isConnected() && Math.abs(getPosition() - goal) * 360 < toleranceDeg;
     }
 
     /** Point the turret at the angle from the supplier, every loop, until interrupted. */
@@ -136,14 +182,12 @@ public class Turret extends SubsystemBase {
         return run(() -> m_goal = goal.getAsDouble()).withName("Turret Track");
     }
 
-    /** The turret is in its jig now: this is 0 again. */
+    /**
+     * The turret is in its jig now: this is 0 again. The Talon may not take the new position at
+     * once (it may still be booting), so periodic() tries until it does.
+     */
     public Command zeroInJig() {
-        return Commands.runOnce(() -> {
-            m_talon.setPosition(0);
-            m_goal = 0;
-            m_zeroed = true;
-            m_lostZeroAlert.set(false);
-        }).ignoringDisable(true).withName("Zero turret (in jig)");
+        return Commands.runOnce(() -> m_jigZeroPending = true).ignoringDisable(true).withName("Zero turret (in jig)");
     }
 
     /**

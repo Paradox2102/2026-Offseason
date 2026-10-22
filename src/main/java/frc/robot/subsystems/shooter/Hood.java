@@ -18,7 +18,7 @@ import org.wpilib.util.Alert.Level;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.TorqueCurrentFOC;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -42,7 +42,7 @@ import frc.robot.lib.util.StallDetector;
 public class Hood extends SubsystemBase {
     private final TalonFX m_talon = new TalonFX(CanIds.hood, CanIds.k_canBus3);
     private final MotionMagicVoltage m_request = new MotionMagicVoltage(0);
-    private final TorqueCurrentFOC m_homeRequest = new TorqueCurrentFOC(ShooterConstants.kHoodHomeCurrent);
+    private final VoltageOut m_homeRequest = new VoltageOut(ShooterConstants.kHoodHomeVolts);
     private final StallDetector m_stall = new StallDetector(0.002, 0.15, 0.2); // hood rps
     private final double m_startTime = Timer.getTimestamp();
     private final Debouncer m_strainDebouncer = new Debouncer(0.5, DebounceType.RISING);
@@ -101,8 +101,9 @@ public class Hood extends SubsystemBase {
                     m_stall.reset(now);
                 }
                 m_talon.setControl(m_homeRequest);
-                if (m_stall.update(now, m_talon.getVelocity().getValueAsDouble())) {
-                    m_talon.setPosition(0);
+                // On the stop: zero there. The Talon may not take the new position at once; keep
+                // pushing and try again next loop.
+                if (m_stall.update(now, m_talon.getVelocity().getValueAsDouble()) && m_talon.setPosition(0).isOK()) {
                     m_homed = true;
                     m_homing = false;
                 }

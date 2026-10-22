@@ -746,3 +746,35 @@ the other is out, so the other side tells nothing about this one.
   the trench, no contacts, the teleop skip (3 cm) fixed as "past". short (right side 2.4 cm short)
   and blocked: fallback, never under an arm, no shot. dead (Talon 22 before auto): fallback, HIGH
   alert, 8 of 8 preload scored.
+
+### Shooter and feed path review fixes (user, 2026-10-22)
+
+From the review of the intake roller, feed path, turret, hood and flywheel.
+
+- **Feed stop and jams** (`FeedLogic`, pure and tested; `Feeder` applies it). When the feed
+  stops, stages 30, 31/32 and 45 brake at once and the vertical roller (40, into the wheel) runs on
+  0.25 s, so it does not hold a ball against the spinning wheel. While feeding, a stage slower than
+  20 % of its speed with more than 75 % of its stator limit for 0.25 s is a jam: every stage runs
+  back (half speed) for 0.3 s, then feeds again; 3 jams in 5 s raise a MEDIUM alert naming the
+  stage. Eject: all back, no jam check, no run-on. `isFeeding()` is false while unjamming.
+- **Stator limits** on every feed stage: 60 A (X60), 40 A (X44), start values to measure.
+- **Feed speeds** = the duty cycles the CAEL robot ran (7ba98388 `testRun`) as speeds, duty x 12 V
+  / kV: indexer 96, top belt 125, bottom belt 112.5, Scotty 100.4, vertical roller 91.5 motor rps
+  (were 25/90/90/30/30). Acceleration 600 rps/s. Per-stage speed and current are logged.
+- **Flywheel**: `getSpeed()` is 0 and `isReady()` false while Talon 42 does not answer (a silent
+  Talon keeps its last reading; CAEL Q40).
+- **Turret**: soft limits 10 degrees inside the wiring limit (+-350, aim +-345). After a Talon 44
+  reboot the last good reading (connected, no jump over 15 degrees a loop) is written back
+  (retried until the Talon takes it), the turret is neutral and not "on target" until the reading
+  shows it, and a MEDIUM alert asks for a jig zero after the match. With no good reading the old
+  behavior stays (turret stopped, HIGH alert). The jig zero retries `setPosition(0)` until it is
+  taken.
+- **Hood**: homing drives down at -1 V (`VoltageOut`; about 40 deg/s at 85:1) in place of a -3 A
+  push that sped up to ~500 deg/s into the stop; stalled, 1 V still gives ~20 A, so a stall is the
+  stop. The zero is set only when `setPosition(0)` is taken.
+- Not changed (needs the robot first): hood kV and ratio, turret cold-boot check, flywheel idle
+  spin, turret lead time, pass tables.
+- Sim: 107 tests pass. Smoke normal 43 of 43 in auto, teleop shot 6 of 8, no feeder jams, hood
+  homes; red left 44 of 44; dead rack Talon 8 of 8 preload; short side no shot. The sim's feed
+  rollers have no ball load, so a jam never happens in the sim: the jam logic is covered by
+  `FeedLogicTest` only, and the turret restore by reading only (the sim cannot reboot a Talon).
