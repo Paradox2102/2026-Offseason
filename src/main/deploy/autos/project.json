@@ -45,8 +45,45 @@
           }
         ]
       }
+    },
+    {
+      "path_id": "path-c6e07920-9e9d-475a-892c-a3213cbf64a3",
+      "display_name": "right-trench-1",
+      "file_name": "right-trench-1.json"
+    },
+    {
+      "path_id": "path-b6c84473-2add-4d38-8a17-bd60d9b5fdf3",
+      "display_name": "right-trench-2",
+      "file_name": "right-trench-2.json"
+    },
+    {
+      "path_id": "path-7006ea35-ff32-416a-839a-1a840f565cd4",
+      "display_name": "left-trench-1 (generated: edit right-trench, run tools/mirror-paths.py)",
+      "file_name": "left-trench-1.json"
+    },
+    {
+      "path_id": "path-fb42a319-4e04-48bf-abc2-54e7ff3bc796",
+      "display_name": "left-trench-2 (generated: edit right-trench, run tools/mirror-paths.py)",
+      "file_name": "left-trench-2.json"
     }
   ],
-  "path_groups": [],
+  "path_groups": [
+    {
+      "group_id": "group-c18d1104-c20f-45ce-8d0c-093f0b2b04b3",
+      "display_name": "Right trench + bump x2",
+      "path_ids": [
+        "path-c6e07920-9e9d-475a-892c-a3213cbf64a3",
+        "path-b6c84473-2add-4d38-8a17-bd60d9b5fdf3"
+      ]
+    },
+    {
+      "group_id": "group-b905e43d-540a-405a-bfb9-318e01563aa7",
+      "display_name": "Left trench + bump x2",
+      "path_ids": [
+        "path-7006ea35-ff32-416a-839a-1a840f565cd4",
+        "path-fb42a319-4e04-48bf-abc2-54e7ff3bc796"
+      ]
+    }
+  ],
   "linked_targets": []
 }

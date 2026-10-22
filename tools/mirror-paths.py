@@ -6,6 +6,8 @@ fuel) is mirrored about that line too. Edit the right paths, then run:
 
     python3 tools/mirror-paths.py
 
+The BLine editor (project.json) lists both sets; the left ones are marked "generated".
+
 Width: the AndyMark field the robot plays on (FieldConstants.kFieldWidth, 8.043 m), the same
 size BLine's red flip uses.
 """
