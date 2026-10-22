@@ -11,12 +11,15 @@ import org.wpilib.system.Timer;
 import org.wpilib.tunable.Selectable;
 import org.wpilib.tunable.TunableDouble;
 import org.wpilib.tunable.Tunables;
+import org.wpilib.util.Alert;
+import org.wpilib.util.Alert.Level;
 
 import bline.commands.FollowPathV2;
 import bline.field.FlippingUtil;
 import bline.following.DriveType;
 import bline.path.Path;
 import frc.robot.constants.FieldConstants;
+import frc.robot.lib.util.AlertPublisher;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.IntakeRack;
 import frc.robot.subsystems.intake.IntakeRoller;
@@ -55,6 +58,11 @@ public class AutoRoutines {
     private final IntakeRack m_rack;
     private double m_routineTime = Double.NaN;
     private double m_lastShotStart = Double.NaN;
+    /** Longest wait for the intake at the start: it takes ~0.45 s; this leaves room for a slow push. */
+    private static final double kIntakeWait = 2.0;
+    private final Alert m_noTrenchAlert = AlertPublisher.create("Health", "auto-no-trench",
+        "Auto: the intake was not fully out at the start, so the robot did not drive under the trench;"
+            + " it backed off and shoots from the alliance zone", Level.HIGH);
 
     public AutoRoutines(Drive drive, IntakeRack rack, IntakeRoller roller, Superstructure superstructure) {
         m_drive = drive;
@@ -122,10 +130,19 @@ public class AutoRoutines {
     /**
      * A routine is made fresh each time from a supplier: in Commands v2 a command that is put in a
      * group cannot be used again, so a routine made once would only run once.
+     *
+     * <p>Requirements: a deferred command holds only the subsystems it is given, not those of the
+     * commands inside it. The routine holds the drive (the path follower drives). Every other
+     * command in it (intake, shoot) runs as a proxy ({@code asProxy()}): the scheduler starts it
+     * on its own, so it holds its subsystems while it runs and a default command (the hood's
+     * stow) cannot take them. The routine must not hold those subsystems itself: the path events
+     * (intake, prepare) use them too, and an event that takes a subsystem from the routine would
+     * cancel the whole routine.
      */
     private void add(String name, Supplier<Command> routine) {
         m_chooser.add(name, Commands.defer(routine, Set.of(m_drive))
             .beforeStarting(() -> {
+                m_noTrenchAlert.set(false);
                 m_routineStart = Timer.getTimestamp();
                 m_routineTime = Double.NaN;
                 m_intakeEvents = 0;
@@ -156,9 +173,14 @@ public class AutoRoutines {
             m_routineTime, m_intakeEvents, m_shootEvents, m_lastShotStart);
     }
 
+    /** Shoot (as a proxy: see {@link #add}) until auto ends. */
+    private Command shoot() {
+        return countShot(m_superstructure.shoot().asProxy());
+    }
+
     /** Shoot for the dashboard's shoot time (no ball sensor). */
     private Command shootFor() {
-        return countShot(m_superstructure.shoot()
+        return countShot(m_superstructure.shoot().asProxy()
             .raceWith(Commands.defer(() -> Commands.waitSeconds(m_shootTime.get()), Set.of())));
     }
 
@@ -173,15 +195,29 @@ public class AutoRoutines {
      * The trench + bump route on one side ("right" or "left"): pose on the starting line, wait
      * for the intake (the robot fits under the trench only with it out), path 1, shoot, path 2,
      * shoot until auto ends.
+     *
+     * <p>If the intake is not fully out after {@link #kIntakeWait} (a side blocked, or a Talon
+     * that does not answer), the robot must not go under the trench arm. It backs 0.65 m away
+     * from the trench, along its lane (the fallback path), and shoots: the shot keeps the intake
+     * going out and feeds once it is out, so the preload can still score.
      */
     private Command trenchAndBump(String side) {
         return Commands.sequence(
             startAt(side + "-trench-1"),
-            m_rack.extend().withTimeout(1.0),
-            follow(side + "-trench-1", false),
-            shootFor(),
-            follow(side + "-trench-2", false),
-            countShot(m_superstructure.shoot())); // until auto ends
+            m_rack.extend().asProxy()
+                .andThen(Commands.waitUntil(m_rack::isExtended))
+                .withTimeout(kIntakeWait),
+            Commands.either(
+                Commands.sequence(
+                    follow(side + "-trench-1", false),
+                    shootFor(),
+                    follow(side + "-trench-2", false),
+                    shoot()), // until auto ends
+                Commands.sequence(
+                    Commands.runOnce(() -> m_noTrenchAlert.set(true)),
+                    follow(side + "-trench-fallback", false),
+                    shoot()), // until auto ends
+                m_rack::isExtended));
     }
 
     /** Set the pose to a path's first point (flipped for red), without moving. */

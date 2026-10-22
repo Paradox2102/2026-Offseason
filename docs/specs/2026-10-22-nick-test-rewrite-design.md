@@ -691,3 +691,25 @@ trench, with the same start-on-the-line rule, trench guard and center line margi
   line 3.70-3.72 m from the right wall's frame (i.e. y 4.32-4.34, tape to 4.085), no contacts,
   44-45 of 44-45 scored.
 - The depot and outpost are not mirrored on the field, but the route does not go near either.
+
+### Auto review fixes (user, 2026-10-22)
+
+From the whole-branch review: two auto defects that the sim did not show.
+
+- **Intake not out at the start.** `extend()` ends when both rack sides rest, and a side also
+  rests after a blocked or timed-out push. The routine now waits up to 2.0 s for
+  `IntakeRack.isExtended()`. If the intake is still not fully out, the robot does not go under
+  the trench: it follows `<side>-trench-fallback` (0.65 m back along the lane to x 3.15, out of
+  the trench guard's range), raises the HIGH alert "Auto: the intake was not fully out...", and
+  shoots until auto ends. The shot keeps the intake going out and feeds once it is out.
+- **Requirements.** `Commands.defer(routine, Set.of(drive))` holds only the drive; the commands
+  inside it held nothing, so the hood's default `stow()` could hold the hood at 0 during a shot
+  when no `prepare` event held it. Each rack and shoot command in a routine now runs as a proxy
+  (`asProxy()`), so the scheduler gives it its subsystems while it runs. The routine itself does
+  not hold them: the path events (intake, prepare) use the same subsystems, and an event that
+  takes one from the routine would cancel the whole routine.
+- Smoke test: a match starts with the intake in (new step 15 retracts it before auto), so the auto
+  now really waits for it. `SIM_SMOKE_RACK=blocked` blocks the left side at 0.10 m for the whole
+  auto. Sim: normal run 43 of 43 scored, intake 100 % out at the trench, no contacts; blocked run:
+  fallback taken, never under an arm, alert raised, no shot (the intake never got out); run with
+  the `prepare` event removed: 44 of 44 scored.

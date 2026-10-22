@@ -20,7 +20,7 @@ import frc.robot.subsystems.drive.Drive;
  * A scripted simulator run with no driver station, for {@code tools/sim-smoke.sh}.
  *
  * <p>Runs only when the environment variable SIM_SMOKE=1. It drives teleop with a fake stick,
- * runs the "B-Line Test" auto, kicks the pose to see vision pull it back, prints a summary
+ * runs the trench auto, kicks the pose to see vision pull it back, prints a summary
  * ("SMOKE ..." lines) and exits. Any exception in the robot code shows in the output, which the
  * script checks.
  */
@@ -29,6 +29,11 @@ public class SimSmokeTest {
     private static final boolean kRedAuto = "red".equalsIgnoreCase(System.getenv("SIM_SMOKE_ALLIANCE"));
     /** SIM_SMOKE_AUTO=left runs the left trench auto; its checks are mirrored onto the right side. */
     private static final boolean kLeftAuto = "left".equalsIgnoreCase(System.getenv("SIM_SMOKE_AUTO"));
+    /**
+     * SIM_SMOKE_RACK=blocked: something blocks the left rack side at 0.10 m for the whole auto,
+     * so the intake never gets fully out: the auto must not go under the trench (fallback path).
+     */
+    private static final boolean kRackBlocked = "blocked".equalsIgnoreCase(System.getenv("SIM_SMOKE_RACK"));
     /** SIM_SMOKE_STAY=<seconds>: keep the sim running after the script, to look at it in AdvantageScope. */
     private static final double kStaySeconds = parseStay();
     /** The script ends here; then it stays up kStaySeconds. */
@@ -46,6 +51,7 @@ public class SimSmokeTest {
     private double m_headingAtRelease = 0;
     private boolean m_teleopScheduled = false;
     private org.wpilib.command2.Command m_pendingIntake = null;
+    private org.wpilib.command2.Command m_shotCommand = null;
     private double m_intakeStart = Double.NaN;
     private double m_secondExtendTime = Double.NaN;
     private boolean m_hitDone = false;
@@ -132,8 +138,11 @@ public class SimSmokeTest {
         } else if (t < 16) {
             step(12, "teleop: intake extend, left side blocked at 0.15 m for 2 s", RobotMode.TELEOPERATED, true);
             m_container.getIntakeRack().simBlockLeft(t < 13 ? 0.15 : Double.NaN);
-        } else if (t < 20) {
+        } else if (t < 19.2) {
             step(13, "teleop: shoot from (2.5, 3.0) in the blue zone", RobotMode.TELEOPERATED, true);
+        } else if (t < 20) {
+            // A match starts with the intake in: the auto must put it out before the trench.
+            step(15, "teleop: shot stopped, intake in", RobotMode.TELEOPERATED, true);
         } else if (t < 21) {
             step(4, kRedAuto ? "disabled, alliance set to red" : "disabled", RobotMode.TELEOPERATED, false);
             if (kRedAuto) {
@@ -379,8 +388,9 @@ public class SimSmokeTest {
             System.out.println("SMOKE intake after the blocked extend: " + rack.status());
             m_drive.resetPose(new Pose2d(2.5, 3.0, Rotation2d.ZERO));
             // Intake in first: the shot must put it out, and feed only once it is fully out.
-            m_pendingIntake = org.wpilib.command2.Commands.sequence(rack.retract(), m_container.getSuperstructure().shoot());
-        } else if (step == 4) {
+            m_shotCommand = org.wpilib.command2.Commands.sequence(rack.retract(), m_container.getSuperstructure().shoot());
+            m_pendingIntake = m_shotCommand;
+        } else if (step == 15) {
             var sup = m_container.getSuperstructure();
             var shot = sup.getShot();
             System.out.printf("SMOKE shoot: scoring %b, distance %.2f m, ready after %.2f s, fed %b, turret error %.2f deg,"
@@ -396,6 +406,13 @@ public class SimSmokeTest {
             System.out.printf("SMOKE shoot with the intake in first: at the first feed the intake was %.3f m out, fully out %b%n",
                 m_firstFeedIntakeOut, m_firstFeedIntakeExtended);
             printFuel("teleop so far");
+            CommandScheduler.getInstance().cancel(m_shotCommand);
+            m_pendingIntake = rack.retract();
+        } else if (step == 4) {
+            System.out.println("SMOKE intake at the start of auto: " + rack.status() + ", fully out " + rack.isExtended());
+        } else if (step == 5 && kRackBlocked) {
+            rack.simBlockLeft(0.10);
+            System.out.println("SMOKE auto: left rack side blocked at 0.10 m (SIM_SMOKE_RACK=blocked)");
         }
         if (step == 11) {
             // Step 3 (stick released) just ended: the heading should not have moved.
@@ -416,6 +433,14 @@ public class SimSmokeTest {
                 sim.lastContact(), sim.truthPose().getX());
         }
         if (step == 6) {
+            if (kRackBlocked) {
+                m_container.getIntakeRack().simBlockLeft(Double.NaN);
+            }
+            System.out.println("SMOKE auto intake at the end: " + m_container.getIntakeRack().status()
+                + ", fully out " + m_container.getIntakeRack().isExtended());
+            for (var text : frc.robot.lib.util.AlertPublisher.active("Health", org.wpilib.util.Alert.Level.HIGH)) {
+                System.out.println("SMOKE auto alert HIGH: " + text);
+            }
             System.out.println("SMOKE auto: " + m_container.getAutos().status()
                 + (kRedAuto ? ", last target " + m_container.getSuperstructure().getShot().target()
                     + " (red hub " + FieldConstants.hub(true) + ")" : ""));

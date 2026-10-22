@@ -65,6 +65,16 @@
       "path_id": "path-fb42a319-4e04-48bf-abc2-54e7ff3bc796",
       "display_name": "left-trench-2 (generated: edit right-trench, run tools/mirror-paths.py)",
       "file_name": "left-trench-2.json"
+    },
+    {
+      "path_id": "path-13d2aad1-60ca-4abc-8f2d-d1c965afa907",
+      "display_name": "right-trench-fallback (intake not out: back off and shoot)",
+      "file_name": "right-trench-fallback.json"
+    },
+    {
+      "path_id": "path-49364967-a75d-4b96-b8ed-a5bff9774ec0",
+      "display_name": "left-trench-fallback (generated: edit right-trench, run tools/mirror-paths.py)",
+      "file_name": "left-trench-fallback.json"
     }
   ],
   "path_groups": [
