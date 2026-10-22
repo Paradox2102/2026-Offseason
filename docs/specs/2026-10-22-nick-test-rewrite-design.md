@@ -374,3 +374,91 @@ after one:
 - `StallDetector` (pure): stalls only after the window; resets on movement.
 - `SkewGuard` (pure): trips only after the time limit; clears on reset.
 - Unit conversion: 3.95 motor rotations = 0.324 m.
+
+---
+
+## Sub-project 3: shooter suite
+
+### Hardware (CAD gear trains, registry, user 2026-10-22)
+
+| Part | Talon | Motor | Ratio (motor rot per output rot) | Units in code |
+|---|---|---|---|---|
+| Turret | 44 | X60 | 67.86 | turret rotations (0 = jig) |
+| Hood | 41 | X44 | ~85 (5:1 planetary, 9T pinion, sector estimated from CAD) | hood degrees above the lower stop (Talon: hood rotations) |
+| Flywheel | 42 + 43 (follower, opposed) | X60 x2 | 0.55 (the wheel turns faster) | wheel rps |
+| Vertical roller ("kicker") | 40 | X60 | 1 | motor rps |
+| Scotty rollers | 45 | X60 | 1.15 | motor rps |
+| Indexer roller | 30 | X60 | 2.42 | motor rps |
+| Belt tunnels | 31, 32 | X44 | not known | motor rps |
+
+All on `CAN_S3`, except the indexer on `CAN_S1`. (The old turret code used `CAN_S1`.)
+
+Values to measure on the robot: the hood ratio (hood from its lower to its upper stop by hand,
+motor rotations in Tuner X), the hood's upper limit in degrees, the turret's cable limits (old
+code: +-250 degrees from the jig), shot speeds and hood angles per distance, time of flight.
+
+### Turret
+
+- **Zero:** the turret is in its jig at power-on (user); the jig points the shooter to the
+  robot's left (+y). So turret 0 = robot-relative +90 degrees. A Pit button "Zero turret (in jig)"
+  sets 0 again.
+- **Reboot:** a Talon 44 reboot loses the zero (relative encoder, no limit switch): alert HIGH,
+  the turret goes neutral, aiming stops until the Pit button is pressed with the turret in the jig.
+- **Control:** `MotionMagicExpoTorqueCurrentFOC` (Pro), gains in amps: kS 2 A, kP 360 A per
+  turret rotation (1 A per degree), kD 15. Expo profile kV 8.1 V per turret rps (0.12 x 67.86),
+  kA 0.6. Soft limits +-250 degrees (Talon), stator limit 40 A.
+- **Aim math (pure, tested):** turret pivot in field = robot pose + `kTurretOffset` turned by the
+  heading; field angle to the target; minus heading; minus 90 degrees (jig); then of the
+  equivalent angles (+-360) inside the limits, the nearest to the present position. A lead of
+  0.1 s of robot turn rate cancels the lag while the robot turns.
+- Always tracks the target while enabled and zeroed (default command).
+
+### Target and shot (ShotCalculator, pure, tested)
+
+- **Target:** our hub while the robot is in our alliance zone; otherwise a pass target, depot or
+  outpost by the robot's y (the old code's rule).
+- **Distance** from the turret pivot to the target gives the flywheel speed and the hood angle
+  (interpolated tables, separate for score and pass). The old tables are kept as start values
+  (speeds converted from motor to wheel rps, x 1/0.55).
+- **Shoot on the move:** the target is moved by -(robot field velocity x time of flight),
+  iterated 3 times. Time of flight is a table too; until it is measured, 0 (shoot on the move
+  off).
+
+### Hood
+
+- **Zero:** pushes down to its lower stop (TorqueCurrentFOC -3 A) at enable and after a reboot,
+  like the intake rack; position set to 0 at the stall.
+- **Control:** `MotionMagicVoltage` with `Arm_Cosine` kG (start 0: the hood angle above
+  horizontal at the stop is not known; set `GravityArmPositionOffset` when measured). The Talon
+  works in hood rotations; the code converts degrees. kP 180 V per hood rotation (0.5 V per
+  degree), kS 0.2 V. Voltage, not torque current: a light
+  mechanism with no measurements yet is easier to set up in volts.
+- **Stow:** the hood stays down (0) unless the driver holds the shoot trigger, so the robot fits
+  under the trench.
+
+### Flywheel
+
+- `VelocityTorqueCurrentFOC` (Pro) on Talon 42, Talon 43 follows opposed (one shaft). Wheel rps.
+  kS 3 A, kP 5 A per wheel rps. Ready = within 3 % of the target for 0.1 s. Coast when off.
+
+### Feed path
+
+- Indexer roller (30), belt tunnels (31, 32), Scotty (45), vertical roller (40): all
+  `MotionMagicVelocityVoltage`, speeds from the old code (motor rps). They run together only
+  while the shot is ready (flywheel, hood and turret on target).
+
+### Superstructure and controls (driver only)
+
+- Turret: always tracks. Hood: stowed unless shooting.
+- Right trigger (hold): flywheel to the table speed, hood to the table angle; feed when ready.
+  Release: feed stops, flywheel coasts, hood stows.
+- Y (hold): eject: feed path and intake rollers run out.
+- Telemetry `Shooter/...`: target, distance, turret goal/position/error, hood goal/position,
+  flywheel goal/speed, ready flags, feed running. Component poses: turret yaw and hood angle.
+
+### Sim
+
+- Turret: `DCMotorSim`; hood: `SingleJointedArmSim` with stops; flywheel and rollers:
+  `FlywheelSim` (a shared `lib/sim/RollerSim`).
+- Smoke test: in our zone, hold the trigger: the flywheel reaches its speed, turret error under
+  1.5 degrees, hood on target, the feed starts.
