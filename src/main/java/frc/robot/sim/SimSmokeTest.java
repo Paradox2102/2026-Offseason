@@ -24,6 +24,8 @@ import frc.robot.subsystems.drive.Drive;
  * script checks.
  */
 public class SimSmokeTest {
+    /** SIM_SMOKE_STAY=<seconds>: keep the sim running after the script, to look at it in AdvantageScope. */
+    private static final double kStaySeconds = parseStay();
     private final RobotContainer m_container;
     private final Drive m_drive;
     // Scripted sticks. (DriverStationSim joystick axes did not reach Gamepad in a headless run,
@@ -82,9 +84,15 @@ public class SimSmokeTest {
             step(6, "disabled, kick pose", RobotMode.AUTONOMOUS, false);
         } else if (t < 30) {
             step(7, "disabled, vision corrects", RobotMode.AUTONOMOUS, false);
-        } else {
+        } else if (m_step != 99) {
+            step(99, "script done", RobotMode.TELEOPERATED, false);
             report("end");
             writeTopicList();
+            if (t >= 30 + kStaySeconds) {
+                System.exit(0);
+            }
+            System.out.println("SMOKE staying up for " + kStaySeconds + " s (SIM_SMOKE_STAY) for AdvantageScope");
+        } else if (t >= 30 + kStaySeconds) {
             System.exit(0);
         }
         // The scheduler drops a command scheduled while disabled, so wait for the enable.
@@ -153,6 +161,14 @@ public class SimSmokeTest {
         if (step == 6) {
             m_drive.getSim().kickPose();
             report("after kick");
+        }
+    }
+
+    private static double parseStay() {
+        try {
+            return Double.parseDouble(System.getenv().getOrDefault("SIM_SMOKE_STAY", "0"));
+        } catch (NumberFormatException e) {
+            return 0;
         }
     }
 

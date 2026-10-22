@@ -11,9 +11,13 @@ import org.wpilib.driverstation.MatchState;
 import org.wpilib.framework.TimedRobot;
 import org.wpilib.hardware.power.PowerDistribution;
 import org.wpilib.hardware.power.PowerDistribution.ModuleType;
+import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.net.WebServer;
+import org.wpilib.networktables.NetworkTableInstance;
+import org.wpilib.networktables.StructArrayPublisher;
+import org.wpilib.networktables.StructPublisher;
 import org.wpilib.system.DataLogManager;
 import org.wpilib.system.Filesystem;
 import org.wpilib.telemetry.Telemetry;
@@ -31,6 +35,15 @@ public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
     private final RobotContainer m_robotContainer;
     private SimSmokeTest m_smokeTest = null;
+
+    /*
+     * AdvantageScope's robot model "2102 2026 Offseason" reads these two root topics (the names the
+     * old code used): the robot pose and the poses of its moving parts (turret, hood, intake).
+     */
+    private final StructPublisher<Pose2d> m_posePublisher =
+        NetworkTableInstance.getDefault().getStructTopic("RobotPose", Pose2d.struct).publish();
+    private final StructArrayPublisher<Pose3d> m_componentPublisher =
+        NetworkTableInstance.getDefault().getStructArrayTopic("Final Poses", Pose3d.struct).publish();
 
     /* log and replay timestamp and joystick data */
     private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
@@ -75,8 +88,8 @@ public class Robot extends TimedRobot {
         m_robotContainer.periodic();
 
         Telemetry.log("Match Time", MatchState.getMatchTime());
-        Telemetry.log("RobotPose", Subsystems.m_drive.getPose());
-        Telemetry.log("Final Poses", componentPoses(), Pose3d.struct);
+        m_posePublisher.set(Subsystems.m_drive.getPose());
+        m_componentPublisher.set(componentPoses());
         AlertPublisher.publish();
     }
 
