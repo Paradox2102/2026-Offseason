@@ -53,6 +53,10 @@ public class SimSmokeTest {
     private double m_autoMinYX = Double.NaN;
     private double m_autoMinYT = Double.NaN;
     private double m_autoFeedTime = 0;
+    private double m_leadSum = 0;
+    private double m_leadTime = 0;
+    private double m_leadMax = 0;
+    private String m_leadMaxAt = "";
     private double m_readyTime = Double.NaN;
     private boolean m_fed = false;
     private double m_lastFlywheel = 0;
@@ -150,6 +154,25 @@ public class SimSmokeTest {
             if (m_container.getFeeder().isFeeding()) {
                 m_autoFeedTime += 0.020;
             }
+            // Intake leading: in the neutral zone, while moving, how far the robot front (the
+            // intake) points from the direction of travel.
+            var v = m_drive.getFieldVelocity();
+            double speed = Math.hypot(v.vx, v.vy);
+            double vxBlue = kRedAuto ? -v.vx : v.vx;
+            double vyBlue = kRedAuto ? -v.vy : v.vy;
+            // Only the collecting part: out and along the center line, not the drive back
+            // (there the intake trails on purpose).
+            if (pose.getX() > 5.9 && speed > 0.5 && vxBlue > -0.5 * speed) {
+                double travel = Math.atan2(vyBlue, vxBlue);
+                double off = Math.abs(Math.toDegrees(Math.IEEEremainder(pose.getRotation().getRadians() - travel, 2 * Math.PI)));
+                m_leadSum += off * 0.020;
+                m_leadTime += 0.020;
+                if (off > m_leadMax) {
+                    m_leadMax = off;
+                    m_leadMaxAt = String.format("(%.2f, %.2f) heading %.0f, travel %.0f, %.1f m/s, t %.1f s",
+                        pose.getX(), pose.getY(), pose.getRotation().getDegrees(), Math.toDegrees(travel), speed, t - 21);
+                }
+            }
             if (pose.getY() < m_autoMinY) {
                 m_autoMinY = pose.getY();
                 m_autoMinYX = pose.getX();
@@ -233,7 +256,8 @@ public class SimSmokeTest {
                 }
             }
         }
-        if (step == 4) {
+        if (step == 11) {
+            // Step 3 (stick released) just ended: the heading should not have moved.
             System.out.printf("SMOKE heading hold: %.1f deg at release, %.1f deg after 3 s%n",
                 m_headingAtRelease, m_drive.getHeading().getDegrees());
         }
@@ -244,6 +268,9 @@ public class SimSmokeTest {
             System.out.printf("SMOKE auto bounds: lowest y %.2f m (wall 0) at x %.2f, t %.1f s; highest x %.2f m (center line 8.27)%n",
                 m_autoMinY, m_autoMinYX, m_autoMinYT, m_autoMaxX);
             System.out.printf("SMOKE auto feed time %.1f s%n", m_autoFeedTime);
+            System.out.printf("SMOKE auto intake leading while collecting: mean %.0f deg, max %.0f deg off the travel direction (%.1f s)%n",
+                m_leadSum / m_leadTime, m_leadMax, m_leadTime);
+            System.out.println("SMOKE auto intake leading worst at " + m_leadMaxAt);
             m_drive.getSim().kickPose();
             report("after kick");
         }

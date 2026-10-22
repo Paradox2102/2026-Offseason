@@ -515,6 +515,12 @@ fit in 20 s.)
 | 3 | `right-trench-2` | out over the bump, tighter sweep (x 7.20-7.65, y 1.95-3.20), back over the bump; `prepare` |
 | 4 | shoot | until auto ends |
 
+- Headings (user: the intake must face the way the robot goes when it collects): 0 through the
+  trench; 90 for the sweep up the center line; back to 0 on the way home, before the bump, so
+  neither path turns on the bump and path 2 crosses it outbound facing forward; the tight sweep
+  leads its heading by one corner (30 then 90), because the heading controller lags a quick turn
+  by ~50 degrees. Sim: intake 18 degrees off the travel direction on average, 38 at worst
+  (was 90 and 179 with heading 0 everywhere).
 - `prepare` = flywheel to speed and hood up, no feed, so the shot is ready when the robot stops.
 - The robot stops to shoot: shoot-on-the-move is off until time of flight is measured.
 - Segments that end in a sharp corner are slow (2.0-2.5 m/s): at 4 m/s BLine ran 1.1 m past a
