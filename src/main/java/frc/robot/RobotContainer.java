@@ -21,6 +21,8 @@ import frc.robot.autos.AutoRoutines;
 import frc.robot.commands.DriveCommands;
 import frc.robot.health.SwerveHealth;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.intake.IntakeRack;
+import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.vision.Vision;
 
 /**
@@ -34,7 +36,8 @@ import frc.robot.subsystems.vision.Vision;
  *   <li>D-pad (hold): turn to 0, 90, 180 or 270 degrees, seen from the driver.
  *   <li>B (hold): X-lock the wheels.
  *   <li>Start: "the robot faces away from me now" (resets the heading).
- *   <li>Left trigger: extend the intake and run the roller. A: retract the intake.
+ *   <li>Left trigger (hold): extend the intake and run the rollers; on release the rollers stop and
+ *       the rack stays out. A: retract the intake.
  * </ul>
  *
  * <p>Test gamepad (port 2), for SysId on blocks or on carpet: bumpers pick the routine
@@ -47,6 +50,8 @@ public class RobotContainer {
     private final Drive m_drive = Subsystems.m_drive;
     @SuppressWarnings("unused") // runs in its periodic()
     private final Vision m_vision = new Vision(m_drive);
+    private final IntakeRack m_intakeRack = new IntakeRack();
+    private final IntakeRoller m_intakeRoller = new IntakeRoller();
     private final AutoRoutines m_autos = new AutoRoutines(m_drive);
 
     /** Fallback for the first robot test of the closed-loop drive gains. */
@@ -79,11 +84,11 @@ public class RobotContainer {
         m_driver.faceRight().whileTrue(DriveCommands.xLock(m_drive));
         m_driver.start().onTrue(DriveCommands.resetHeading(m_drive));
 
-        // Intake: unchanged until sub-project 2 rebuilds it.
-        m_driver.leftTrigger().whileTrue(Commands.sequence(
-            Subsystems.m_intakeExtension.extendIntake(),
-            Subsystems.m_intakeRoller.run(true)));
-        m_driver.faceDown().whileTrue(Subsystems.m_intakeExtension.retractIntake());
+        // Intake: hold the trigger to extend and run the rollers in. On release the rollers stop
+        // and the rack stays out. A retracts (and stops the rollers, if the trigger is held).
+        m_driver.leftTrigger().whileTrue(Commands.sequence(m_intakeRack.extend(), m_intakeRoller.runIn())
+            .withName("Intake"));
+        m_driver.faceDown().onTrue(m_intakeRack.retract());
     }
 
     private void configureTest() {
@@ -123,6 +128,14 @@ public class RobotContainer {
     /** Call every loop. */
     public void periodic() {
         Telemetry.log("Drive/SysId Routine", m_sysIdRoutine.name());
+    }
+
+    public IntakeRack getIntakeRack() {
+        return m_intakeRack;
+    }
+
+    public IntakeRoller getIntakeRoller() {
+        return m_intakeRoller;
     }
 
     /** For the sim smoke test: pick an auto without the dashboard. */

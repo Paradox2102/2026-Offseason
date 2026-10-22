@@ -85,8 +85,34 @@ tuning += [
     w("Open loop teleop", "Toggle Switch", "/Tunables/Drive/Open loop teleop", 6, 4, 2, 1),
 ]
 
+intake = [
+    boolbox("Rack at stop", "/Telemetry/Intake/Rack/At Stop", 0, 0, 2, 1),
+    boolbox("Goal out", "/Telemetry/Intake/Rack/Goal Out", 2, 0, 2, 1),
+    graph("Rack position m", "/Telemetry/Intake/Rack/Position m", 4, 0, cw=4, color=BLUE, min_value=-0.02, max_value=0.36),
+    graph("Skew m (left - right)", "/Telemetry/Intake/Rack/Skew m", 8, 0, cw=4, color=ORANGE),
+]
+for i, side in enumerate(["Left", "Right"]):
+    base = f"/Telemetry/Intake/Rack/{side}/"
+    x = i * 2
+    intake += [
+        text(f"{side} phase", base + "Phase", x, 1, 2, 1),
+        text(f"{side} position m", base + "Position m", x, 2, 2, 1),
+        text(f"{side} out stop m", base + "Out Stop m", x, 3, 2, 1),
+        boolbox(f"{side} rebooted", base + "Lost", x, 4, 2, 1),
+    ]
+intake += [
+    graph("Roller target rps", "/Telemetry/Intake/Roller/Target rps", 4, 2, cw=4, color=GREEN),
+    graph("Roller speed rps", "/Telemetry/Intake/Roller/Speed rps", 8, 2, cw=4, color=BLUE),
+    boolbox("Unjamming", "/Telemetry/Intake/Roller/Unjamming", 4, 4, 2, 1),
+    text("Recent jams", "/Telemetry/Intake/Roller/Recent Jams", 6, 4, 2, 1),
+]
+# A rebooted side should show red: swap the colors of those boxes.
+for w_ in intake:
+    if w_["title"].endswith("rebooted"):
+        w_["properties"]["true_color"], w_["properties"]["false_color"] = RED, GREEN
+
 layout = {"version": 1.0, "grid_size": G, "tabs": [
     {"name": n, "grid_layout": {"layouts": [], "containers": c}}
-    for n, c in [("Driver", driver), ("Pit", pit), ("Drive", drive), ("Vision", vision), ("Tuning", tuning)]]}
+    for n, c in [("Driver", driver), ("Pit", pit), ("Drive", drive), ("Vision", vision), ("Intake", intake), ("Tuning", tuning)]]}
 json.dump(layout, open(sys.argv[1], "w"), indent=2)
 print(sum(len(t["grid_layout"]["containers"]) for t in layout["tabs"]), "widgets")

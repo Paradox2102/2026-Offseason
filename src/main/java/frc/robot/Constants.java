@@ -22,8 +22,6 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.indexer.IndexerConveyorSubsystem;
 import frc.robot.subsystems.indexer.IndexerRollerSubsystem;
-import frc.robot.subsystems.intake.IntakeExtensionSubsystem;
-import frc.robot.subsystems.intake.IntakeRollerSubsystem;
 import frc.robot.subsystems.lights.LightSubsystem;
 import frc.robot.subsystems.shooter.SecondaryKicker;
 import frc.robot.subsystems.shooter.HoodSubsystem;
@@ -39,8 +37,6 @@ public class Constants {
 
     public static class Subsystems {
         public static final Drive m_drive;
-        public static final IntakeExtensionSubsystem m_intakeExtension = new IntakeExtensionSubsystem();
-        public static final IntakeRollerSubsystem m_intakeRoller = new IntakeRollerSubsystem();
         // public static final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
         // public static final HoodSubsystem m_hoodSubsystem = new HoodSubsystem();
         // public static final TurretAimSubsystem m_turretAimSubsystem = new TurretAimSubsystem();
@@ -221,58 +217,7 @@ public class Constants {
 
   
 
-  public static class IntakeConstants {
-    public static final double k_inRPS = 40;
-    public static final double k_outRPS = -30;
 
-    public static final TalonFXConfiguration m_intakeRollerConfigs = new TalonFXConfiguration();
-    public static final TalonFXConfiguration m_intakeExtensionConfigs = new TalonFXConfiguration();
-
-    public static final double k_rollerP = 0.2;
-    public static final double k_rollerS = 0.0;
-    public static final double k_rollerV = 0.15;
-
-    public static final double k_intakeExtensionG = 0;
-    public static final double k_intakeExtensionP = 0.1;
-    public static final double k_intakeExtensionV = 1.5;
-    public static final double k_intakeExtensionD = 0;
-
-    public static final double k_extensionSupplyLimit = 30;
-    public static final double k_rollerSupplyLimit = 30;
-
-    public static final CurrentLimitsConfigs k_extensionLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_extensionSupplyLimit);
-    public static final CurrentLimitsConfigs k_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
-
-    public static final double m_intakeExtensionAcceleration = 10.0;
-    public static final double m_rollerMotionMagicAcceleration = 10.0;
-
-    public static final MotionMagicConfigs m_intakeExtensionMotionMagicConfig = m_intakeExtensionConfigs.MotionMagic.withMotionMagicAcceleration(m_intakeExtensionAcceleration);
-    public static final MotionMagicConfigs m_intakeRollerMotionMagicConfig = m_intakeRollerConfigs.MotionMagic.withMotionMagicAcceleration(m_rollerMotionMagicAcceleration);
-
-    
-    public static final double k_intakeRollerMOI = 0.093084;
-    static {
-        // k_intakeRollerConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        m_intakeRollerConfigs.withMotorOutput(m_intakeRollerConfigs.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive));
-        m_intakeRollerConfigs.withCurrentLimits(k_rollerLimitConfig);
-
-        m_intakeRollerConfigs.MotionMagic = m_intakeRollerMotionMagicConfig;
-
-        m_intakeRollerConfigs.Slot0.kP = k_rollerP;
-        m_intakeRollerConfigs.Slot0.kV = k_rollerV;
-        m_intakeRollerConfigs.Slot0.kS = k_rollerS;
-
-        m_intakeExtensionConfigs.MotionMagic = m_intakeExtensionMotionMagicConfig;
-
-        m_intakeExtensionConfigs.withCurrentLimits(k_extensionLimitConfig);
-        m_intakeExtensionConfigs.Slot0.kG = k_intakeExtensionG;
-        m_intakeExtensionConfigs.Slot0.kP = k_intakeExtensionP;
-        m_intakeExtensionConfigs.Slot0.kV = k_intakeExtensionV;
-        m_intakeExtensionConfigs.Slot0.kD = k_intakeExtensionD;
-    }
-
-    
-    }
     public static class IndexerConstants {
         public static final double k_rollerInRPS = 25;
         public static final double k_rollerOutRPS = -10;

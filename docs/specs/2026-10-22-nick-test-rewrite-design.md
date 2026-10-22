@@ -285,7 +285,9 @@ have the origin at the blue wall corner). Tabs:
 - Start gains (SysId or hand tuning replaces them): kS 0.25 V, kV 1.2 V per m/s (X44: 0.096 V
   per motor rps x 12.19), kP 30 V/m. Cruise 1.0 m/s, acceleration 6 m/s^2 (full stroke in
   about 0.5 s). Stator limit 40 A, supply limit 30 A per side.
-- Soft limits 0 to 0.324 m, on only after homing.
+- No soft limits: a side that was just resynced can be a centimeter or two off, and a soft limit
+  would stop its push short of the hard stop. The Motion Magic goals stay 3 mm inside the stops,
+  and the current limits protect the gears.
 
 ### Zero and stroke (user, 2026-10-22)
 
@@ -299,20 +301,40 @@ The robot is powered off in the pit and boots for the match with the intake in. 
   Timeout 1.5 s for the push: alert "Intake rack did not reach the out stop", use the CAD
   stroke.
 - **A rebooted side** (`hasResetOccurred()` on Talon 21 or 22; Talon 22 had a loose power
-  connection) reads 0 wherever it is. It is marked "lost", raises an alert, and finds its
-  position at the stop of its next move: on extend it pushes to the out stop and sets its
+  connection) reads 0 wherever it is. Its position is set at once from the other side (the two
+  sides move together, within the skew limit). It is marked "lost", raises an alert, and its next
+  move confirms its position at that move's stop: on extend it pushes to the out stop and sets its
   position to the measured stroke; on retract it pushes to the in stop and sets 0. The other
   side moves normally.
 - A measured out stop outside 85 % to 115 % of the CAD stroke means the rack was not in at
   boot: that side's position is set to the CAD stroke at the stop, with the alert "Intake was not
   in at boot".
-- Soft limits: reverse at -0.005 m always; forward at the out stop once measured.
 
-### Skew guard
+### Hits, skipped teeth, rest (user, 2026-10-22)
 
-- Skew = left position - right position. If |skew| > 2.5 cm for 0.1 s: both sides hold where
-  they are, alert "Intake rack sides out of sync" (the rack is binding or a side lost power).
-  The next extend or retract command clears it and tries again.
+The intake gets hit: it can be pushed in (the motors are backdriven) or skip rack teeth (the
+position reading is then wrong). The code does not fight a hit and does not trust a position
+after one:
+
+- **Every move ends at a stop.** Motion Magic to 3.5 cm before the stop, then a push (6 A) until
+  the rack stalls. If Motion Magic thinks it is there but the rack has not stalled, the push goes
+  on: the rack is not at the stop yet.
+- **Re-true at every stall:** in stop = 0; out stop = the measured stroke (the first out stall
+  measures it). A stall more than 1 cm from where the side expected it means skipped teeth: info
+  alert, position fixed.
+- **Rest:** at the stop, a light 2 A push holds the rack there. A hit pushes it away with almost
+  no power spent against it.
+- **Pushed away:** more than 2 cm from the stop and still for 0.3 s: go back to the stop (Motion
+  Magic first if more than 3.5 cm away, then the push) and re-true.
+- **All of this is per side** (user): one side can skip teeth while the other does not. Each side
+  has its own push, stall check, re-true, rest and return.
+
+### Skew guard (alert only)
+
+- Skew = left position - right position. If |skew| > 2.5 cm for 0.1 s during Motion Magic:
+  alert "Intake rack sides disagree" (skipped teeth or binding). The rack does not stop: a skip
+  makes the readings differ while the rack is straight, and each side re-trues at its own stop at
+  the end of the move, which clears the difference. (The rack carriage joins the two sides.)
 
 ### Rollers
 

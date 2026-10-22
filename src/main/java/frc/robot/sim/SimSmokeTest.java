@@ -12,6 +12,7 @@ import org.wpilib.system.Timer;
 
 import frc.robot.RobotContainer;
 import frc.robot.commands.DriveCommands;
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.drive.Drive;
 
 /**
@@ -35,6 +36,10 @@ public class SimSmokeTest {
     private double m_maxTeleopSpeed = 0;
     private double m_headingAtRelease = 0;
     private boolean m_teleopScheduled = false;
+    private org.wpilib.command2.Command m_pendingIntake = null;
+    private double m_intakeStart = Double.NaN;
+    private double m_secondExtendTime = Double.NaN;
+    private boolean m_hitDone = false;
 
     public SimSmokeTest(RobotContainer container, Drive drive) {
         m_container = container;
@@ -88,6 +93,20 @@ public class SimSmokeTest {
                 m_drive, () -> m_leftY, () -> m_leftX, () -> m_rightX, () -> false));
             m_teleopScheduled = true;
         }
+        if (m_pendingIntake != null && RobotState.isEnabled()) {
+            CommandScheduler.getInstance().schedule(m_pendingIntake);
+            m_pendingIntake = null;
+            m_intakeStart = t;
+        }
+        var rack = m_container.getIntakeRack();
+        if (m_step == 3 && Double.isNaN(m_secondExtendTime) && rack.getPosition() > IntakeConstants.kRackStroke - 0.01) {
+            m_secondExtendTime = t - m_intakeStart;
+        }
+        if (m_step == 3 && !m_hitDone && t > 7.5) {
+            m_hitDone = true;
+            rack.simHitAndSkip(0.05, 0.03);
+            System.out.println("SMOKE intake hit: left pushed in 5 cm, right skipped 3 cm: " + rack.status());
+        }
         if ((m_step >= 1 && m_step <= 3) || m_step == 10) {
             var v = m_drive.getRobotVelocity();
             m_maxTeleopSpeed = Math.max(m_maxTeleopSpeed, Math.hypot(v.vx, v.vy));
@@ -108,6 +127,24 @@ public class SimSmokeTest {
         DriverStationSim.setEnabled(enabled);
         if (step == 3) {
             m_headingAtRelease = m_drive.getHeading().getDegrees();
+        }
+        // Intake: first extend (finds the out stops), retract, second extend (Motion Magic only).
+        var rack = m_container.getIntakeRack();
+        if (step == 1) {
+            m_pendingIntake = rack.extend();
+        } else if (step == 2) {
+            System.out.println("SMOKE intake after first extend: " + rack.status());
+            m_pendingIntake = rack.retract();
+        } else if (step == 3) {
+            System.out.println("SMOKE intake after retract: " + rack.status());
+            m_pendingIntake = rack.extend();
+        } else if (step == 4) {
+            System.out.printf("SMOKE intake after second extend: %s; out in %.2f s%n", rack.status(), m_secondExtendTime);
+            for (var level : org.wpilib.util.Alert.Level.values()) {
+                for (var text : frc.robot.lib.util.AlertPublisher.active("Health", level)) {
+                    System.out.println("SMOKE alert " + level + ": " + text);
+                }
+            }
         }
         if (step == 4) {
             System.out.printf("SMOKE heading hold: %.1f deg at release, %.1f deg after 3 s%n",

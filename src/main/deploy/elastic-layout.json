@@ -706,6 +706,247 @@
       }
     },
     {
+      "name": "Intake",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "Rack at stop",
+            "x": 0,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Intake/Rack/At Stop",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Goal out",
+            "x": 256,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Intake/Rack/Goal Out",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Rack position m",
+            "x": 512,
+            "y": 0,
+            "width": 512,
+            "height": 256,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Intake/Rack/Position m",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0,
+              "min_value": -0.02,
+              "max_value": 0.36
+            }
+          },
+          {
+            "title": "Skew m (left - right)",
+            "x": 1024,
+            "y": 0,
+            "width": 512,
+            "height": 256,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Intake/Rack/Skew m",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Left phase",
+            "x": 0,
+            "y": 128,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Intake/Rack/Left/Phase",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Left position m",
+            "x": 0,
+            "y": 256,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Intake/Rack/Left/Position m",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Left out stop m",
+            "x": 0,
+            "y": 384,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Intake/Rack/Left/Out Stop m",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Left rebooted",
+            "x": 0,
+            "y": 512,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Intake/Rack/Left/Lost",
+              "period": 0.06,
+              "true_color": 4294198070,
+              "false_color": 4283215696,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Right phase",
+            "x": 256,
+            "y": 128,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Intake/Rack/Right/Phase",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Right position m",
+            "x": 256,
+            "y": 256,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Intake/Rack/Right/Position m",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Right out stop m",
+            "x": 256,
+            "y": 384,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Intake/Rack/Right/Out Stop m",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Right rebooted",
+            "x": 256,
+            "y": 512,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Intake/Rack/Right/Lost",
+              "period": 0.06,
+              "true_color": 4294198070,
+              "false_color": 4283215696,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Roller target rps",
+            "x": 512,
+            "y": 256,
+            "width": 512,
+            "height": 256,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Intake/Roller/Target rps",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4283215696,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Roller speed rps",
+            "x": 1024,
+            "y": 256,
+            "width": 512,
+            "height": 256,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Intake/Roller/Speed rps",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Unjamming",
+            "x": 512,
+            "y": 512,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Intake/Roller/Unjamming",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Recent jams",
+            "x": 768,
+            "y": 512,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Intake/Roller/Recent Jams",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          }
+        ]
+      }
+    },
+    {
       "name": "Tuning",
       "grid_layout": {
         "layouts": [],

@@ -83,13 +83,17 @@ public class Robot extends TimedRobot {
     /**
      * Poses of the moving parts for the AdvantageScope 3D model (robot asset "2102 2026 Offseason"):
      * turret, hood, intake, in that order, relative to the robot. Sub-projects 2 and 3 fill in the
-     * real mechanism positions; until then each part sits at its zero position. The numbers are
+     * real mechanism positions as they are built (intake done). The numbers are
      * the students' poses from the old Robot.java, which match that AdvantageScope model.
      */
     private Pose3d[] componentPoses() {
         Pose3d turret = new Pose3d(-0.16, 0.19, 0.38, Rotation3d.ZERO);
         Pose3d hood = new Pose3d(-0.16, 0.275, 0.455, Rotation3d.ZERO);
-        Pose3d intake = new Pose3d(-0.15, 0, 0.31, new Rotation3d(0, Math.toRadians(15.133), 0));
+        // The students' intake formula: 0 = in (x -0.15), 1 = out (x +0.13), along the model's 15 degree slide.
+        double extension = m_robotContainer.getIntakeRack().getExtensionFraction();
+        double travel = extension * (0.13 - (-0.15));
+        Pose3d intake = new Pose3d(-0.15 + travel, 0, 0.31 - travel * Math.tan(Math.toRadians(-15.133)),
+            new Rotation3d(0, Math.toRadians(15.133), 0));
         return new Pose3d[] {turret, hood, intake};
     }
 
