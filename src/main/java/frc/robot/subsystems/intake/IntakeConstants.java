@@ -27,8 +27,12 @@ public final class IntakeConstants {
     public static final double kRackStatorLimit = 40; // A per side
     public static final double kRackSupplyLimit = 30; // A per side
 
-    /** Push into a hard stop with this much current, amps (a gentle push). */
-    public static final double kPushCurrent = 6;
+    /**
+     * Push into a hard stop with this much current, amps. It must be clearly more than the
+     * rack's friction (kS 0.25 V over the X44's ~0.043 ohm is ~6 A), or a push stalls before the
+     * stop. Check on the robot: from 3.5 cm away, the push must reach the stop (Intake tab).
+     */
+    public static final double kPushCurrent = 12;
     /**
      * At rest the rack leans on its stop with this much current, amps. Low on purpose: a hit can
      * push the intake in without the motors fighting it (and without wasting battery).
@@ -44,6 +48,10 @@ public final class IntakeConstants {
     public static final double kStallIgnore = 0.2;
     /** A push that finds no stop in this time gives up, seconds. */
     public static final double kPushTimeout = 1.5;
+    /** After a blocked or timed-out push, wait this long before trying again, seconds. */
+    public static final double kRetryDelay = 2.0;
+    /** Reboot flags in the first seconds after code start are the devices' own boot, seconds. */
+    public static final double kStartupGrace = 3.0;
     /** A Motion Magic move is done within this distance of its goal, meters. */
     public static final double kAtGoalTolerance = 0.01;
 

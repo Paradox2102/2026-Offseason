@@ -42,6 +42,7 @@ public class SimSmokeTest {
     private double m_intakeStart = Double.NaN;
     private double m_secondExtendTime = Double.NaN;
     private boolean m_hitDone = false;
+    private boolean m_blockReported = false;
 
     public SimSmokeTest(RobotContainer container, Drive drive) {
         m_container = container;
@@ -74,25 +75,30 @@ public class SimSmokeTest {
         } else if (t < 9) {
             step(3, "teleop: stick released, heading hold", RobotMode.TELEOPERATED, true);
             m_rightX = 0;
-        } else if (t < 10) {
-            step(4, "disabled", RobotMode.TELEOPERATED, false);
+        } else if (t < 11) {
+            step(11, "teleop: intake retract", RobotMode.TELEOPERATED, true);
             m_leftY = 0;
             m_leftX = 0;
-        } else if (t < 22) {
+        } else if (t < 16) {
+            step(12, "teleop: intake extend, left side blocked at 0.15 m for 2 s", RobotMode.TELEOPERATED, true);
+            m_container.getIntakeRack().simBlockLeft(t < 13 ? 0.15 : Double.NaN);
+        } else if (t < 17) {
+            step(4, "disabled", RobotMode.TELEOPERATED, false);
+        } else if (t < 29) {
             step(5, "auto: B-Line Test", RobotMode.AUTONOMOUS, true);
-        } else if (t < 23) {
-            step(6, "disabled, kick pose", RobotMode.AUTONOMOUS, false);
         } else if (t < 30) {
+            step(6, "disabled, kick pose", RobotMode.AUTONOMOUS, false);
+        } else if (t < 37) {
             step(7, "disabled, vision corrects", RobotMode.AUTONOMOUS, false);
         } else if (m_step != 99) {
             step(99, "script done", RobotMode.TELEOPERATED, false);
             report("end");
             writeTopicList();
-            if (t >= 30 + kStaySeconds) {
+            if (t >= 37 + kStaySeconds) {
                 System.exit(0);
             }
             System.out.println("SMOKE staying up for " + kStaySeconds + " s (SIM_SMOKE_STAY) for AdvantageScope");
-        } else if (t >= 30 + kStaySeconds) {
+        } else if (t >= 37 + kStaySeconds) {
             System.exit(0);
         }
         // The scheduler drops a command scheduled while disabled, so wait for the enable.
@@ -110,12 +116,19 @@ public class SimSmokeTest {
         if (m_step == 3 && Double.isNaN(m_secondExtendTime) && rack.getPosition() > IntakeConstants.kRackStroke - 0.01) {
             m_secondExtendTime = t - m_intakeStart;
         }
+        if (m_step == 12 && !m_blockReported && t > 12.8) {
+            m_blockReported = true;
+            System.out.println("SMOKE intake while blocked: " + rack.status());
+            for (var text : frc.robot.lib.util.AlertPublisher.active("Health", org.wpilib.util.Alert.Level.MEDIUM)) {
+                System.out.println("SMOKE alert MEDIUM: " + text);
+            }
+        }
         if (m_step == 3 && !m_hitDone && t > 7.5) {
             m_hitDone = true;
             rack.simHitAndSkip(0.05, 0.03);
             System.out.println("SMOKE intake hit: left pushed in 5 cm, right skipped 3 cm: " + rack.status());
         }
-        if ((m_step >= 1 && m_step <= 3) || m_step == 10) {
+        if ((m_step >= 1 && m_step <= 3) || m_step >= 10) {
             var v = m_drive.getRobotVelocity();
             m_maxTeleopSpeed = Math.max(m_maxTeleopSpeed, Math.hypot(v.vx, v.vy));
         }
@@ -146,8 +159,13 @@ public class SimSmokeTest {
         } else if (step == 3) {
             System.out.println("SMOKE intake after retract: " + rack.status());
             m_pendingIntake = rack.extend();
+        } else if (step == 11) {
+            System.out.printf("SMOKE intake after second extend and hit: %s; out in %.2f s%n", rack.status(), m_secondExtendTime);
+            m_pendingIntake = rack.retract();
+        } else if (step == 12) {
+            m_pendingIntake = rack.extend();
         } else if (step == 4) {
-            System.out.printf("SMOKE intake after second extend: %s; out in %.2f s%n", rack.status(), m_secondExtendTime);
+            System.out.println("SMOKE intake after the blocked extend: " + rack.status());
             for (var level : org.wpilib.util.Alert.Level.values()) {
                 for (var text : frc.robot.lib.util.AlertPublisher.active("Health", level)) {
                     System.out.println("SMOKE alert " + level + ": " + text);

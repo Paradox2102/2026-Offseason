@@ -28,6 +28,8 @@ class IntakeSim {
     /** Skipped teeth: how far the motor reading is off the real rack position, meters. */
     private double m_leftSkip = 0;
     private double m_rightSkip = 0;
+    /** Something in the way of the left side: it cannot go past this, meters (NaN = nothing). */
+    private double m_leftBlock = Double.NaN;
 
     IntakeSim(TalonFX left, TalonFX right) {
         m_leftTalon = left;
@@ -46,14 +48,19 @@ class IntakeSim {
     }
 
     void update() {
-        step(m_leftTalon.getSimState(), m_left, m_leftSkip);
-        step(m_rightTalon.getSimState(), m_right, m_rightSkip);
+        step(m_leftTalon.getSimState(), m_left, m_leftSkip, m_leftBlock);
+        step(m_rightTalon.getSimState(), m_right, m_rightSkip, Double.NaN);
     }
 
     /** A hit pushes one side in (the motor is backdriven, so its reading follows). */
     void hit(boolean left, double meters) {
         var side = left ? m_left : m_right;
         side.setState(Math.max(0, side.getPosition() - meters), 0);
+    }
+
+    /** Put something in the way of the left side at this position (NaN: take it away). */
+    void blockLeft(double position) {
+        m_leftBlock = position;
     }
 
     /** One side skips teeth: its reading moves, the rack does not. */
@@ -65,10 +72,13 @@ class IntakeSim {
         }
     }
 
-    private static void step(TalonFXSimState talon, ElevatorSim side, double skip) {
+    private static void step(TalonFXSimState talon, ElevatorSim side, double skip, double block) {
         talon.setSupplyVoltage(RobotController.getBatteryVoltage());
         side.setInputVoltage(talon.getMotorVoltage());
         side.update(kDt);
+        if (!Double.isNaN(block) && side.getPosition() > block) {
+            side.setState(block, 0); // stopped by the obstacle: no speed past it
+        }
         talon.setRawRotorPosition((side.getPosition() + skip) * IntakeConstants.kRotationsPerMeter);
         talon.setRotorVelocity(side.getVelocity() * IntakeConstants.kRotationsPerMeter);
     }

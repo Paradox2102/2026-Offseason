@@ -12,23 +12,37 @@ package frc.robot.subsystems.intake;
  *   <li>Every move ends with a push into its stop. At the stall the reading is set to the stop:
  *       0 for the in stop, the measured stroke for the out stop. The first out stall measures the
  *       stroke.
- *   <li>A stall far from where the side expected it means skipped teeth (an alert), unless the
- *       side's Talon rebooted ("lost"): then a difference is expected.
+ *   <li>A stall 1 to 5 cm from the expected stop means skipped teeth: fixed, with an alert.
+ *   <li>A stall more than 5 cm away is not a skip: something blocks the rack. The reading is not
+ *       changed (re-truing it would make it wrong by the whole distance).
+ *   <li>A side whose Talon rebooted ("lost") reads a position copied from the other side; its
+ *       stall always re-trues it, with no alert.
  * </ul>
  */
 public class RackSide {
-    /** What to do after a push stopped at a hard stop. */
-    public record StopResult(double setPosition, String alert) {}
+    /**
+     * What to do after a push stopped.
+     *
+     * @param setPosition the position to give the Talon (NaN = keep the reading)
+     * @param alert an alert text, or null
+     * @param atStop true if the side is now trusted to be at the stop
+     */
+    public record StopResult(double setPosition, String alert, boolean atStop) {}
 
     /** The push starts this far before the stop, meters. */
     public static final double kApproachDistance = 0.035;
     /** A stall further than this from the expected stop means skipped teeth, meters. */
     public static final double kSkipTolerance = 0.01;
+    /** A stall further than this from the expected stop is not a skip: the rack is blocked, meters. */
+    public static final double kMaxCorrection = 0.05;
     /** Further than this from its stop at rest, the side was pushed away and goes back, meters. */
     public static final double kPushedAway = 0.02;
-    /** A first out stop outside these fractions of the CAD stroke means a wrong zero at boot. */
-    public static final double kPlausibleLow = 0.85;
-    public static final double kPlausibleHigh = 1.15;
+    /**
+     * The first out stop is measured only within these fractions of the CAD stroke (about +-2 cm,
+     * less than the 3.5 cm approach).
+     */
+    public static final double kPlausibleLow = 0.94;
+    public static final double kPlausibleHigh = 1.06;
 
     private final String m_name;
     private final double m_cadStroke;
@@ -78,36 +92,43 @@ public class RackSide {
     }
 
     /**
-     * A push stopped at a hard stop.
+     * A push stopped moving.
      *
-     * @param out true for the out stop
+     * @param out true for a push toward the out stop
      * @param position the position the side reads now
-     * @return the position to give the Talon (NaN = keep it) and an alert text (null = none)
      */
     public StopResult stalledAt(boolean out, double position) {
-        boolean wasLost = m_lost;
-        m_lost = false;
+        if (m_lost) {
+            // The reading was copied from the other side: trust the stop, measure nothing.
+            m_lost = false;
+            return new StopResult(stopPosition(out), null, true);
+        }
+        double stop = stopPosition(out);
+        double error = Math.abs(position - stop);
+        String where = out ? "out" : "in";
+        if (error > kMaxCorrection) {
+            return new StopResult(Double.NaN, String.format(
+                "Intake %s stopped %.1f cm before the %s stop: something blocks it (or it was not in at boot)",
+                m_name, error * 100, where), false);
+        }
         if (out && !hasOutStop()) {
             // First time at the out stop: measure the stroke.
             if (position >= kPlausibleLow * m_cadStroke && position <= kPlausibleHigh * m_cadStroke) {
                 m_outStop = position;
-                return new StopResult(Double.NaN, null);
+                return new StopResult(Double.NaN, null, true);
             }
-            m_outStop = m_cadStroke;
-            return new StopResult(m_cadStroke, "Intake " + m_name + " was not in at boot (out stop read "
-                + String.format("%.3f", position) + " m): position set from the CAD stroke");
+            return new StopResult(m_cadStroke, String.format("Intake %s out stop read %.3f m, expected about %.3f:"
+                + " position set from the CAD stroke; the next extend measures again", m_name, position, m_cadStroke), true);
         }
-        double stop = stopPosition(out);
-        String alert = null;
-        if (!wasLost && Math.abs(position - stop) > kSkipTolerance) {
-            alert = String.format("Intake %s skipped teeth (%.1f cm off at the %s stop): position fixed",
-                m_name, Math.abs(position - stop) * 100, out ? "out" : "in");
-        }
-        return new StopResult(stop, alert);
+        String alert = error > kSkipTolerance
+            ? String.format("Intake %s skipped teeth (%.1f cm off at the %s stop): position fixed", m_name, error * 100, where)
+            : null;
+        return new StopResult(stop, alert, true);
     }
 
     /**
-     * A push did not reach a stop in time (blocked, or a motor problem).
+     * A push did not stop in time (a motor problem, or the rack moves freely past where a stop
+     * should be).
      *
      * @return an alert text
      */

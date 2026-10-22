@@ -24,6 +24,7 @@ class RackSideTest {
     @Test
     void firstOutStallMeasures() {
         var result = m_side.stalledAt(true, 0.330);
+        assertTrue(result.atStop());
         assertTrue(Double.isNaN(result.setPosition()), "the first out stop is measured, not set");
         assertNull(result.alert());
         assertTrue(m_side.hasOutStop());
@@ -77,12 +78,35 @@ class RackSideTest {
     }
 
     @Test
-    void implausibleStopFixesZero() {
-        // Booted with the rack out: the stop is found only 3 cm from "zero".
-        var result = m_side.stalledAt(true, 0.03);
+    void farStallIsBlockedNotRetrued() {
+        // Stopped 17 cm short (a ball or a wall): re-truing would be wrong by 17 cm.
+        var result = m_side.stalledAt(true, 0.15);
+        assertTrue(Double.isNaN(result.setPosition()));
+        assertNotNull(result.alert());
+        assertFalse(result.atStop());
+        assertFalse(m_side.hasOutStop());
+        m_side.stalledAt(true, 0.322);
+        var blockedIn = m_side.stalledAt(false, 0.10);
+        assertTrue(Double.isNaN(blockedIn.setPosition()));
+        assertFalse(blockedIn.atStop());
+    }
+
+    @Test
+    void stopTooShortIsNotMeasured() {
+        // 2.4 cm short (blocked, or a small boot offset): outside the window, not stored.
+        var result = m_side.stalledAt(true, 0.300);
         assertEquals(kStroke, result.setPosition(), 1e-9);
         assertNotNull(result.alert());
-        assertTrue(m_side.hasOutStop());
-        assertEquals(kStroke, m_side.outStop(), 1e-9);
+        assertFalse(m_side.hasOutStop());
+    }
+
+    @Test
+    void lostSideDoesNotMeasureTheStroke() {
+        m_side.onReset();
+        var result = m_side.stalledAt(true, 0.318); // copied from the other side
+        assertEquals(kStroke, result.setPosition(), 1e-9);
+        assertNull(result.alert());
+        assertFalse(m_side.hasOutStop());
+        assertFalse(m_side.isLost());
     }
 }

@@ -326,6 +326,15 @@ after one:
   no power spent against it.
 - **Pushed away:** more than 2 cm from the stop and still for 0.3 s: go back to the stop (Motion
   Magic first if more than 3.5 cm away, then the push) and re-true.
+- **Blocked, not skipped** (review 2026-10-22): a stall more than 5 cm from the expected stop is an
+  obstacle, not a skip: no re-true (it would be wrong by the whole distance), a MEDIUM alert, rest,
+  and a new try after 2 s. A Motion Magic move that stops moving short of its target hands over to
+  the push (it never holds 40 A against an obstacle). A side that is not confirmed at its stop
+  tries again even if it drifted onto the stop, so a push confirms it. Booting with the rack out
+  by more than 5 cm is reported, not corrected: check the rack is in before each match.
+- **Push current 12 A** (6 A was about the rack's friction from kS, so a push could stall before
+  the stop). Both Talons rebooting at once: each is set to its goal's stop and a push confirms it.
+  Reboot flags in the first 3 s after code start are ignored (the devices' own boot).
 - **All of this is per side** (user): one side can skip teeth while the other does not. Each side
   has its own push, stall check, re-true, rest and return.
 

@@ -76,7 +76,14 @@ public class IntakeRoller extends SubsystemBase {
 
     /** Run the rollers in (with jam recovery) until the command ends; then brake. */
     public Command runIn() {
-        return runEnd(() -> spin(IntakeConstants.kRollerInSpeed, true), this::stop).withName("Intake Rollers In");
+        return startRun(this::resetJamCheck, () -> spin(IntakeConstants.kRollerInSpeed, true))
+            .finallyDo(this::stop).withName("Intake Rollers In");
+    }
+
+    /** A new press starts clean: no leftover unjam, and the jam check waits its full time. */
+    private void resetJamCheck() {
+        m_unjamUntil = Double.NEGATIVE_INFINITY;
+        m_jamDebouncer.calculate(false);
     }
 
     /** Run the rollers out until the command ends; then brake. */
@@ -90,15 +97,14 @@ public class IntakeRoller extends SubsystemBase {
         double current = m_talon.getStatorCurrent().getValueAsDouble();
         boolean stalled = Math.abs(velocity) < IntakeConstants.kJamSpeedFraction * Math.abs(speed)
             && current > IntakeConstants.kJamCurrent;
-        if (unjam && now >= m_unjamUntil && m_jamDebouncer.calculate(stalled)) {
+        if (now < m_unjamUntil) {
+            // Running out: keep the jam check at "not stalled", so after the unjam it waits its
+            // full time again before it can call a new jam.
+            m_jamDebouncer.calculate(false);
+        } else if (unjam && m_jamDebouncer.calculate(stalled)) {
             m_unjamUntil = now + IntakeConstants.kUnjamTime;
             m_jamTimes.addLast(now);
-            m_jamDebouncer.calculate(false); // start the next jam check fresh
         }
-        while (!m_jamTimes.isEmpty() && now - m_jamTimes.peekFirst() > IntakeConstants.kJamWindow) {
-            m_jamTimes.removeFirst();
-        }
-        m_jamAlert.set(m_jamTimes.size() >= IntakeConstants.kJamAlertCount);
 
         m_target = now < m_unjamUntil ? IntakeConstants.kRollerOutSpeed : speed;
         m_talon.setControl(m_velocityRequest.withVelocity(m_target));
@@ -111,6 +117,13 @@ public class IntakeRoller extends SubsystemBase {
 
     @Override
     public void periodic() {
+        // Old jams leave the window here, so the count and the alert also update after the
+        // trigger is released.
+        double now = Timer.getTimestamp();
+        while (!m_jamTimes.isEmpty() && now - m_jamTimes.peekFirst() > IntakeConstants.kJamWindow) {
+            m_jamTimes.removeFirst();
+        }
+        m_jamAlert.set(m_jamTimes.size() >= IntakeConstants.kJamAlertCount);
         Telemetry.log("Intake/Roller/Target rps", m_target);
         Telemetry.log("Intake/Roller/Speed rps", m_talon.getVelocity().getValueAsDouble());
         Telemetry.log("Intake/Roller/Current A", m_talon.getStatorCurrent().getValueAsDouble());
