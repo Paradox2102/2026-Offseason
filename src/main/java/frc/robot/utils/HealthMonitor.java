@@ -24,6 +24,7 @@ import org.wpilib.system.RobotController;
 import org.wpilib.system.Timer;
 import org.wpilib.util.Alert;
 import org.wpilib.util.Alert.Level;
+import frc.robot.lib.util.AlertPublisher;
 
 import frc.robot.Robot;
 
@@ -66,13 +67,13 @@ public final class HealthMonitor {
 
     private static boolean s_wasBrownedOut = false;
     private static int s_brownouts = 0;
-    private static final Alert s_brownoutAlert = new Alert(k_group, "brownout", "", Level.HIGH);
+    private static final Alert s_brownoutAlert = AlertPublisher.create(k_group, "brownout", "", Level.HIGH);
     private static final Debouncer s_lowBatteryDebounce = new Debouncer(1.0, DebounceType.RISING);
-    private static final Alert s_lowBatteryAlert = new Alert(k_group, "lowBattery", "", Level.MEDIUM);
+    private static final Alert s_lowBatteryAlert = AlertPublisher.create(k_group, "lowBattery", "", Level.MEDIUM);
     private static int s_commsLossAtStart = -1;
-    private static final Alert s_commsLossAlert = new Alert(k_group, "commsLoss", "", Level.MEDIUM);
+    private static final Alert s_commsLossAlert = AlertPublisher.create(k_group, "commsLoss", "", Level.MEDIUM);
     private static int s_rail3V3FaultsAtStart = -1;
-    private static final Alert s_rail3V3Alert = new Alert(k_group, "rail3V3", "", Level.HIGH);
+    private static final Alert s_rail3V3Alert = AlertPublisher.create(k_group, "rail3V3", "", Level.HIGH);
 
     /** Call once from the Robot constructor. */
     public static void start() {
@@ -229,9 +230,9 @@ public final class HealthMonitor {
         WatchedBus(CANPort port) {
             m_port = port;
             m_key = "Health/CAN/" + port.name() + "/";
-            m_busOffAlert = new Alert(k_group, port.name() + "/busOff", "", Level.HIGH);
-            m_txFullAlert = new Alert(k_group, port.name() + "/txFull", "", Level.MEDIUM);
-            m_errorAlert = new Alert(k_group, port.name() + "/errors", port.name() + " has CAN errors now: check its wiring and termination", Level.MEDIUM);
+            m_busOffAlert = AlertPublisher.create(k_group, port.name() + "/busOff", "", Level.HIGH);
+            m_txFullAlert = AlertPublisher.create(k_group, port.name() + "/txFull", "", Level.MEDIUM);
+            m_errorAlert = AlertPublisher.create(k_group, port.name() + "/errors", port.name() + " has CAN errors now: check its wiring and termination", Level.MEDIUM);
         }
 
         void check() {
@@ -280,7 +281,7 @@ public final class HealthMonitor {
 
         WatchedDevice(ParentDevice device, String name) {
             m_device = device;
-            m_disconnectedAlert = new Alert(k_group, name + "/disconnected", name + " is not on CAN", Level.HIGH);
+            m_disconnectedAlert = AlertPublisher.create(k_group, name + "/disconnected", name + " is not on CAN", Level.HIGH);
             if (device instanceof TalonFX talon) {
                 m_faults.add(new StickyFault(talon.getStickyFault_BootDuringEnable(false), name + " rebooted while enabled", Level.HIGH));
                 m_faults.add(new StickyFault(talon.getStickyFault_BridgeBrownout(false), name + " motor output browned out", Level.MEDIUM));
@@ -313,8 +314,8 @@ public final class HealthMonitor {
 
         StickyFault(StatusSignal<Boolean> signal, String text, Level level) {
             m_signal = signal;
-            m_newAlert = new Alert(k_group, text, text, level);
-            m_oldAlert = new Alert(k_group, text + "/old", text + " (before code start: clear it in Tuner X)", Level.LOW);
+            m_newAlert = AlertPublisher.create(k_group, text, text, level);
+            m_oldAlert = AlertPublisher.create(k_group, text + "/old", text + " (before code start: clear it in Tuner X)", Level.LOW);
         }
 
         void check() {
@@ -342,7 +343,7 @@ public final class HealthMonitor {
 
         WatchedCamera(PhotonCamera camera) {
             m_camera = camera;
-            m_alert = new Alert(k_group, "camera/" + camera.getName(), "Camera " + camera.getName() + " is not sending data: check its Pi, power and Ethernet", Level.HIGH);
+            m_alert = AlertPublisher.create(k_group, "camera/" + camera.getName(), "Camera " + camera.getName() + " is not sending data: check its Pi, power and Ethernet", Level.HIGH);
         }
 
         void check() {
