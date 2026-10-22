@@ -29,3 +29,12 @@ replay_pid*
 
 *.bin
 *.lock
+
+# Eclipse/VS Code Java output
+bin/
+
+# Sim GUI window positions change on every run
+simgui-window.json
+
+# Sim logs
+logs/
