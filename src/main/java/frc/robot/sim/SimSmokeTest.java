@@ -126,7 +126,7 @@ public class SimSmokeTest {
             if (Double.isNaN(m_readyTime) && sup.isReady()) {
                 m_readyTime = t - 16;
             }
-            m_fed |= sup.isReady();
+            m_fed |= m_container.getFeeder().isFeeding();
             m_lastFlywheel = m_container.getFlywheel().getSpeed();
         }
         if (m_step == 12 && !m_blockReported && t > 12.8) {

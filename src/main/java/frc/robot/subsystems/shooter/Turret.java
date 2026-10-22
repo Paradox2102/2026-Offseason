@@ -10,6 +10,7 @@ import org.wpilib.framework.RobotBase;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.simulation.DCMotorSim;
+import org.wpilib.system.Notifier;
 import org.wpilib.system.RobotController;
 import org.wpilib.system.Timer;
 import org.wpilib.telemetry.Telemetry;
@@ -49,7 +50,9 @@ public class Turret extends SubsystemBase {
     private final double m_startTime = Timer.getTimestamp();
     private boolean m_zeroed = true; // in the jig at power-on
     private double m_goal = 0;
+    private static final double kSimPeriod = 0.005;
     private DCMotorSim m_sim = null;
+    private Notifier m_simNotifier = null;
 
     public Turret() {
         var config = new TalonFXConfiguration();
@@ -70,7 +73,10 @@ public class Turret extends SubsystemBase {
         config.CurrentLimits.StatorCurrentLimit = ShooterConstants.kTurretStatorLimit;
         config.CurrentLimits.StatorCurrentLimitEnable = true;
         PhoenixUtil.applyConfig("Turret (44)", () -> m_talon.getConfigurator().apply(config));
-        m_talon.setPosition(0); // in the jig at power-on
+        // No setPosition(0) here. A Talon reads 0 when it powers on, and the turret is in its jig
+        // at power-on, so 0 = jig. A robot code restart (a redeploy, a crash) does not restart
+        // the Talon: it still knows the true angle, and zeroing here would make wherever the
+        // turret points the new 0 (and move the cable limits with it).
         m_talon.hasResetOccurred(); // clear the flag of this boot
         HealthMonitor.register(m_talon);
 
@@ -80,6 +86,8 @@ public class Turret extends SubsystemBase {
             var state = m_talon.getSimState();
             state.Orientation = ChassisReference.CounterClockwise_Positive;
             state.setMotorType(TalonFXSimState.MotorType.KrakenX60);
+            m_simNotifier = new Notifier(this::simStep);
+            m_simNotifier.startPeriodic(kSimPeriod);
         }
     }
 
@@ -114,7 +122,12 @@ public class Turret extends SubsystemBase {
 
     /** Zeroed and within the tolerance of {@code goal}. */
     public boolean isOnTarget(double goal) {
-        return m_zeroed && Math.abs(getPosition() - goal) * 360 < ShooterConstants.kTurretToleranceDeg;
+        return isOnTarget(goal, ShooterConstants.kTurretToleranceDeg);
+    }
+
+    /** Zeroed, on CAN (a lost Talon's last reading stays frozen), and within {@code toleranceDeg}. */
+    public boolean isOnTarget(double goal, double toleranceDeg) {
+        return m_zeroed && m_talon.isConnected() && Math.abs(getPosition() - goal) * 360 < toleranceDeg;
     }
 
     /** Point the turret at the angle from the supplier, every loop, until interrupted. */
@@ -132,12 +145,16 @@ public class Turret extends SubsystemBase {
         }).ignoringDisable(true).withName("Zero turret (in jig)");
     }
 
-    @Override
-    public void simulationPeriodic() {
+    /**
+     * Sim physics every 5 ms, not once per 20 ms loop: the Talon runs its loop at 1 kHz, and a
+     * turret position up to 20 ms old made the stiff loop swing in the sim (not on the robot,
+     * where the Talon reads its own encoder).
+     */
+    private void simStep() {
         var state = m_talon.getSimState();
         state.setSupplyVoltage(RobotController.getBatteryVoltage());
         m_sim.setInputVoltage(state.getMotorVoltage());
-        m_sim.update(0.020);
+        m_sim.update(kSimPeriod);
         double turretRot = m_sim.getAngularPosition() / (2 * Math.PI);
         state.setRawRotorPosition(turretRot * ShooterConstants.kTurretRatio);
         state.setRotorVelocity(m_sim.getAngularVelocity() / (2 * Math.PI) * ShooterConstants.kTurretRatio);

@@ -29,9 +29,14 @@ public final class ShooterConstants {
     public static final double kTurretS = 2.0; // A
     public static final double kTurretP = 360; // A per turret rotation (1 A per degree)
     public static final double kTurretD = 15; // A per turret rps
-    /** Motion Magic Expo profile: 0.12 V per motor rps x 67.86, and a modest acceleration. */
-    public static final double kTurretExpoV = 8.1; // V per turret rps
-    public static final double kTurretExpoA = 0.6; // V per turret rps^2
+    /**
+     * Motion Magic Expo profile. The plan's top speed is 12 V / kV and its acceleration 12 V / kA.
+     * 0.12 V per motor rps x 67.86 = 8.1 would plan at the motor's full speed, where the back
+     * voltage leaves little room to brake. 16 plans at half of that (0.75 turret rps, 270 deg/s),
+     * and kA 3 at 4 turret rps per second. Raise both if the turret is too slow on the robot.
+     */
+    public static final double kTurretExpoV = 16; // V per turret rps
+    public static final double kTurretExpoA = 3; // V per turret rps^2
     public static final double kTurretStatorLimit = 40; // A
     /** On target within this angle. */
     public static final double kTurretToleranceDeg = 1.5;
@@ -50,8 +55,10 @@ public final class ShooterConstants {
     /** Voltage gains, per hood rotation. kP 180 V/rot = 0.5 V per degree. */
     public static final double kHoodS = 0.2;
     public static final double kHoodP = 180;
-    /** Gravity on the hood: 0 until the hood's angle above horizontal at its stop is measured. */
+    /** Gravity on the hood: 0 until the hood's angle above level at its stop is measured. */
     public static final double kHoodG = 0;
+    /** The hood's angle above level when it sits on its lower stop, rotations. Measure, then set kHoodG. */
+    public static final double kHoodStopAboveLevelRot = 0;
     public static final double kHoodCruise = 0.5; // hood rps
     public static final double kHoodAcceleration = 3; // hood rps^2
     public static final double kHoodStatorLimit = 30; // A
@@ -76,7 +83,12 @@ public final class ShooterConstants {
     // ---- Feed path, motor rps (old code values) ----
 
     public static final double kIndexerRollerRps = 25; // Talon 30, CAN_S1
-    public static final double kBeltTunnelRps = 20; // Talons 31 and 32, CAN_S1
+    /**
+     * Talons 31 and 32 (X44, CAN_S1). The old code asked for 20 with a duty-cycle kV of 0.1 per
+     * rps (= 200 % output), so the belts really ran flat out. 90 motor rps keeps that speed with
+     * a real velocity loop (X44 free speed ~125 rps).
+     */
+    public static final double kBeltTunnelRps = 90;
     public static final double kScottyRps = 30; // Talon 45 (code name "goUp")
     public static final double kVerticalRollerRps = 30; // Talon 40 (code name "kicker")
     /** Eject: every feed motor runs out at this fraction of its feed speed. */

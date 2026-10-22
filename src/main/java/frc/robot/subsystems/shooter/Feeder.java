@@ -44,9 +44,9 @@ public class Feeder extends SubsystemBase {
             stage("Indexer roller (30)", CanIds.indexerRoller, CanIds.k_canBus1, InvertedValue.Clockwise_Positive,
                 ShooterConstants.kIndexerRollerRps, 0.125, 25, true),
             stage("Top belt tunnel (31)", CanIds.indexerConveyorLeader, CanIds.k_canBus1, InvertedValue.CounterClockwise_Positive,
-                ShooterConstants.kBeltTunnelRps, 0.1, 18, false),
+                ShooterConstants.kBeltTunnelRps, 0.096, 18, false),
             stage("Bottom belt tunnel (32)", CanIds.indexerConveyorFollower, CanIds.k_canBus1, InvertedValue.Clockwise_Positive,
-                ShooterConstants.kBeltTunnelRps, 0.1, 18, false),
+                ShooterConstants.kBeltTunnelRps, 0.096, 18, false),
             stage("Scotty rollers (45)", CanIds.goUp, CanIds.k_canBus3, InvertedValue.Clockwise_Positive,
                 ShooterConstants.kScottyRps, 0.1195, 23, true),
             stage("Vertical roller (40)", CanIds.kicker, CanIds.k_canBus3, InvertedValue.CounterClockwise_Positive,
@@ -59,7 +59,7 @@ public class Feeder extends SubsystemBase {
         var config = new TalonFXConfiguration();
         config.MotorOutput.Inverted = inverted;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        config.Slot0.kV = kV; // V per motor rps (old code)
+        config.Slot0.kV = kV; // V per motor rps (old code; belt tunnels: X44 12 V / 125 rps)
         config.Slot0.kP = 0.05;
         config.MotionMagic.MotionMagicAcceleration = 200; // motor rps per second: full speed in 0.15 s
         config.CurrentLimits.SupplyCurrentLimit = supplyLimit;
@@ -108,6 +108,11 @@ public class Feeder extends SubsystemBase {
             runAt(ShooterConstants.kEjectFraction);
             m_state = "Ejecting";
         }, this::stop).withName("Feeder Eject");
+    }
+
+    /** True while the balls are being fed to the flywheel. */
+    public boolean isFeeding() {
+        return m_state.equals("Feeding");
     }
 
     @Override

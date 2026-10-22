@@ -23,8 +23,12 @@ import frc.robot.constants.FieldConstants;
  */
 public class ShotCalculator {
     /** Everything about one shot. Turret in rotations from the jig; flywheel in wheel rps. */
+    /**
+     * @param turretRot the turret goal, with the lead for a turning robot (for the command)
+     * @param turretAimRot the angle that points at the aim point now, no lead (for "ready")
+     */
     public record Shot(Translation2d target, boolean scoring, double distance, double turretRot,
-                       double flywheelRps, double hoodDeg) {}
+                       double turretAimRot, double flywheelRps, double hoodDeg) {}
 
     private static final int kLeadIterations = 3;
 
@@ -76,11 +80,18 @@ public class ShotCalculator {
         double distance = aim.distance();
         double flywheel = (scoring ? m_scoreSpeeds : m_passSpeeds).get(distance);
         double hood = Math.min((scoring ? m_scoreHood : m_passHood).get(distance), ShooterConstants.kHoodMaxDeg);
-        return new Shot(target, scoring, distance, aim.turretRot(), flywheel, hood);
+        return new Shot(target, scoring, distance, aim.turretRot(), aim.turretAimRot(), flywheel, hood);
     }
 
-    /** Turret angle (rotations from the jig) and distance to the aim point, meters. */
-    public record Aim(double turretRot, double distance) {}
+    /**
+     * Turret angles (rotations from the jig) and distance to the aim point, meters.
+     *
+     * @param turretRot goal with the turn lead: the turret lags a turning robot, so it is asked
+     *     to be a little ahead
+     * @param turretAimRot the angle that points at the aim point now: a shot is ready only when
+     *     the turret is here
+     */
+    public record Aim(double turretRot, double turretAimRot, double distance) {}
 
     /** Aim the turret at a target, with the lead for a moving and turning robot. */
     public static Aim aim(Pose2d robot, Translation2d target, ChassisVelocities fieldVelocity, double omega,
@@ -94,10 +105,15 @@ public class ShotCalculator {
         }
 
         double fieldAngle = aim.minus(pivot).getAngle().map(a -> a.getRadians()).orElse(robot.getRotation().getRadians());
-        double heading = robot.getRotation().getRadians() + omega * ShooterConstants.kTurretLeadTime;
-        double turretRad = fieldAngle - heading - Math.toRadians(ShooterConstants.kTurretZeroOnRobotDeg);
-        double turretRot = TurretMath.chooseAngle(turretRad / (2 * Math.PI), currentTurretRot,
+        double heading = robot.getRotation().getRadians();
+        double lead = omega * ShooterConstants.kTurretLeadTime;
+        double aimRad = fieldAngle - heading - Math.toRadians(ShooterConstants.kTurretZeroOnRobotDeg);
+        double turretAimRot = TurretMath.chooseAngle(aimRad / (2 * Math.PI), currentTurretRot,
             ShooterConstants.kTurretMinRot, ShooterConstants.kTurretMaxRot);
-        return new Aim(turretRot, aim.getDistance(pivot));
+        // The goal is the aim angle less the lead (the robot turns +omega, so the turret must turn
+        // -omega relative to it), kept inside the limits.
+        double turretRot = Math.clamp(turretAimRot - lead / (2 * Math.PI),
+            ShooterConstants.kTurretMinRot, ShooterConstants.kTurretMaxRot);
+        return new Aim(turretRot, turretAimRot, aim.getDistance(pivot));
     }
 }

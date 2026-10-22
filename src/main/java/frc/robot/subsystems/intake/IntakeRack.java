@@ -92,7 +92,9 @@ public class IntakeRack extends SubsystemBase {
             config.CurrentLimits.SupplyCurrentLimit = IntakeConstants.kRackSupplyLimit;
             config.CurrentLimits.SupplyCurrentLimitEnable = true;
             PhoenixUtil.applyConfig("Intake rack " + label, () -> m_talon.getConfigurator().apply(config));
-            m_talon.setPosition(0); // the robot boots with the intake in
+            // No setPosition(0) here: a Talon reads 0 when it powers on, and the robot powers on
+            // with the intake in. A robot code restart does not restart the Talon, which still
+            // knows where the rack is; zeroing here would make the rack's present place "in".
             m_talon.hasResetOccurred(); // clear the "reset" flag of this boot
             HealthMonitor.register(m_talon);
         }

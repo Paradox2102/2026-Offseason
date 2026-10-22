@@ -64,6 +64,16 @@ class ShotCalculatorTest {
     }
 
     @Test
+    void turningRobotLeadsTheGoalButNotTheReadyAngle() {
+        // Robot turning +1 rad/s: the goal is 0.1 rad (5.7 degrees) ahead, clockwise relative to
+        // the robot; the angle for "ready" is the true one.
+        var target = new Translation2d(5, 5);
+        var aim = ShotCalculator.aim(robotWithPivotAt(target.minus(new Translation2d(0, 2))), target, kStill, 1.0, kNoFlight, 0);
+        assertEquals(0.0, aim.turretAimRot(), 1e-9);
+        assertEquals(-0.1 / (2 * Math.PI), aim.turretRot(), 1e-9);
+    }
+
+    @Test
     void movingRobotLeadsAgainstItsVelocity() {
         // 1 s time of flight, robot moving +x at 1 m/s: aim at a point 1 m behind the target in x.
         var oneSecond = new ShotTable(new double[][] {{0, 1.0}});

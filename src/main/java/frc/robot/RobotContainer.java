@@ -157,6 +157,10 @@ public class RobotContainer {
         return m_superstructure;
     }
 
+    public Feeder getFeeder() {
+        return m_feeder;
+    }
+
     public Flywheel getFlywheel() {
         return m_flywheel;
     }

@@ -462,3 +462,18 @@ code: +-250 degrees from the jig), shot speeds and hood angles per distance, tim
   `FlywheelSim` (a shared `lib/sim/RollerSim`).
 - Smoke test: in our zone, hold the trigger: the flywheel reaches its speed, turret error under
   1.5 degrees, hood on target, the feed starts.
+
+### Changes after review (2026-10-22)
+
+- No `setPosition(0)` in code for the turret or the intake rack: a Talon reads 0 at power-on
+  (in the jig / intake in). A code restart keeps the Talon's true position; zeroing in code
+  would have moved the zero (and the turret's cable limits) to wherever the mechanism was.
+- "Ready" checks the turret against the true aim angle; only the command uses the 0.1 s turn lead.
+- The feed starts on "ready" (turret steady for 0.1 s within 1.5 degrees, hood within 1, flywheel
+  within 3 %) and keeps going while the shot is still good (flywheel above 85 %, turret within
+  3 degrees, hood within 2), so it does not stop in the middle of every ball.
+- Belt tunnels 90 motor rps (the old duty-cycle settings ran them flat out). Hood forward soft
+  limit, and an alert when the hood strains short of its goal (a sign of a wrong kHoodRatio).
+  On-target checks also need the Talon on CAN.
+- Turret profile planned at half the motor's speed (Expo kV 16, kA 3). The turret sim runs every
+  5 ms: with 20 ms steps the Talon's 1 kHz loop saw stale positions and the sim turret swung.
