@@ -261,3 +261,85 @@ have the origin at the blue wall corner). Tabs:
 2. Camera roll (each stream must show a level horizon) and the PhotonVision name of camera 4.
 3. CAN utilization on `CAN_S2` at 100 Hz odometry (for a raise to 200 Hz).
 4. Pro license on every device (issue #8).
+
+---
+
+## Sub-project 2: intake
+
+### Hardware (CAD, registry and user, 2026-10-22)
+
+- Rack: two Kraken X44, Talon 21 (turret side, left) and Talon 22 (other side, right), both on
+  `CAN_S4`. Each drives its own side: 10T to 28T (2.8:1) to a toothed rack plate. No shaft links
+  the sides. The rack is level (CAD z 382 mm at both ends): no gravity term. Stroke 324 mm (CAD).
+  The old code's full stroke is 3.95 motor rotations; with the CAD stroke that is 12.19 motor
+  rotations per meter (a check on the robot: push the rack out by hand, read the rotations).
+- Rollers: Talon 20, Kraken X60, 24T to 36T (1.5:1). (The old sim used 0.5.)
+- Talon 22 had a loose power connection at CAEL (up to 17 reboots a match). A reboot sets its
+  position to 0 wherever the rack is.
+
+### Rack control
+
+- Units: meters of rack travel (0 = in, 0.324 = out). `SensorToMechanismRatio` = 12.19.
+- Each side runs its own `MotionMagicVoltage` loop (FOC on) to the same goal. The old `Follower`
+  copied the leader's output, not its position, so the sides drifted apart.
+- Start gains (SysId or hand tuning replaces them): kS 0.25 V, kV 1.2 V per m/s (X44: 0.096 V
+  per motor rps x 12.19), kP 30 V/m. Cruise 1.0 m/s, acceleration 6 m/s^2 (full stroke in
+  about 0.5 s). Stator limit 40 A, supply limit 30 A per side.
+- Soft limits 0 to 0.324 m, on only after homing.
+
+### Zero and stroke (user, 2026-10-22)
+
+The robot is powered off in the pit and boots for the match with the intake in. So:
+
+- **Zero at boot:** both sides read 0 = in. Nothing moves to find zero.
+- **Out stop found on the first extend** (usually in auto): Motion Magic out to 0.289 m (CAD
+  stroke 0.324 m less 3.5 cm), then each side pushes out gently with `TorqueCurrentFOC` at
+  +6 A until it stops (speed under 0.005 m/s for 0.15 s). That position is the side's "out" for
+  the rest of the match; later extends use Motion Magic to it, 3 mm short of the stop.
+  Timeout 1.5 s for the push: alert "Intake rack did not reach the out stop", use the CAD
+  stroke.
+- **A rebooted side** (`hasResetOccurred()` on Talon 21 or 22; Talon 22 had a loose power
+  connection) reads 0 wherever it is. It is marked "lost", raises an alert, and finds its
+  position at the stop of its next move: on extend it pushes to the out stop and sets its
+  position to the measured stroke; on retract it pushes to the in stop and sets 0. The other
+  side moves normally.
+- A measured out stop outside 85 % to 115 % of the CAD stroke means the rack was not in at
+  boot: that side's position is set to the CAD stroke at the stop, with the alert "Intake was not
+  in at boot".
+- Soft limits: reverse at -0.005 m always; forward at the out stop once measured.
+
+### Skew guard
+
+- Skew = left position - right position. If |skew| > 2.5 cm for 0.1 s: both sides hold where
+  they are, alert "Intake rack sides out of sync" (the rack is binding or a side lost power).
+  The next extend or retract command clears it and tries again.
+
+### Rollers
+
+- `MotionMagicVelocityVoltage` (FOC on), units roller rps (`SensorToMechanismRatio` 1.5). In
+  26.7 roller rps, out -20 (the old 40 and -30 motor rps). kV 0.225 V per roller rps (the old
+  0.15 per motor rps), kP 0.3. Supply limit 30 A. Brake when stopped.
+- Jam: roller under 20 % of its target with stator current over 50 A for 0.25 s: run out for
+  0.3 s, then in again; alert after 3 jams in 5 s.
+
+### Commands and controls
+
+- Left trigger (hold): home if needed, extend, run the rollers in. Release: rollers stop, rack
+  stays out. A: rollers stop, rack retracts.
+- Telemetry `Intake/...`: goal, left and right position, skew, homed, homing state, roller
+  speed and target, jam count. The 3D pose of the intake follows the rack position.
+
+### Sim
+
+- Each rack side: `ElevatorSim` with no gravity and hard stops at 0 and 0.324 m, so the push
+  into the out stop runs in sim. The sim's out stop is 6 mm past the CAD stroke on one side, to
+  show that each side measures its own.
+- Rollers: `FlywheelSim` with the 1.5 ratio.
+- `tools/sim-smoke.sh` adds: the first extend measures both out stops, a later extend reaches
+  them within 1 s, retract reaches 0.
+
+### Tests
+
+- `StallDetector` (pure): stalls only after the window; resets on movement.
+- `SkewGuard` (pure): trips only after the time limit; clears on reset.
+- Unit conversion: 3.95 motor rotations = 0.324 m.
