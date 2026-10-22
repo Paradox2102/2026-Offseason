@@ -1,0 +1,263 @@
+# nick-test rewrite: overall design
+
+Date: 2026-10-22. Branch: `nick-test` (from `main` 29cc0c1).
+
+## Goal
+
+Make the 2026 Offseason robot code as good as the hardware allows. Use Motion Magic, Phoenix Pro
+features, SystemCore, PhotonVision, BLine, simulation, logging and Elastic dashboards.
+
+The students own the code on `main`. This branch is a reference: each change must be easy to read
+and to copy back, one mechanism at a time.
+
+## Constraints
+
+- **Hardware.** SystemCore controller, 5 classic CAN buses at 1 Mbit/s (`CAN_S0` to `CAN_S4`).
+  No CANivore, no CAN FD. So no signal time sync, no Dynamic Motion Magic, no 250 Hz odometry,
+  no full `DifferentialMechanism`.
+- **Licenses.** Phoenix Pro on every CTRE device (applied after CAEL; check each device, issue #8).
+- **Software.** WPILib 2027.0.0-alpha-7, Phoenix 6 26.70.0-alpha-2, PhotonLib 2027 alpha-2,
+  BLine-Lib 2027.0.0-beta.3. No AdvantageKit and no maple-sim for 2027.
+- **Mechanisms built, wired and safe to run (user, 2026-10-22):** swerve (1 to 12, Pigeon 0,
+  `CAN_S2`), intake roller 20 and rack 21/22 (`CAN_S4`), indexer roller 30 and conveyor 31/32
+  (`CAN_S1`), kicker 40, hood 41 (X44), flywheel 42/43, turret 44, up-kicker 45 (`CAN_S3`).
+  PDH 21 alone on `CAN_S0`. No LED strip on the robot now.
+- **Values that only the robot can give** (gains, camera poses, turret zero, soft limits) stay
+  as named constants with a comment that says how to measure them. The code never guesses
+  silently.
+
+## Sub-projects
+
+Each sub-project gets its own plan, is built and checked in simulation, and is pushed to
+`nick-test` when it is done.
+
+1. **Foundation and drive** (this document, in detail).
+2. **Intake:** rack Motion Magic on both sides with a skew guard, homing, roller.
+3. **Shooter suite:** turret aim, hood, flywheel, kickers, indexer, shot calculator, shoot on the
+   move, superstructure state machine.
+4. **Autos:** BLine paths with event triggers, auto chooser, pose reset and alliance flip.
+
+## Architecture (all sub-projects)
+
+### Package layout
+
+```
+frc/robot/
+  Main.java, Robot.java          TimedRobot: logging start, scheduler, sim hooks
+  RobotContainer.java            builds subsystems, binds controls, autos
+  BuildConstants / RobotMode     sim vs real, tuning mode flag
+  lib/                           code with no robot facts in it
+    phoenix/PhoenixUtil.java     config apply with retry, signal refresh helpers
+    sim/                         small physics helpers that feed TalonFX sim states
+    util/                        AllianceFlip, geometry helpers
+  constants/
+    CanIds.java                  every CAN ID and bus in one place
+    FieldConstants.java          hub, zones, field size
+  subsystems/
+    drive/   Drive, DriveConstants, TunerConstants (generated), DriveSim, SwerveTelemetry
+    vision/  Vision, VisionCamera, VisionConstants
+    intake/  (sub-project 2)
+    shooter/ (sub-project 3)
+    superstructure/ (sub-project 3)
+  commands/  DriveCommands, characterization commands
+  health/    HealthMonitor, SwerveHealth
+  autos/     (sub-project 4)
+```
+
+### Hardware and simulation
+
+Each mechanism uses the real `TalonFX` object on the robot and in sim. In sim, a small physics
+class feeds the Talon sim state (`TalonFXSimState`) from a WPILib model (flywheel, arm,
+elevator). The swerve uses the CTRE sim thread.
+
+Reason: Phoenix runs the same firmware logic in sim, so Motion Magic, FOC and the configs are
+tested with no second code path. An AdvantageKit-style IO interface per mechanism would double
+the code and give no replay benefit without AdvantageKit. Hoot replay (Pro) replays the CTRE
+signals from a match log.
+
+### Logging
+
+- **CTRE signals:** `SignalLogger` writes hoot logs for every CTRE device (all signals with Pro).
+- **Robot code values:** `Telemetry.log("<Subsystem>/<Name>", value)`. One prefix per
+  subsystem. Units in the name when not obvious (`Drive/Speed mps`).
+- **Poses and module states:** struct topics, so AdvantageScope and Elastic show them.
+- **Alerts:** `org.wpilib.util.Alert`, in groups that Elastic shows.
+
+### Dashboard
+
+Elastic loads `src/main/deploy/elastic-layout.json` from the robot. Tabs: Driver, Pit, Drive,
+Vision, Tuning (later: Shooter, Intake). The Driver tab shows only what a driver needs in a
+match.
+
+### Control choices (summary, details per sub-project)
+
+| Mechanism | Request | Reason |
+|---|---|---|
+| Swerve steer | `MotionMagicExpo` with kS, kV | smooth, fast turn with a plan the PID only follows |
+| Swerve drive | closed-loop `Velocity`, `TorqueCurrentFOC` output | same feel at any battery voltage; slip current limits traction |
+| Intake rack | `MotionMagicVoltage` position, each side its own loop | sides have no shaft between them |
+| Turret | `MotionMagicExpoTorqueCurrentFOC` + robot-yaw-rate feedforward | holds the hub while the robot turns |
+| Hood | `MotionMagicExpoTorqueCurrentFOC`, `Arm_Cosine` kG | gravity and load independent |
+| Flywheel | `VelocityTorqueCurrentFOC` | fast recovery after each shot |
+| Rollers, kickers, conveyor | `MotionMagicVelocityVoltage` | smooth ramp, battery independent |
+
+---
+
+## Sub-project 1: foundation and drive
+
+### 1.1 Repo hygiene
+
+- Stop tracking `build/`, `.gradle/` and `bin/` (the `.gitignore` already lists `build/` and
+  `.gradle/`; the files were added before it). A Mac or Windows build then no longer changes
+  tracked files.
+- Delete dead code: `*.java.xxx`, `PathPlanningThing/DrivePath`, the old `PathPlanningThing/Autos`
+  JSON, `Telemetry.java.xxx`, `utils/DoubleNumber`, `utils/ParadoxTalon` (replaced in 1.3).
+- Keep `Issues2.md` and `Issues3.md` (review history).
+
+### 1.2 Constants
+
+`Constants.java` (one 430-line class) is split. CAN IDs and buses go to `constants/CanIds.java`.
+Field values go to `constants/FieldConstants.java`. Mechanism values move into the mechanism's
+package when that mechanism is rebuilt. Until then, the old classes stay, so the robot still
+builds after each step.
+
+### 1.3 Phoenix helpers
+
+`lib/phoenix/PhoenixUtil`:
+- `applyConfig(TalonFX, TalonFXConfiguration)`: apply with up to 5 tries, raise an Alert on
+  failure (a config that did not apply is a silent, dangerous fault).
+- `registerSignals(CANBus, BaseStatusSignal...)` and `refreshAll()` once per loop per bus, so
+  each loop reads all signals in one batch.
+- Every Talon is registered with `HealthMonitor` (as `ParadoxTalon` does now).
+
+### 1.4 Robot loop and logging
+
+- WPILib 2027 sends `Telemetry.log` to NetworkTables only (`/Telemetry/...`) and writes no file.
+  `Robot` starts `DataLogManager` (it records every NetworkTables change to a `.wpilog` in
+  `/home/systemcore/logs`, or `/u/logs` with a USB drive) and `DriverStation.startDataLog`.
+- `Robot` starts `SignalLogger` (hoot) on the robot, not in sim unless a flag is set.
+- `Robot` starts `WebServer` on port 5800 over the deploy directory, so Elastic can download
+  its layout.
+- WPILib 2027 does not publish Alerts to NetworkTables. `lib/util/AlertPublisher` keeps the
+  robot's own `Alert` objects and publishes `errors`, `warnings`, `infos` arrays per group under
+  `/Telemetry/Alerts/<group>` (the format of Elastic's Alerts widget).
+- Match time goes to `/Telemetry/Match Time` (WPILib publishes no FMS table).
+- One `Telemetry` naming scheme. Old names (`GyroAngle`, `FrontLeftModulePosition`, ...) go.
+- Field: a table `/Telemetry/Field` with type `Field2d`, `Robot` as one `Pose2d` (Elastic reads
+  only a single pose for the robot; WPILib's `Field2d` sends an array), and arrays for vision.
+- Swerve for Elastic: `/Telemetry/Swerve Drive` with type `SwerveDrive` and the nine number
+  topics that widget reads (`Front Left Angle`, ... `Robot Angle`, radians).
+- Publish `Drive/Pose`, `Drive/Module States`, `Drive/Module Targets`, `Drive/Chassis Speeds`,
+  `Vision/<camera>/Accepted Pose`, `Vision/<camera>/Rejected Pose`, `Vision/Tags`.
+- Component poses for the AdvantageScope 3D model (`Final Poses`: turret, hood, intake) built
+  from the mechanism positions (stubs at zero until sub-projects 2 and 3).
+
+### 1.5 Health
+
+Port `SwerveHealth` from `feat/swerve-health` (a2914a6), which merged into `feat/health-monitor`
+and never reached `main`. Keep `HealthMonitor`.
+
+### 1.6 Drive
+
+- **Steer:** `SteerRequestType.MotionMagicExpo` on every request (Phoenix 26.70 defaults every
+  request to `Position`). Steer gains kS 0.1 V, kV 0.68 V per module rps (0.12 x steer ratio
+  5.68), kP 20, kD 0.1 (kP was 35 with no feedforward). The module itself writes the Expo profile
+  (`MotionMagicExpo_kV = 0.12 x ratio`, `kA = 1.2 / ratio`). SysId values replace these.
+- **Drive:** `DriveRequestType.Velocity` in teleop and autos. Output type `TorqueCurrentFOC`:
+  the module then sends `VelocityTorqueCurrentFOC`, gains in amps per rotor rps. Start values:
+  kP 3 A/rps, kS 2 A, kV 0 (from the X60 FOC torque constant 0.0194 Nm/A, ratio 7.36, wheel
+  radius 0.055 m and about 60 kg: 0.5 m/s of error gives about 5 m/s^2). SysId replaces them.
+  The slip current (110 A) limits the torque, which is traction control. A tunable `Drive/Open loop teleop` switch keeps the old open-loop voltage drive
+  for the first robot test.
+- **Teleop input:** joystick deadband first, then the curve (squared for translation, cubed for
+  rotation), then scale. This fixes the "curve before deadband" issue from the review.
+- **Heading hold:** when the rotation stick is in the deadband and the robot moves, the drive
+  holds the last heading with `FieldCentricFacingAngle`. The gyro drift and the swerve skew no
+  longer turn the robot.
+- **Snap and aim modes:** buttons for snap to 0/90/180/270 degrees and "face the hub" while
+  driving (uses the same heading controller).
+- **Pose reset:** `resetPose` at the start of an auto and from a dashboard button; the bad
+  `getState().Pose = ...` lines go (they change a copy). The pose getter that BLine uses reads
+  `getState().Pose` live, because BLine reads the pose right after its reset and a pose cached
+  in `periodic()` is one loop old.
+- **BLine gains:** separate PID objects for BLine (BLine changes them: continuous input,
+  tolerance, reset). Start at the BLine docs values: translation P 2.0, rotation P 1.0,
+  cross-track P 0.2 (the old cross-track 6.0 makes the robot snake). BLine telemetry goes to
+  `Auto/BLine/...`.
+- **X-lock:** `SwerveDriveBrake` while a button is held.
+- **Characterization:** SysId for translation, steer and rotation, and the wheel-radius test,
+  each as a dashboard button and on a test controller (port 2). Results print and go to the log.
+- **Odometry:** 100 Hz (CTRE default on CAN 2.0). `HealthMonitor` logs bus utilization; raise
+  only after a log shows room.
+
+### 1.7 Vision
+
+Rewrite `Vision.java`:
+- One `VisionCamera` per camera. Each loop: read all unread results, run the pose estimator
+  (multi-tag on the coprocessor, lowest-ambiguity single tag as the fallback), filter, then add
+  to the drive estimator.
+- **Fix:** the current code never calls the estimator, so it never adds a measurement.
+- **Filter:** reject a pose off the field, more than 0.25 m from the floor, with ambiguity above
+  0.2 (single tag), or with a single tag farther than 4 m.
+- **Trust:** standard deviations scale with distance squared and drop with tag count:
+  `xy = 0.02 * d^2 / n`, `theta = 0.06 * d^2 / n` (single tag: theta not trusted).
+- **Timestamps:** use the result timestamp, converted to the drive's time base as the Phoenix API
+  needs.
+- **Every unread result counts:** each result in the batch gives its own measurement with its
+  own standard deviations, in time order. Nothing is kept from one loop to the next, so a frame
+  is never added twice.
+- **Estimator calls (PhotonLib 2027):** `estimateCoprocMultiTagPose(result)`, else
+  `estimateLowestAmbiguityPose(result)`. `update()` no longer exists.
+- **Field layout:** one `Field` for the estimator, the sim tags, the sim cameras and the BLine
+  flip size (`FlippingUtil.fieldSizeX/Y`). Default AndyMark; a constant selects WELDED.
+- Camera transforms: four cameras, from the 2026-10-19 CAD (user: all four are on the robot).
+  Position = lens front center; x/y from the robot center, z from the bottom of the wheels.
+  Roll assumes the camera part's +z is the top of the image (check each stream for a level
+  horizon).
+
+  | PhotonVision name | CAD part | x, y, z (in) | roll, pitch, yaw (deg) |
+  |---|---|---|---|
+  | front_right | cambrea 1 | -12.25, +9.60, 9.18 | -17.3, -30.0, -148.0 |
+  | front_left | cambrea 2 | -12.19, -8.62, 16.63 | -2.1, -25.0, +148.0 |
+  | side_left | cambrea 3 | -11.05, -13.54, 16.60 | -11.1, -25.0, -65.0 |
+  | side_right (name to confirm) | cambrea 4 | -0.44, +13.78, 9.62 | -8.9, -30.0, +65.0 |
+
+  The old values had roll and pitch swapped, wrong yaw signs on front_right and side_left, and
+  heights near 12 in.
+- Sim: the vision sim needs a true pose that vision does not change. `DriveSim` keeps an
+  odometry-only pose from the module positions and the raw gyro (the CTRE sim has no wheel slip,
+  so this is the truth). A Tuning button adds a pose error to the estimator, so the sim shows
+  vision pulling the pose back. The cameras use the same `Field` as the tags.
+
+### 1.8 Elastic
+
+`src/main/deploy/elastic-layout.json` (Elastic 2027.0.0-alpha9 format: `version`, `grid_size`
+128, `tabs[].grid_layout.containers[]` with `type`, `x`, `y`, `width`, `height`, `properties`).
+Field widget: game "Rebuilt", `coordinate_system` "wall_blue" (the tag layout and the paths
+have the origin at the blue wall corner). Tabs:
+- **Driver:** field with robot pose, match time, auto chooser, alerts, "vision has target".
+- **Pit:** health alerts, swerve self-test and wheels-forward buttons, CAN bus use, battery.
+- **Drive:** swerve widget (module states), speed graphs (target vs actual), heading.
+- **Vision:** per camera: connected, tag count, accepted and rejected poses.
+- **Tuning:** SysId and wheel-radius buttons, gain tunables.
+
+### 1.9 Tests
+
+- JUnit tests for pure logic: joystick shaping, vision filter and standard deviations, heading
+  hold decision, alliance flip.
+- A headless sim smoke run (`./gradlew run` with the `build/jni/release` libraries) that starts the
+  robot, enables teleop and auto for a few seconds and checks the log for exceptions.
+
+### 1.10 Done when
+
+- `./gradlew build` passes with tests.
+- The sim runs teleop and the BLine test auto with no exception; vision adds measurements in sim.
+- Elastic opens the layout with all widgets bound to live topics.
+- The branch is pushed to `nick-test`.
+
+### Open questions for the robot (not blocking)
+
+1. Steer and drive gains: run SysId (buttons in the Tuning tab).
+2. Camera roll (each stream must show a level horizon) and the PhotonVision name of camera 4.
+3. CAN utilization on `CAN_S2` at 100 Hz odometry (for a raise to 200 Hz).
+4. Pro license on every device (issue #8).
