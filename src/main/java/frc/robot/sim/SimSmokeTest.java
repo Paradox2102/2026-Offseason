@@ -6,6 +6,7 @@ import org.wpilib.simulation.DriverStationSim;
 import org.wpilib.command2.CommandScheduler;
 import org.wpilib.driverstation.RobotState;
 import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.system.Timer;
 
@@ -78,6 +79,7 @@ public class SimSmokeTest {
             step(7, "disabled, vision corrects", RobotMode.AUTONOMOUS, false);
         } else {
             report("end");
+            writeTopicList();
             System.exit(0);
         }
         // The scheduler drops a command scheduled while disabled, so wait for the enable.
@@ -114,6 +116,17 @@ public class SimSmokeTest {
         if (step == 6) {
             m_drive.getSim().kickPose();
             report("after kick");
+        }
+    }
+
+    /** Every NetworkTables topic, one per line, so the script can check the Elastic layout. */
+    private void writeTopicList() {
+        var names = java.util.Arrays.stream(NetworkTableInstance.getDefault().getTopics())
+            .map(topic -> topic.getName()).sorted().toList();
+        try {
+            java.nio.file.Files.write(java.nio.file.Path.of("build", "sim-topics.txt"), names);
+        } catch (java.io.IOException e) {
+            System.out.println("SMOKE could not write the topic list: " + e);
         }
     }
 

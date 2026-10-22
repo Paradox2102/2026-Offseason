@@ -1,0 +1,938 @@
+{
+  "version": 1.0,
+  "grid_size": 128,
+  "tabs": [
+    {
+      "name": "Driver",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "Field",
+            "x": 0,
+            "y": 0,
+            "width": 896,
+            "height": 512,
+            "type": "Field",
+            "properties": {
+              "topic": "/Telemetry/Field",
+              "period": 0.06,
+              "field_game": "Rebuilt",
+              "coordinate_system": "wall_blue",
+              "robot_width": 0.81,
+              "robot_length": 0.9,
+              "show_other_objects": true,
+              "show_trajectories": true,
+              "field_rotation": 0.0,
+              "robot_color": 4294198070,
+              "trajectory_color": 4294967295,
+              "show_robot_outside_widget": true
+            }
+          },
+          {
+            "title": "Match Time",
+            "x": 896,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Match Time",
+            "properties": {
+              "topic": "/Telemetry/Match Time",
+              "period": 0.06,
+              "time_display_mode": "Minutes and Seconds",
+              "red_start_time": 20,
+              "yellow_start_time": 30
+            }
+          },
+          {
+            "title": "Vision Target",
+            "x": 1152,
+            "y": 0,
+            "width": 128,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Vision/Has Target",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Battery",
+            "x": 1280,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Voltage View",
+            "properties": {
+              "topic": "/Telemetry/Health/Battery V",
+              "period": 0.06,
+              "min_value": 8.0,
+              "max_value": 13.0,
+              "divisions": 5,
+              "inverted": false,
+              "orientation": "horizontal"
+            }
+          },
+          {
+            "title": "Auto",
+            "x": 896,
+            "y": 128,
+            "width": 384,
+            "height": 128,
+            "type": "Dropdown Chooser",
+            "properties": {
+              "topic": "/Tunables/Auto Selection",
+              "period": 0.06,
+              "sort_options": false
+            }
+          },
+          {
+            "title": "Alerts",
+            "x": 896,
+            "y": 256,
+            "width": 640,
+            "height": 256,
+            "type": "Alerts",
+            "properties": {
+              "topic": "/Telemetry/Alerts/Health",
+              "period": 0.06
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Pit",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "Alerts",
+            "x": 0,
+            "y": 0,
+            "width": 640,
+            "height": 512,
+            "type": "Alerts",
+            "properties": {
+              "topic": "/Telemetry/Alerts/Health",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "Swerve Self-Test",
+            "x": 640,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Pit/Swerve Self-Test",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Wheels Forward",
+            "x": 896,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Pit/Wheels Forward",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Reset Heading",
+            "x": 1152,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Pit/Reset Heading",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Battery V",
+            "x": 640,
+            "y": 128,
+            "width": 384,
+            "height": 256,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Health/Battery V",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4283215696,
+              "line_width": 2.0,
+              "min_value": 6.0,
+              "max_value": 13.5
+            }
+          },
+          {
+            "title": "Loop Time ms",
+            "x": 1024,
+            "y": 128,
+            "width": 384,
+            "height": 256,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Health/Loop Time ms",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "CAN S1 (indexer) %",
+            "x": 640,
+            "y": 384,
+            "width": 256,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Health/CAN/CAN_S1/Utilization",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "CAN S2 (swerve) %",
+            "x": 896,
+            "y": 384,
+            "width": 256,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Health/CAN/CAN_S2/Utilization",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "CAN S3 (shooter) %",
+            "x": 1152,
+            "y": 384,
+            "width": 256,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Health/CAN/CAN_S3/Utilization",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "CAN S4 (intake) %",
+            "x": 1408,
+            "y": 384,
+            "width": 256,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Health/CAN/CAN_S4/Utilization",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Drive",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "Swerve",
+            "x": 0,
+            "y": 0,
+            "width": 384,
+            "height": 384,
+            "type": "SwerveDrive",
+            "properties": {
+              "topic": "/Telemetry/Swerve Drive",
+              "period": 0.06,
+              "show_robot_rotation": true,
+              "rotation_unit": "Radians"
+            }
+          },
+          {
+            "title": "Speed m/s",
+            "x": 384,
+            "y": 0,
+            "width": 512,
+            "height": 256,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Drive/Speed mps",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Odometry Hz",
+            "x": 896,
+            "y": 0,
+            "width": 384,
+            "height": 256,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Drive/Odometry Hz",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Heading (gyro) deg",
+            "x": 384,
+            "y": 256,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Drive/Raw Heading deg",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Failed DAQs",
+            "x": 640,
+            "y": 256,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Drive/Failed DAQs",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Open loop teleop",
+            "x": 896,
+            "y": 256,
+            "width": 256,
+            "height": 128,
+            "type": "Toggle Switch",
+            "properties": {
+              "topic": "/Tunables/Drive/Open loop teleop",
+              "period": 0.06
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Vision",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "front_right",
+            "x": 0,
+            "y": 0,
+            "width": 384,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Vision/front_right/Connected",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Tags",
+            "x": 0,
+            "y": 128,
+            "width": 128,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Vision/front_right/Tag Count",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Reject reason",
+            "x": 128,
+            "y": 128,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Vision/front_right/Reject Reason",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Robot roll deg (0 = camera OK)",
+            "x": 0,
+            "y": 256,
+            "width": 384,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/front_right/Robot Roll deg",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Robot pitch deg (0 = camera OK)",
+            "x": 0,
+            "y": 384,
+            "width": 384,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/front_right/Robot Pitch deg",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Robot z m (0 = camera OK)",
+            "x": 0,
+            "y": 512,
+            "width": 384,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/front_right/Robot Z m",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "front_left",
+            "x": 384,
+            "y": 0,
+            "width": 384,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Vision/front_left/Connected",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Tags",
+            "x": 384,
+            "y": 128,
+            "width": 128,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Vision/front_left/Tag Count",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Reject reason",
+            "x": 512,
+            "y": 128,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Vision/front_left/Reject Reason",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Robot roll deg (0 = camera OK)",
+            "x": 384,
+            "y": 256,
+            "width": 384,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/front_left/Robot Roll deg",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Robot pitch deg (0 = camera OK)",
+            "x": 384,
+            "y": 384,
+            "width": 384,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/front_left/Robot Pitch deg",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Robot z m (0 = camera OK)",
+            "x": 384,
+            "y": 512,
+            "width": 384,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/front_left/Robot Z m",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "side_left",
+            "x": 768,
+            "y": 0,
+            "width": 384,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_left/Connected",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Tags",
+            "x": 768,
+            "y": 128,
+            "width": 128,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_left/Tag Count",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Reject reason",
+            "x": 896,
+            "y": 128,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_left/Reject Reason",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Robot roll deg (0 = camera OK)",
+            "x": 768,
+            "y": 256,
+            "width": 384,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_left/Robot Roll deg",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Robot pitch deg (0 = camera OK)",
+            "x": 768,
+            "y": 384,
+            "width": 384,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_left/Robot Pitch deg",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Robot z m (0 = camera OK)",
+            "x": 768,
+            "y": 512,
+            "width": 384,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_left/Robot Z m",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "side_right",
+            "x": 1152,
+            "y": 0,
+            "width": 384,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_right/Connected",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Tags",
+            "x": 1152,
+            "y": 128,
+            "width": 128,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_right/Tag Count",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Reject reason",
+            "x": 1280,
+            "y": 128,
+            "width": 256,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_right/Reject Reason",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Robot roll deg (0 = camera OK)",
+            "x": 1152,
+            "y": 256,
+            "width": 384,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_right/Robot Roll deg",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Robot pitch deg (0 = camera OK)",
+            "x": 1152,
+            "y": 384,
+            "width": 384,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_right/Robot Pitch deg",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Robot z m (0 = camera OK)",
+            "x": 1152,
+            "y": 512,
+            "width": 384,
+            "height": 128,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_right/Robot Z m",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tuning",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "SysId routine (test pad)",
+            "x": 0,
+            "y": 0,
+            "width": 384,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Drive/SysId Routine",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Translation Quasistatic Forward",
+            "x": 0,
+            "y": 128,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Tuning/SysId Translation/Quasistatic Forward",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Translation Quasistatic Reverse",
+            "x": 384,
+            "y": 128,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Tuning/SysId Translation/Quasistatic Reverse",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Translation Dynamic Forward",
+            "x": 768,
+            "y": 128,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Tuning/SysId Translation/Dynamic Forward",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Translation Dynamic Reverse",
+            "x": 1152,
+            "y": 128,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Tuning/SysId Translation/Dynamic Reverse",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Steer Quasistatic Forward",
+            "x": 0,
+            "y": 256,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Tuning/SysId Steer/Quasistatic Forward",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Steer Quasistatic Reverse",
+            "x": 384,
+            "y": 256,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Tuning/SysId Steer/Quasistatic Reverse",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Steer Dynamic Forward",
+            "x": 768,
+            "y": 256,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Tuning/SysId Steer/Dynamic Forward",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Steer Dynamic Reverse",
+            "x": 1152,
+            "y": 256,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Tuning/SysId Steer/Dynamic Reverse",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Rotation Quasistatic Forward",
+            "x": 0,
+            "y": 384,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Tuning/SysId Rotation/Quasistatic Forward",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Rotation Quasistatic Reverse",
+            "x": 384,
+            "y": 384,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Tuning/SysId Rotation/Quasistatic Reverse",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Rotation Dynamic Forward",
+            "x": 768,
+            "y": 384,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Tuning/SysId Rotation/Dynamic Forward",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Rotation Dynamic Reverse",
+            "x": 1152,
+            "y": 384,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Tuning/SysId Rotation/Dynamic Reverse",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Wheel Radius",
+            "x": 0,
+            "y": 512,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Tuning/Wheel Radius",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Sim: Kick Pose",
+            "x": 384,
+            "y": 512,
+            "width": 384,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Sim/Kick Pose",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Open loop teleop",
+            "x": 768,
+            "y": 512,
+            "width": 256,
+            "height": 128,
+            "type": "Toggle Switch",
+            "properties": {
+              "topic": "/Tunables/Drive/Open loop teleop",
+              "period": 0.06
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

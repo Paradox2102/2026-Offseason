@@ -22,6 +22,7 @@ import org.wpilib.math.filter.Debouncer;
 import org.wpilib.math.filter.Debouncer.DebounceType;
 import org.wpilib.system.RobotController;
 import org.wpilib.system.Timer;
+import org.wpilib.telemetry.Telemetry;
 import org.wpilib.util.Alert;
 import org.wpilib.util.Alert.Level;
 import frc.robot.lib.util.AlertPublisher;
@@ -180,6 +181,7 @@ public final class HealthMonitor {
         double now = Timer.getTimestamp();
         if (s_lastLoopTime >= 0) {
             SignalLogger.writeDouble("Health/System/LoopTime", (now - s_lastLoopTime) * 1000.0, "ms");
+            Telemetry.log("Health/Loop Time ms", (now - s_lastLoopTime) * 1000.0);
         }
         s_lastLoopTime = now;
 
@@ -188,6 +190,7 @@ public final class HealthMonitor {
         boolean brownedOut = RobotController.isBrownedOut();
         SignalLogger.writeBoolean("Health/System/BrownedOut", brownedOut);
         SignalLogger.writeDouble("Health/System/BatteryVoltage", RobotController.getBatteryVoltage(), "V");
+        Telemetry.log("Health/Battery V", RobotController.getBatteryVoltage());
         if (brownedOut && !s_wasBrownedOut) {
             s_brownouts++;
             s_brownoutAlert.setText("Brownout " + s_brownouts + " time(s) since code start: check the battery and current limits");
@@ -274,6 +277,7 @@ public final class HealthMonitor {
         void check() {
             CANStatus status = RobotController.getCANStatus(m_port);
             SignalLogger.writeDouble(m_key + "Utilization", status.percentBusUtilization);
+            Telemetry.log(m_key + "Utilization", status.percentBusUtilization); // dashboard (Pit tab)
             SignalLogger.writeInteger(m_key + "BusOffCount", status.busOffCount);
             SignalLogger.writeInteger(m_key + "TxFullCount", status.txFullCount);
             SignalLogger.writeInteger(m_key + "ReceiveErrorCount", status.receiveErrorCount);

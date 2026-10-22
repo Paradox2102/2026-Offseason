@@ -34,7 +34,7 @@ public final class PhoenixUtil {
                 return true;
             }
         }
-        AlertPublisher.create("Phoenix", name + "/config",
+        AlertPublisher.create("Health", "config/" + name,
             "Config failed on " + name + " (" + status.getName() + "): it runs with old settings",
             Level.HIGH).set(true);
         return false;

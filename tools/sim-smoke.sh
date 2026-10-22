@@ -9,7 +9,7 @@ set -u
 cd "$(dirname "$0")/.."
 LIB="$PWD/build/jni/release"
 LOG="$PWD/build/sim-smoke.log"
-rm -f "$LOG"
+rm -f "$LOG" build/sim-topics.txt
 sh ./gradlew build -q || { echo "FAIL: build"; exit 1; }
 SIM_SMOKE=1 DYLD_LIBRARY_PATH="$LIB" LD_LIBRARY_PATH="$LIB" JAVA_TOOL_OPTIONS="-Djava.library.path=$LIB" \
     sh ./gradlew run -q > "$LOG" 2>&1
@@ -20,4 +20,5 @@ if grep -nE "Exception|Error:|at frc\.robot\." "$LOG" | grep -v "JAVA_TOOL_OPTIO
     exit 1
 fi
 grep -q "SMOKE end:" "$LOG" || { echo "FAIL: the run did not finish (see $LOG)"; exit 1; }
+python3 tools/check-elastic-layout.py src/main/deploy/elastic-layout.json build/sim-topics.txt || { echo "FAIL: layout"; exit 1; }
 echo "PASS"
