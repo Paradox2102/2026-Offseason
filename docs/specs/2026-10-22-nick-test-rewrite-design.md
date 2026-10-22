@@ -530,3 +530,51 @@ fit in 20 s.)
 
 - Sim check (smoke test): start pose, intake out at the trench entry, lowest y and highest x
   (wall and center line), shots and feed time.
+
+## Sub-project 5: fuel physics and the bump in the sim (user, 2026-10-22)
+
+The user wants to see, in AdvantageScope, the balls picked up, pushed around, shot out of the
+turret and scored in the hub, and the robot driving over the bump instead of through it.
+
+maple-sim (the usual FRC game-piece sim) is not used: its newest release (v0.4.0-beta) targets
+WPILib 2026.2.1, and WPILib 2027 renamed the packages. It would also replace the CTRE swerve sim
+that the autos are tuned on. So the sim has its own small fuel model. Simulator only: nothing in
+it runs on the robot.
+
+### Geometry (measured from AdvantageScope's 2026 field model, so the sim matches the picture)
+
+- Bumps: four, x 4.00-5.25 m (blue) and 11.29-12.54 m (red), y 1.283-3.440 and 4.629-6.786 m.
+  A triangle in x: 0.165 m (6.5 in) high at the center (x 4.6255 / 11.9155), 15 degree ramps.
+- Hub: base about 1.2 m square around (4.625, 4.035) and the red mirror; the funnel top is at
+  1.83 m (72 in); a ball that falls through a 0.53 m radius circle there scores.
+- Fuel: 0.15 m, 0.23 kg. The field model stages 456 balls; the 408 on the field are the start
+  positions (360 neutral zone, 24 in each depot; the 48 in the outpost chutes are left out).
+  The robot starts with 8 (the preload).
+- Robot (AdvantageScope robot model): bumpers about 0.82 x 0.90 m; intake front at x 0.325 m
+  when in, plus the rack travel times cos 20 degrees when out; intake width 0.72 m.
+
+### Behavior
+
+- Floor balls roll with friction (1.0 m/s^2), roll down bump ramps, bounce off the walls, the
+  hub base and each other. The robot's bumpers (and the intake, when it is out) push them.
+- A ball that touches the intake, with the rack more than half out and the rollers running in,
+  goes into the hopper (capacity 40, an assumption).
+- While the feeder feeds, balls leave the hopper at 8 per second (an assumption), from the hood
+  axis, along the turret direction, with the robot's velocity added. In flight: gravity and air
+  drag (Cd 0.47). A ball that falls through the hub opening scores; it comes back out on the
+  floor 0.9 m from the hub center, on the neutral-zone side (an assumption). A miss lands and
+  rolls.
+- Exit speed and launch angle: the user's default of 0.7 x the wheel surface speed cannot score
+  with the old shot tables at any hood angle (the balls go almost straight up). The sim uses a fit
+  to those tables instead: speed = 0.24 x the surface speed of the 4 in flywheel (CAD), launch
+  angle = 78 degrees - hood angle. Both are fits, not measurements: replace them with a measured
+  exit speed when there is one.
+- Bump: the robot's height, pitch and roll come from the bump height under its four wheels. On a
+  ramp the simulated robot covers cos(slope) x 0.9 of its wheel travel (the 0.9 is a slip
+  assumption), so odometry runs ahead of the truth there and vision must correct it, as on the
+  real robot. The CTRE sim has no chassis dynamics: the robot does not bounce or get stuck.
+- AdvantageScope: `RobotPose3d` (the true robot pose with the bump) for the robot, and
+  `Sim/Fuel` (Translation3d[]) for the balls. The vision sim uses the 3D pose too.
+- The fuel resets (staged balls, preload of 8) at the start of auto and with "Sim/Reset Fuel".
+- Smoke test: balls picked up, shots and balls scored in the teleop shot and in auto; highest
+  robot z and pitch in auto.
