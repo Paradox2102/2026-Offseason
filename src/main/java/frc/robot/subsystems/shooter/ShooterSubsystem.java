@@ -6,7 +6,7 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -29,7 +29,7 @@ import org.wpilib.command2.SubsystemBase;
 
 public class ShooterSubsystem extends SubsystemBase{
 
-    private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withSlot(0);
+    private final MotionMagicVelocityVoltage m_velocityRequest = new MotionMagicVelocityVoltage(0).withSlot(0);
     private final Follower m_followRequest = new Follower(CANIDConstants.shooterLeader, MotorAlignmentValue.Opposed);
     private final CoastOut m_coastRequest = new CoastOut();
 
@@ -37,7 +37,7 @@ public class ShooterSubsystem extends SubsystemBase{
     private final ParadoxTalon m_shooterLeader = new ParadoxTalon(CANIDConstants.shooterLeader, k_CANBus, m_coastRequest, 0.1);
     private final ParadoxTalon m_shooterFollower = new ParadoxTalon(CANIDConstants.shooterFollower, k_CANBus, m_followRequest, 0.1);
 
-    private final InterpolatingDoubleTreeMap m_shooterLerpTable = new InterpolatingDoubleTreeMap();
+    public final InterpolatingDoubleTreeMap m_shooterLerpTable = new InterpolatingDoubleTreeMap();
 
     private final double k_gearRatio = 1;
 

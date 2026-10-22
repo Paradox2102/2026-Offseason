@@ -9,6 +9,7 @@ import com.ctre.phoenix6.SignalLogger;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.Subsystems;
+import frc.robot.utils.FuelSim;
 import frc.robot.utils.HealthMonitor;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
@@ -61,6 +62,7 @@ public class Robot extends TimedRobot {
         Pose2d robotPose = Subsystems.m_swerveSubsystem.getPose();
 
         m_posePublisher.set(robotPose);
+
         
         // Rotation2d rot = new Rotation2d(Subsystems.m_turretAimSubsystem.getShooterAzimuth().getPosition().getValueAsDouble() * Constants.ShooterConstants.k_shooterGearReduction);
         //Rotation3d rot = new Rotation3d(Math.cos(Timer.getTimestamp()), Math.tan(Timer.getTimestamp()), Math.sin(Timer.getTimestamp()));
@@ -130,5 +132,7 @@ public class Robot extends TimedRobot {
     }
     
     @Override
-    public void simulationPeriodic() {}
+    public void simulationPeriodic() {
+        FuelSim.getInstance().updateSim();
+    }
 }

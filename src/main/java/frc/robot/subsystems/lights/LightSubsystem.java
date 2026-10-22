@@ -4,25 +4,13 @@
 
 package frc.robot.subsystems.lights;
 
-import static org.wpilib.units.Units.Seconds;
-
-import java.util.Map;
 import java.util.Optional;
 
-import org.wpilib.units.measure.Time;
-import org.wpilib.hardware.led.AddressableLED;
-import org.wpilib.hardware.led.AddressableLEDBuffer;
 import org.wpilib.driverstation.MatchState;
 import org.wpilib.driverstation.RobotState;
-import org.wpilib.hardware.led.LEDPattern;
 import org.wpilib.system.Timer;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.driverstation.Alliance;
-import org.wpilib.driverstation.DriverStation;
-import org.wpilib.util.Color;
-
-import frc.robot.Constants.LightConstants;
-
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
@@ -30,9 +18,6 @@ import org.wpilib.command2.button.Trigger;
 
 public class LightSubsystem extends SubsystemBase {
   /** Creates a new LightSubsystem. */
-  private AddressableLED m_led = new AddressableLED(LightConstants.k_lightPort);
-  public AddressableLEDBuffer m_ledBuffer = new AddressableLEDBuffer(LightConstants.k_lightAmount);
-  private LEDPattern m_pattern;
   private Timer m_timer = new Timer();
 
   private final double k_shift1Time = 10.0;
@@ -47,31 +32,15 @@ public class LightSubsystem extends SubsystemBase {
 
   private int m_shift = 0;
   private Optional<String> gameData;
-  private static final Time k_blinkMagnitude = Seconds.of(0.4);
 
-  private boolean m_isOn = true;
-  private boolean m_isScrolling = true;
-  public final class LedPatterns {
-      public static LEDPattern m_disabledPattern = LEDPattern.steps(Map.of(0, Color.RED, 0.16, Color.BLUE, 0.33, new Color(1.0f, 0.35f, 0.0f),0.49, Color.RED, 0.66, Color.BLUE, 0.83, new Color(1.0f, 0.35f, 0.0f))).scrollAtAbsoluteVelocity(LightConstants.k_disabledVelocity, LightConstants.k_ledSpacing);
 
-      public static LEDPattern m_prideFlag = LEDPattern.steps(Map.of(0, new Color(0.357f, 0.808f, 0.980f), 0.1, new Color(0.961f, 0.663f, 0.722f), 0.2, Color.WHITE, 0.3, new Color(0.961f, 0.663f, 0.722f), 0.4, new Color(0.357f, 0.808f, 0.980f), 0.6, new Color(0.961f, 0.663f, 0.722f), 0.7, Color.WHITE, 0.8, new Color(0.961f, 0.663f, 0.722f), 0.9, new Color(0.357f, 0.808f, 0.980f)));
-    }  
 
   private final class ShiftCommand extends Command {
 
     private final int m_commandShift;
-    private final boolean m_odd;
-    private final double m_endTime;
-    private Color m_color = Color.BLACK;
     
-    public ShiftCommand(boolean odd, double endTime, int shift) {
+    public ShiftCommand(int shift) {
       m_commandShift = shift;
-      m_odd = odd;
-      m_endTime = endTime;
-      System.out.println(String.format("ShiftCommand (%b, %f, %d)", odd, endTime, shift));
-      if (shift != 5){
-        // new Trigger(() -> m_timer.get() > m_endTime - 3.0).onTrue(new SetPattern(Color.BLUE, true));
-      }
     }
     
     @Override
@@ -81,29 +50,8 @@ public class LightSubsystem extends SubsystemBase {
         m_timer.reset();
       }
       m_timer.start();
-      m_color = getColor();
-      // if(getColor() == Color.PURPLE){
-      //   m_pattern = LedPatterns.m_prideFlag;
-      // } else {
-        // applyPattern(m_color, false);
-      // }  
     }
     
-    public Color getColor(){
-      Color color;
-      if ((m_commandShift != 0 && m_commandShift != 5) && gameData != null){
-        if (m_odd) {
-          color = getWonAuto() ? Color.RED : Color.GREEN;
-        }
-        else {
-          color = getWonAuto() ? Color.GREEN : Color.RED;
-        }
-      }
-      else{
-        color = Color.PURPLE;
-      }
-      return color;
-    }
     @Override
     public void end(boolean interrupted) {
         m_shift ++;
@@ -149,70 +97,19 @@ public class LightSubsystem extends SubsystemBase {
     }
   }
 
-  // public class SetPattern extends Command {
-  //   private Color m_color;
-  //   private boolean m_blinking;
-  //   public SetPattern(Color color, boolean blinking) {
-  //     m_color = color;
-  //     m_blinking = blinking;
-  //   }
-  //   @Override
-  //   public void initialize() {
-  //     // applyPattern(m_color, m_blinking);
-  //   }
-  // }
-  // public void applyPattern(Color color, boolean blinking) {
-  //   m_pattern = LEDPattern.solid(color);
-  //     if (blinking) {
-  //       m_pattern = m_pattern.blink(k_blinkMagnitude);
-  //       System.out.println("Setting Pattern to Blinking");
-  //     }
-  //     System.out.println("applying pattern to LED");
-  //     m_pattern.applyTo(m_ledBuffer);
-  // }
   public LightSubsystem() {
-    // SmartDashboard.putData(Commands.runOnce(() -> {
-    //     m_isOn = !m_isOn;
-    //   })
-    //   .withName("Toggle Lights")
-    //   .ignoringDisable(true));
-
-      // RobotContainer.m_telemetry.(Commands.runOnce(() -> {
-      //   m_isScrolling = !m_isScrolling;
-      //   LedPatterns.m_disabledPattern = LEDPattern.steps(Map.of(0, Color.RED, 0.16, Color.BLUE, 0.33, new Color(1.0f, 0.35f, 0.0f),0.49, Color.RED, 0.66, Color.BLUE, 0.83, new Color(1.0f, 0.35f, 0.0f))).scrollAtAbsoluteVelocity(m_isScrolling ? LightConstants.k_disabledVelocity : MetersPerSecond.of(0), LightConstants.k_ledSpacing);
-      // })
-      // .withName("Toggle Disable Scrolling")
-      // .ignoringDisable(true));
-    // m_led.setLength(LightConstants.k_lightAmount);
-    // m_led.setData(m_ledBuffer);
-
-    // m_led.setStart(LightConstants.k_lightAmount);
-    new Trigger(() -> RobotState.isTeleop() && !RobotState.isDisabled()).onTrue(Commands.parallel(new ShiftCommand(false, k_shift1Time, 0), Commands.run(() -> m_shift = 0)));
-    new Trigger(() -> m_timer.get() > k_shift1Time).onTrue(new ShiftCommand(true, k_shift2Time, 1));
-    new Trigger(() -> m_timer.get() > k_shift2Time).onTrue(new ShiftCommand(false, k_shift3Time, 2));
-    new Trigger(() -> m_timer.get() > k_shift3Time).onTrue(new ShiftCommand(true, k_shift4Time, 3));
-    new Trigger(() -> m_timer.get() > k_shift4Time).onTrue(new ShiftCommand(false, k_endShiftTime, 4));
-    new Trigger(() -> m_timer.get() > k_endShiftTime).onTrue(new ShiftCommand(false, k_matchEndTime, 5));
+   
+    new Trigger(() -> RobotState.isTeleop() && !RobotState.isDisabled()).onTrue(new ShiftCommand( 0));
+    new Trigger(() -> m_timer.get() > k_shift1Time).onTrue(new ShiftCommand(1));
+    new Trigger(() -> m_timer.get() > k_shift2Time).onTrue(new ShiftCommand(2));
+    new Trigger(() -> m_timer.get() > k_shift3Time).onTrue(new ShiftCommand(3));
+    new Trigger(() -> m_timer.get() > k_shift4Time).onTrue(new ShiftCommand(4));
+    new Trigger(() -> m_timer.get() > k_endShiftTime).onTrue(new ShiftCommand(5));
   }
 
   @Override
   public void periodic() {
-    
-    if (m_isOn){
-      gameData = MatchState.getGameData();
-      if (RobotState.isDisabled()){
-        m_pattern = LedPatterns.m_disabledPattern;
-      }
-      if (m_pattern != null){
-        m_pattern.applyTo(m_ledBuffer);
-      }
-    }else{
-      m_pattern = LEDPattern.solid(Color.BLACK);
-      m_pattern.applyTo(m_ledBuffer);
-    }
-    
-    m_led.setData(m_ledBuffer);
-
+  gameData = MatchState.getGameData();
     Telemetry.log("Won Auto?", getWonAuto());
   }
   /**

@@ -18,7 +18,7 @@ public class Autos {
         Subsystems.m_swerveSubsystem::getPose,
         pose -> {Subsystems.m_swerveSubsystem.resetPose(pose);}, // Reset Pose
         Subsystems.m_swerveSubsystem::getChassisVelocities,
-        velocities -> {Subsystems.m_swerveSubsystem.driveRobotRelative(velocities);}, // output
+        velocities -> {Subsystems.m_swerveSubsystem.driveRobotRelative(velocities, false);}, // output
         Subsystems.m_swerveSubsystem.m_xPID,
         Subsystems.m_swerveSubsystem.m_orientPID,
         new PIDController(6.0, 0.0, 0.0) // cross-track PID. If tuned, set it here.

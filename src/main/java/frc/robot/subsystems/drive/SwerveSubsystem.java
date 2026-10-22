@@ -87,14 +87,12 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     public static double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     public static double MaxAngularRate = RotationsPerSecond.of(1.85).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
-    private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-                .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+    private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()//TODO: See if deadband is necessary, it might cause issues removing it.
+                //.withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
                 .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-            // TODO: Remember this is open loop
 
     private final SwerveRequest.RobotCentric robotRelatveDrive = new RobotCentric().withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.05) // Lower Deadband for more precise driving
                 .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-                //TODO: Try to make this closed loop, acc using Motion Magic?
     
     private final SwerveRequest.ApplyFieldVelocity m_velocityDrive = new SwerveRequest.ApplyFieldVelocity().withDesaturateWheelVelocities(true)
     .withDriveRequestType(DriveRequestType.Velocity);
@@ -113,6 +111,9 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
             this
         )
     );
+
+    private final SwerveRequest.RobotCentric m_robotRelativeVelocityDrive = new SwerveRequest.RobotCentric().withDesaturateWheelVelocities(true)
+    .withDriveRequestType(DriveRequestType.Velocity);
 
     /* SysId routine for characterizing steer. This is used to find PID gains for the steer motors. */
     @SuppressWarnings("unused")
@@ -526,8 +527,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         setControl(drive.withVelocityX(velocity.vx).withVelocityY(velocity.vy).withRotationalRate(velocity.omega));
     }
 
-    public void driveRobotRelative(ChassisVelocities velocity) {
-        setControl(robotRelatveDrive.withVelocityX(velocity.vx).withVelocityY(velocity.vy).withRotationalRate(velocity.omega));
+    public void driveRobotRelative(ChassisVelocities velocity, boolean openLoop) {
+        setControl(openLoop ? robotRelatveDrive.withVelocityX(velocity.vx).withVelocityY(velocity.vy).withRotationalRate(velocity.omega) : m_robotRelativeVelocityDrive.withVelocityX(velocity.vx).withVelocityY(velocity.vy).withRotationalRate(velocity.omega));
     }
 
     // /**

@@ -9,13 +9,17 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
 import org.wpilib.command2.button.Trigger;
+import org.wpilib.math.util.Units;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.tunable.Tunables;
 
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
 import frc.robot.PathPlanningThing.SelectAuto;
 import frc.robot.subsystems.drive.SwerveSubsystem;
+import frc.robot.subsystems.shooter.FuelLaunchSim;
 import frc.robot.utils.Autos;
+import frc.robot.utils.FuelSim;
 public class RobotContainer {
     
 
@@ -32,10 +36,11 @@ public class RobotContainer {
     @SuppressWarnings("unused")
     private final CommandJoystick m_joystick = new CommandJoystick(1);
 
+    private final FuelLaunchSim launchSim = new FuelLaunchSim(Subsystems.m_swerveSubsystem::getSotmHubAimPos, Subsystems.m_swerveSubsystem::getChassisVelocities);
 
 
     public RobotContainer() {
-
+        configureFuelSim();
         configureDefaults();
         configureBindings();
         // m_controller.leftBumper().onTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
@@ -52,9 +57,11 @@ public class RobotContainer {
             Subsystems.m_intakeRoller.run(true)
         ));
 
-        m_controller.rightTrigger().whileTrue(Commands.parallel( // Shooter bindings not properly set-up, don't have shooter yet :P
+        m_controller.rightTrigger().whileTrue(Commands.run( // Shooter bindings not properly set-up, don't have shooter yet :P
             // Subsystems.m_shooterSubsystem.shoot(() -> SwerveSubsystem.distanceToTarget()),
             // Subsystems.m_hoodSubsystem.pitchHood(() -> SwerveSubsystem.distanceToTarget())
+            () -> launchSim.repeatedlyLaunchFuel(() -> Subsystems.m_shooterSubsystem.m_shooterLerpTable.get(SwerveSubsystem.distanceToTarget()), () -> Subsystems.m_hoodSubsystem.m_hoodLerpTable.get(SwerveSubsystem.distanceToTarget()))
+            
         ));
 
         m_controller.faceDown().whileTrue(Subsystems.m_intakeExtension.retractIntake());
@@ -138,4 +145,19 @@ public class RobotContainer {
         /* Run the routine selected from the auto chooser */
         return SelectAuto.getSelectedAuto();
     }
+
+    private void configureFuelSim() {
+    FuelSim instance = FuelSim.getInstance();
+    instance.spawnStartingFuel();
+    instance.registerRobot(0.876, 0.826, 0.4, Subsystems.m_swerveSubsystem::getSotmHubAimPos, () ->  Subsystems.m_swerveSubsystem.getChassisVelocities().toFieldRelative(Subsystems.m_swerveSubsystem.getPigeon2().getRotation2d()));
+
+    instance.start();
+    // instance.clearFuel();
+//     Telemetry.put(Commands.runOnce(() -> {
+//                 FuelSim.getInstance().clearFuel();
+//                 FuelSim.getInstance().spawnStartingFuel();
+//             })
+//             .withName("Reset Fuel")
+//             .ignoringDisable(true));
+  }
 }

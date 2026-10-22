@@ -22,6 +22,7 @@ SwerveSubsystem.java:
 - Line 596: The characterization drives through `drive()`, which seems to have a rotational deadband set. This does not seem appropriate in this context (Has this calibration actually been done?)
 - Lines 193, 222, 260: Setting `getState().Pose = ...` doesn't change the odometry (it changes a copy). `resetPose` is the way to do that.
 - Line 320 (and the next 3): These log the `StatusSignal` objects themselves. Did you mean `.getValueAsDouble()`?
+    - All of this stuff was pre-written by CTRE so I don't want to touch it because it works fine enough and I fear that doing more could potentially cause more issues then it might solve. I'm just nervous after the issues we had at the start of SoCal
 
 Constants.java:
 - Line 105: `k_driveBaseRadius = hypot(25 in, 28.5 in)` looks like the frame size. The wheel-radius formula needs the distance from the robot center to a module. TunerConstants has the modules at +/-10 in and +/-11.5 in, which is about 15.2 in. Which one is intended?
@@ -35,7 +36,7 @@ Constants.java:
 - Lines 111, 113, 117: I think you may have the roll and pitch reversed? Do the cameras actually even have a roll? Where do these number come from (the cad?)?
 
 RobotContainer.java:
-- Line 110: Applying the x^2 and y^2 and turn^4 BEFORE applying the deadband is not really going to work well, especially for the turn^4. The good news is that in a recent WPILib release note they say have added an automatic deadband to the joystick so I think you can just remove the .withDeadband(MaxSpeed * 0.1) call for your drive (line 91 of SwerveSubsystem.java) and all will be fine.
+- <s>Line 110: Applying the x^2 and y^2 and turn^4 BEFORE applying the deadband is not really going to work well, especially for the turn^4. The good news is that in a recent WPILib release note they say have added an automatic deadband to the joystick so I think you can just remove the .withDeadband(MaxSpeed * 0.1) call for your drive (line 91 of SwerveSubsystem.java) and all will be fine.</s>
 
 Robot.java:
 - <s>Line 113: The auto is scheduled in `autonomousInit()` but is not canceled anywhere. In a match the robot transistions through a disable state which would cancel it (if it was still running) but that would not happen in practice if you switched directly from auto to teleop. You should probably cancel the auto in teleopInit() in case it is still running.</s>

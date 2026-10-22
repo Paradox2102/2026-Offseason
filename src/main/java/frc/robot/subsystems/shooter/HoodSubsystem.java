@@ -25,12 +25,12 @@ import org.wpilib.command2.SubsystemBase;
 public class HoodSubsystem extends SubsystemBase{
     private final CANBus k_CANBus = CANIDConstants.k_canBus3;
 
-    private final PositionVoltage m_positionRequest = new PositionVoltage(0);
+    private final PositionVoltage m_positionRequest = new PositionVoltage(0).withEnableFOC(true);
     private final StaticBrake m_brakeRequest = new StaticBrake();
 
     private final ParadoxTalon m_hoodMotor = new ParadoxTalon(CANIDConstants.hood, k_CANBus, m_brakeRequest, 0.1);
 
-    private final InterpolatingDoubleTreeMap m_hoodLerpTable = new InterpolatingDoubleTreeMap();
+    public final InterpolatingDoubleTreeMap m_hoodLerpTable = new InterpolatingDoubleTreeMap();
 
     private final double k_gearRatio = 1;
 

@@ -15,8 +15,6 @@ import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.math.util.Units;
-import org.wpilib.units.measure.Distance;
-import org.wpilib.units.measure.LinearVelocity;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
@@ -83,8 +81,8 @@ public class Constants {
         public static final SwerveSubsystem m_swerveSubsystem;
         public static final IntakeExtensionSubsystem m_intakeExtension = new IntakeExtensionSubsystem();
         public static final IntakeRollerSubsystem m_intakeRoller = new IntakeRollerSubsystem();
-        // public static final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
-        // public static final HoodSubsystem m_hoodSubsystem = new HoodSubsystem();
+        public static final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+        public static final HoodSubsystem m_hoodSubsystem = new HoodSubsystem();
         // public static final TurretAimSubsystem m_turretAimSubsystem = new TurretAimSubsystem();
         // public static final KickerSubsystem m_kickerSubsystem = new KickerSubsystem();
         // public static final SecondaryKicker m_secondaryKicker = new SecondaryKicker();
@@ -119,14 +117,7 @@ public class Constants {
 
     }
 
-    public static class LightConstants {
-    public static final int k_lightPort = 0; // may be different on actual robot
-    public static final int k_lightAmount = 100;
 
-    public static LinearVelocity k_disabledVelocity = MetersPerSecond.of(0.2);
-    public static Distance k_ledSpacing = Meters.of(1 / 120.0);
-    
-  }
   public static class ShooterConstants {
     public static final double k_shooterGearReduction = (67.86);
     
@@ -245,6 +236,16 @@ public class Constants {
     public static final CurrentLimitsConfigs k_secondaryKickerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_secondaryKickerSupplyLimit);
     public static final CurrentLimitsConfigs k_aimingLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_aimingSupplyLimit);
     public static final CurrentLimitsConfigs k_shooterLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_shooterSupplyLimit);
+
+    public static final double k_kickerAcceleration = 10.0;
+    public static final double k_secondaryKickerAcceleration = 10.0;
+
+    public static final double k_shooterFlywheelAcceleration = 30.0;
+
+    public static final MotionMagicConfigs m_shooterMotionMagicConfig = k_shooterConfigs.MotionMagic.withMotionMagicAcceleration(k_shooterFlywheelAcceleration);
+    public static final MotionMagicConfigs m_kickerMotionMagicConfig = k_kickerConfig.MotionMagic.withMotionMagicAcceleration(k_kickerAcceleration);
+    public static final MotionMagicConfigs m_secondaryKickerMotionMagicConfig = k_secondaryKickerConfig.MotionMagic.withMotionMagicAcceleration(k_secondaryKickerAcceleration);
+
 
     static {
         k_shooterConfigs.withCurrentLimits(k_shooterLimitConfig);

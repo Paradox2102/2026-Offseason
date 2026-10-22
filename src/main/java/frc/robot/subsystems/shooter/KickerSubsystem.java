@@ -3,7 +3,7 @@ package frc.robot.subsystems.shooter;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.CoastOut;
-import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
@@ -24,7 +24,7 @@ import org.wpilib.command2.SubsystemBase;
 public class KickerSubsystem extends SubsystemBase {
     private final CANBus k_CANBus = CANIDConstants.k_canBus3;
 
-    private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withSlot(0);
+    private final MotionMagicVelocityVoltage m_velocityRequest = new MotionMagicVelocityVoltage(0).withSlot(0);
     private final CoastOut m_coastRequest = new CoastOut();
 
     private final ParadoxTalon m_kickerMotor = new ParadoxTalon(CANIDConstants.kicker, k_CANBus, m_velocityRequest, 0.1);
