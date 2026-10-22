@@ -80,6 +80,12 @@ public final class IntakeConstants {
 
     /** The sides may differ by this much (else an alert) ... meters ... */
     public static final double kSkewLimit = 0.025;
+    /**
+     * "Fully out" for the trench and for shooting: each side within this of its out stop, meters.
+     * The trench leaves 6 mm above the robot with the intake out, and each 1 cm the intake is in
+     * raises it 3.4 mm (20 degree slope): 1.5 cm is 5 mm.
+     */
+    public static final double kExtendedTolerance = 0.015;
     /** ... for this long, seconds. */
     public static final double kSkewTime = 0.1;
 

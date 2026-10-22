@@ -1,5 +1,9 @@
 package frc.robot.subsystems.intake;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BooleanSupplier;
+
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
@@ -243,6 +247,9 @@ public class IntakeRack extends SubsystemBase {
         "Intake rack sides disagree by more than 2.5 cm (skipped teeth or binding): each side fixes itself at its stop", Level.LOW);
     private boolean m_goalOut = false;
     private boolean m_wasEnabled = false;
+    /** Reasons the rack must stay out (near a trench, shooting): while one is true it extends and ignores retract. */
+    private record HoldOut(String reason, BooleanSupplier active) {}
+    private final List<HoldOut> m_holdOuts = new ArrayList<>();
     private final double m_startTime = Timer.getTimestamp();
     private IntakeSim m_sim = null;
 
@@ -270,6 +277,14 @@ public class IntakeRack extends SubsystemBase {
         if (moving && m_skewGuard.update(now, m_left.position(), m_right.position())) {
             m_skewAlert.set(true);
         }
+
+        // Something needs the intake out (a trench ahead, a shot): go out, whatever the last
+        // button was.
+        String heldBy = heldOutBy();
+        if (enabled && heldBy != null && !m_goalOut) {
+            start(true);
+        }
+        Telemetry.log("Intake/Rack/Held Out By", heldBy == null ? "" : heldBy);
 
         // While disabled the Talons are neutral anyway: send nothing (at code start the devices may
         // not be up yet).
@@ -318,9 +333,41 @@ public class IntakeRack extends SubsystemBase {
         return runOnce(() -> start(true)).andThen(Commands.waitUntil(this::atStop)).withName("Intake Extend");
     }
 
-    /** Retract; ends when both sides rest at the in stop. */
+    /**
+     * Retract; ends when both sides rest at the in stop. Ignored while something holds the rack
+     * out ({@link #holdOutWhile}): then it ends at once, with the rack still out.
+     */
     public Command retract() {
-        return runOnce(() -> start(false)).andThen(Commands.waitUntil(this::atStop)).withName("Intake Retract");
+        return runOnce(() -> {
+            if (heldOutBy() == null) {
+                start(false);
+            }
+        }).andThen(Commands.waitUntil(this::atStop)).withName("Intake Retract");
+    }
+
+    /** Keep the rack out while {@code active} is true (extend if needed; retract is ignored). */
+    public void holdOutWhile(String reason, BooleanSupplier active) {
+        m_holdOuts.add(new HoldOut(reason, active));
+    }
+
+    /** The first reason that holds the rack out now, or null. */
+    private String heldOutBy() {
+        for (var h : m_holdOuts) {
+            if (h.active().getAsBoolean()) {
+                return h.reason();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Fully out: the goal is out and each side is within {@link IntakeConstants#kExtendedTolerance}
+     * of its out stop. Each side counts on its own: one side pushed in by a hit is "not out".
+     */
+    public boolean isExtended() {
+        return m_goalOut
+            && m_left.position() >= m_left.m_state.outStop() - IntakeConstants.kExtendedTolerance
+            && m_right.position() >= m_right.m_state.outStop() - IntakeConstants.kExtendedTolerance;
     }
 
     private boolean atStop() {
@@ -369,6 +416,7 @@ public class IntakeRack extends SubsystemBase {
         Telemetry.log("Intake/Rack/Position m", getPosition());
         Telemetry.log("Intake/Rack/Skew m", m_left.position() - m_right.position());
         Telemetry.log("Intake/Rack/At Stop", atStop());
+        Telemetry.log("Intake/Rack/Extended", isExtended());
         for (Side side : new Side[] {m_left, m_right}) {
             String prefix = "Intake/Rack/" + (side == m_left ? "Left" : "Right") + "/";
             Telemetry.log(prefix + "Position m", side.position());

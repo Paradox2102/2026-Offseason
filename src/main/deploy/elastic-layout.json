@@ -117,6 +117,38 @@
               "true_icon": "None",
               "false_icon": "None"
             }
+          },
+          {
+            "title": "Near trench",
+            "x": 896,
+            "y": 512,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Near Trench",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Intake fully out",
+            "x": 1152,
+            "y": 512,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Intake Extended",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
           }
         ]
       }
@@ -1160,6 +1192,38 @@
               "period": 0.06,
               "show_type": false,
               "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Near trench",
+            "x": 384,
+            "y": 640,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Near Trench",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Intake fully out",
+            "x": 640,
+            "y": 640,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Shooter/Intake Extended",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
             }
           }
         ]

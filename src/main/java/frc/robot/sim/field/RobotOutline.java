@@ -35,8 +35,25 @@ public final class RobotOutline {
         return intakeFront(rackOut) > kFrontX + 0.02;
     }
 
+    /**
+     * Top of the hood, meters, by hood angle in degrees (the hood model tilted up about its axis):
+     * it reaches a trench arm (0.565 m) at about 12 degrees.
+     */
+    private static final double[][] kHoodTop = {{0, 0.528}, {10, 0.560}, {20, 0.589}, {30, 0.615}, {40, 0.636}};
+
+    public static double hoodTop(double hoodDeg) {
+        double deg = Math.clamp(hoodDeg, 0, 40);
+        for (int i = 1; i < kHoodTop.length; i++) {
+            if (deg <= kHoodTop[i][0]) {
+                double f = (deg - kHoodTop[i - 1][0]) / (kHoodTop[i][0] - kHoodTop[i - 1][0]);
+                return kHoodTop[i - 1][1] + f * (kHoodTop[i][1] - kHoodTop[i - 1][1]);
+            }
+        }
+        return kHoodTop[kHoodTop.length - 1][1];
+    }
+
     /** Highest point of the robot above the floor under it, meters. */
-    public static double top(double rackOut, double rackStroke) {
-        return kTopWithIntakeOut + Math.max(0, rackStroke - rackOut) * kRackSin;
+    public static double top(double rackOut, double rackStroke, double hoodDeg) {
+        return Math.max(kTopWithIntakeOut + Math.max(0, rackStroke - rackOut) * kRackSin, hoodTop(hoodDeg));
     }
 }

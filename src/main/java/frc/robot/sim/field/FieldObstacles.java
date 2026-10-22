@@ -9,7 +9,7 @@ import org.wpilib.math.geometry.Pose2d;
  * Simulator only: the field structures our robot cannot drive through, and the push that moves it
  * back out of them. The CTRE sim moves the robot wherever its wheels take it; this stops it at the
  * hub, the trench side walls, the tower uprights and the field walls, and at a trench arm when the
- * robot is too tall to pass under it (intake not out).
+ * robot is too tall to pass under it (intake not out, or hood up).
  *
  * <p>Measured from AdvantageScope's 2026 field model, blue side; the red side is the same turned
  * 180 degrees about the field center. Each structure is a box on the floor plan (a robot is never
@@ -68,10 +68,11 @@ public final class FieldObstacles {
      * @param pose robot pose on the floor plan
      * @param rackOut intake travel out, meters
      * @param rackStroke full intake travel, meters
+     * @param hoodDeg hood angle above its lower stop, degrees
      * @param floorZ height of the floor under the robot (the bumps), meters
      */
-    public static Contact resolve(Pose2d pose, double rackOut, double rackStroke, double floorZ) {
-        boolean tooTall = floorZ + RobotOutline.top(rackOut, rackStroke) > kTrenchClearance;
+    public static Contact resolve(Pose2d pose, double rackOut, double rackStroke, double hoodDeg, double floorZ) {
+        boolean tooTall = floorZ + RobotOutline.top(rackOut, rackStroke, hoodDeg) > kTrenchClearance;
         String hit = null;
         double x = pose.getX();
         double y = pose.getY();
@@ -102,13 +103,13 @@ public final class FieldObstacles {
      * How far the top of the robot is below a trench arm, meters, while any part of it is under
      * one; infinity when it is under none. Negative = too tall.
      */
-    public static double trenchHeadroom(Pose2d pose, double rackOut, double rackStroke, double floorZ) {
+    public static double trenchHeadroom(Pose2d pose, double rackOut, double rackStroke, double hoodDeg, double floorZ) {
         double cos = pose.getRotation().getCos();
         double sin = pose.getRotation().getSin();
         for (var parts : robotParts(rackOut)) {
             for (var arm : kTrenchArms) {
                 if (overlap(pose.getX(), pose.getY(), cos, sin, parts, arm) != null) {
-                    return kTrenchClearance - floorZ - RobotOutline.top(rackOut, rackStroke);
+                    return kTrenchClearance - floorZ - RobotOutline.top(rackOut, rackStroke, hoodDeg);
                 }
             }
         }

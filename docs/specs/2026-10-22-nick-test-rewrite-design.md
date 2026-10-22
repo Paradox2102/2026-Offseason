@@ -599,3 +599,24 @@ ghost, `Sim/Fuel` as Fuel.
   Check on the real robot and field.
 - Fuel: below its panel tops (1.27 m) the hub is a 1.19 m square; scored balls leave through the
   gap above the rear panel (0.85 m) on the neutral-zone side.
+
+### Trench and shooting rules (user, 2026-10-22)
+
+User: under any of the four trenches the hood ("turret retracted to its lowest point") must be
+down and the intake fully out, or the robot hits the arm; and the robot cannot shoot with the
+intake in. Both in teleop and auto.
+
+- `superstructure/TrenchGuard` (tested): near = the robot's center in a trench lane's y range and
+  the robot within reach (0.65 m) + 0.25 m of the arm in x, now or within 0.6 s at its velocity.
+  The wall between lane and bump means a robot on the bump is never "near".
+- While near: `IntakeRack.holdOutWhile("trench")` extends the rack and ignores retract; the hood
+  goal is 0 in shoot and prepare; no feed; HIGH alert if the intake is not fully out or the hood is
+  above 1 degree.
+- Shooting: `shoot()` holds the rack out ("shooting") and feeds only when `isExtended()` (each side
+  within 1.5 cm of its out stop).
+- Sim: the robot's height includes the hood (model: 0.528 m at 0 degrees, 0.636 m at 40; it
+  reaches the arm at about 12 degrees). The AdvantageScope hood now tilts up as it rises (the old
+  sign tilted it down).
+- Smoke test: the teleop shot starts with the intake in (first feed with the rack fully out); a
+  teleop run drives through the right trench with the intake in and the hood at 22 degrees: the
+  intake is fully out and the hood at 0 under the arm, no contacts, no feed.

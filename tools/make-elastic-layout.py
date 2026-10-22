@@ -133,6 +133,11 @@ shooter = [
 ]
 pit.append(command("Zero turret (in jig)", "/Tunables/Pit/Zero turret (in jig)", 11, 0))
 driver.append(boolbox("Shot ready", "/Telemetry/Shooter/Ready", 10, 1, 2, 1))
+# Trench rule: near a trench the intake goes out and the hood down (Superstructure, TrenchGuard).
+driver.append(boolbox("Near trench", "/Telemetry/Shooter/Near Trench", 7, 4, 2, 1))
+driver.append(boolbox("Intake fully out", "/Telemetry/Shooter/Intake Extended", 9, 4, 2, 1))
+shooter.append(boolbox("Near trench", "/Telemetry/Shooter/Near Trench", 3, 5, 2, 1))
+shooter.append(boolbox("Intake fully out", "/Telemetry/Shooter/Intake Extended", 5, 5, 2, 1))
 
 layout = {"version": 1.0, "grid_size": G, "tabs": [
     {"name": n, "grid_layout": {"layouts": [], "containers": c}}

@@ -13,7 +13,7 @@ class FieldObstaclesTest {
     private static final double kStroke = 0.324;
 
     private static FieldObstacles.Contact at(double x, double y, double deg, double rackOut) {
-        return FieldObstacles.resolve(new Pose2d(x, y, Rotation2d.fromDegrees(deg)), rackOut, kStroke, 0);
+        return FieldObstacles.resolve(new Pose2d(x, y, Rotation2d.fromDegrees(deg)), rackOut, kStroke, 0, 0);
     }
 
     @Test
@@ -51,7 +51,7 @@ class FieldObstaclesTest {
     void robotWithTheIntakeOutFitsUnderTheTrench() {
         var c = at(4.6, 0.7, 0, kStroke);
         assertNull(c.obstacle());
-        assertTrue(FieldObstacles.trenchHeadroom(new Pose2d(4.6, 0.7, Rotation2d.ZERO), kStroke, kStroke, 0) > 0);
+        assertTrue(FieldObstacles.trenchHeadroom(new Pose2d(4.6, 0.7, Rotation2d.ZERO), kStroke, kStroke, 0, 0) > 0);
     }
 
     @Test
@@ -60,7 +60,7 @@ class FieldObstaclesTest {
         var c = at(4.10, 0.7, 0, 0);
         assertEquals("blue trench arm (low y)", c.obstacle());
         assertEquals(4.435 - RobotOutline.kFrontX, c.pose().getX(), 1e-6);
-        assertTrue(FieldObstacles.trenchHeadroom(new Pose2d(4.10, 0.7, Rotation2d.ZERO), 0, kStroke, 0) < 0);
+        assertTrue(FieldObstacles.trenchHeadroom(new Pose2d(4.10, 0.7, Rotation2d.ZERO), 0, kStroke, 0, 0) < 0);
     }
 
     @Test
@@ -83,6 +83,14 @@ class FieldObstaclesTest {
     @Test
     void notUnderAnArmMeansNoHeadroomLimit() {
         assertEquals(Double.POSITIVE_INFINITY,
-            FieldObstacles.trenchHeadroom(new Pose2d(8, 4, Rotation2d.ZERO), 0, kStroke, 0));
+            FieldObstacles.trenchHeadroom(new Pose2d(8, 4, Rotation2d.ZERO), 0, kStroke, 0, 0));
+    }
+
+    @Test
+    void robotWithTheHoodUpHitsTheTrenchArm() {
+        var c = FieldObstacles.resolve(new Pose2d(4.10, 0.7, Rotation2d.ZERO), kStroke, kStroke, 20, 0);
+        assertEquals("blue trench arm (low y)", c.obstacle());
+        assertNull(FieldObstacles.resolve(new Pose2d(4.10, 0.7, Rotation2d.ZERO), kStroke, kStroke, 0, 0).obstacle(),
+            "hood down and intake out: it fits");
     }
 }

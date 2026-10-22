@@ -111,9 +111,9 @@ public class Robot extends TimedRobot {
         // Turret: turns about its axis at (-152.4, +190.5) mm.
         double turretYaw = m_robotContainer.getTurret().getPosition() * 2 * Math.PI;
         Pose3d turret = new Pose3d(-0.1524, 0.1905, 0, new Rotation3d(0, 0, turretYaw));
-        // Hood: rides on the turret and tilts about the flywheel axis (y 274, z 455 mm). If the 3D
-        // hood tilts the wrong way when it rises, change the sign of hoodRad.
-        double hoodRad = Math.toRadians(m_robotContainer.getHood().getAngleDeg());
+        // Hood: rides on the turret and tilts about the flywheel axis (y 274, z 455 mm). Up = its
+        // top rises (user: a raised hood hits the trench arm), which is a negative roll here.
+        double hoodRad = -Math.toRadians(m_robotContainer.getHood().getAngleDeg());
         Pose3d hood = turret.transformBy(new Transform3d(new Translation3d(0, 0.2742 - 0.1905, 0.4552),
             new Rotation3d(hoodRad, 0, 0)));
         // Intake: slides along its 20 degree slope; the model is drawn fully out, so "in" is the

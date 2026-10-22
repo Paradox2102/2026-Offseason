@@ -65,7 +65,7 @@ public class RobotContainer {
     private final Flywheel m_flywheel = new Flywheel();
     private final Feeder m_feeder = new Feeder();
     private final Superstructure m_superstructure =
-        new Superstructure(m_drive, m_turret, m_hood, m_flywheel, m_feeder, m_intakeRoller);
+        new Superstructure(m_drive, m_turret, m_hood, m_flywheel, m_feeder, m_intakeRoller, m_intakeRack);
     private final AutoRoutines m_autos = new AutoRoutines(m_drive, m_intakeRack, m_intakeRoller, m_superstructure);
     /** Simulator only: the balls on the field (null on the robot). */
     private final FuelSim m_fuelSim = RobotBase.isSimulation() && m_drive.getSim() != null
@@ -147,7 +147,7 @@ public class RobotContainer {
         if (RobotBase.isSimulation() && m_drive.getSim() != null) {
             Tunables.publish("Sim/Kick Pose", Commands.runOnce(m_drive.getSim()::kickPose).ignoringDisable(true).withName("Kick Pose"));
             Tunables.publish("Sim/Reset Fuel", Commands.runOnce(m_fuelSim::reset).ignoringDisable(true).withName("Reset Fuel"));
-            m_drive.getSim().setRackOut(m_intakeRack::getPosition);
+            m_drive.getSim().setRobotHeight(m_intakeRack::getPosition, m_hood::getAngleDeg);
         }
     }
 

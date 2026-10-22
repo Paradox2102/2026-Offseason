@@ -8,8 +8,12 @@ import org.wpilib.math.filter.Debouncer.DebounceType;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.telemetry.Telemetry;
+import org.wpilib.util.Alert;
+import org.wpilib.util.Alert.Level;
 
+import frc.robot.lib.util.AlertPublisher;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.intake.IntakeRack;
 import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Feeder;
 import frc.robot.subsystems.shooter.Flywheel;
@@ -28,11 +32,23 @@ import frc.robot.subsystems.shooter.Turret;
  * <p>Shoot (driver holds the right trigger): the flywheel spins to the shot's speed and the hood
  * goes to the shot's angle. The balls are fed only while all three are ready: flywheel at speed,
  * hood and turret on their angles. A ball fed too early hits a slow wheel and falls short.
+ *
+ * <p>Two rules from the robot's build, in every mode (teleop and auto):
+ *
+ * <ul>
+ *   <li><b>Trench:</b> the robot fits under a trench arm only with the intake fully out and the
+ *       hood on its lower stop. Near a trench ({@link TrenchGuard}) the intake goes out and stays
+ *       out, the hood goes down (also in the middle of a shot), and nothing is fed.
+ *   <li><b>Shooting:</b> the robot cannot shoot with the intake in. A shot puts the intake out and
+ *       feeds only once both rack sides are fully out.
+ * </ul>
  */
 public class Superstructure extends SubsystemBase {
     private static final double kKeepFeedingSpeedFraction = 0.85;
     private static final double kKeepFeedingTurretDeg = 3.0;
     private static final double kKeepFeedingHoodDeg = 2.0;
+    /** The hood counts as down (fits under a trench) below this, degrees. */
+    private static final double kHoodDownDeg = 1.0;
 
     private final Drive m_drive;
     private final Turret m_turret;
@@ -40,21 +56,30 @@ public class Superstructure extends SubsystemBase {
     private final Flywheel m_flywheel;
     private final Feeder m_feeder;
     private final IntakeRoller m_intakeRoller;
+    private final IntakeRack m_intakeRack;
     private final ShotCalculator m_calculator = new ShotCalculator();
+    private final Alert m_trenchAlert = AlertPublisher.create("Health", "trench",
+        "Near a trench with the intake not fully out or the hood up: the robot does not fit under the arm", Level.HIGH);
+    private boolean m_nearTrench = false;
+    private boolean m_shooting = false;
     /** The turret must be on target for 0.1 s: a single loop passing through the goal is not "on target". */
     private final Debouncer m_turretSteady = new Debouncer(0.1, DebounceType.RISING);
     private boolean m_turretOnTarget = false;
     private boolean m_feeding = false;
     private Shot m_shot;
 
-    public Superstructure(Drive drive, Turret turret, Hood hood, Flywheel flywheel, Feeder feeder, IntakeRoller intakeRoller) {
+    public Superstructure(Drive drive, Turret turret, Hood hood, Flywheel flywheel, Feeder feeder, IntakeRoller intakeRoller,
+                          IntakeRack intakeRack) {
         m_drive = drive;
         m_turret = turret;
         m_hood = hood;
         m_flywheel = flywheel;
         m_feeder = feeder;
         m_intakeRoller = intakeRoller;
+        m_intakeRack = intakeRack;
         m_shot = compute();
+        m_intakeRack.holdOutWhile("trench", () -> m_nearTrench);
+        m_intakeRack.holdOutWhile("shooting", () -> m_shooting);
         m_turret.setDefaultCommand(m_turret.track(() -> m_shot.turretRot()));
         m_hood.setDefaultCommand(m_hood.stow());
     }
@@ -67,6 +92,8 @@ public class Superstructure extends SubsystemBase {
     @Override
     public void periodic() {
         m_shot = compute();
+        m_nearTrench = TrenchGuard.nearTrench(m_drive.getPose(), m_drive.getFieldVelocity());
+        m_trenchAlert.set(m_nearTrench && (!m_intakeRack.isExtended() || m_hood.getAngleDeg() > kHoodDownDeg));
         m_turretOnTarget = m_turretSteady.calculate(m_turret.isOnTarget(m_shot.turretAimRot()));
         Telemetry.log("Shooter/Scoring", m_shot.scoring());
         Telemetry.log("Shooter/Distance m", m_shot.distance());
@@ -76,6 +103,8 @@ public class Superstructure extends SubsystemBase {
         Telemetry.log("Shooter/Turret Ready", m_turretOnTarget);
         Telemetry.log("Shooter/Feeding", m_feeding);
         Telemetry.log("Shooter/Hood Ready", m_hood.isOnTarget(m_shot.hoodDeg()));
+        Telemetry.log("Shooter/Near Trench", m_nearTrench);
+        Telemetry.log("Shooter/Intake Extended", m_intakeRack.isExtended());
         Telemetry.getTable("Field").log("Shot Target", new Pose2d(m_shot.target(), Rotation2d.ZERO));
     }
 
@@ -84,9 +113,27 @@ public class Superstructure extends SubsystemBase {
         return m_shot;
     }
 
-    /** Ready to start feeding: flywheel at speed, hood on its angle, turret steady on the target. */
+    /** Near a trench: intake out, hood down, no feed. */
+    public boolean isNearTrench() {
+        return m_nearTrench;
+    }
+
+    /** The hood angle to ask for: the shot's, or down near a trench. */
+    private double hoodGoal() {
+        return m_nearTrench ? 0 : m_shot.hoodDeg();
+    }
+
+    /** The shot may go: not near a trench, and the intake fully out (we cannot shoot with it in). */
+    private boolean allowed() {
+        return !m_nearTrench && m_intakeRack.isExtended();
+    }
+
+    /**
+     * Ready to start feeding: allowed, flywheel at speed, hood on its angle, turret steady on the
+     * target.
+     */
     public boolean isReady() {
-        return m_flywheel.isReady() && m_turretOnTarget && m_hood.isOnTarget(m_shot.hoodDeg());
+        return allowed() && m_flywheel.isReady() && m_turretOnTarget && m_hood.isOnTarget(m_shot.hoodDeg());
     }
 
     /**
@@ -95,7 +142,7 @@ public class Superstructure extends SubsystemBase {
      * feed has started it only stops if the shot is clearly off.
      */
     private boolean stillGood() {
-        return m_flywheel.getSpeed() >= kKeepFeedingSpeedFraction * m_shot.flywheelRps()
+        return allowed() && m_flywheel.getSpeed() >= kKeepFeedingSpeedFraction * m_shot.flywheelRps()
             && m_turret.isOnTarget(m_shot.turretAimRot(), kKeepFeedingTurretDeg)
             && m_hood.isOnTarget(m_shot.hoodDeg(), kKeepFeedingHoodDeg);
     }
@@ -106,12 +153,20 @@ public class Superstructure extends SubsystemBase {
         return m_feeding;
     }
 
-    /** Hold to shoot: spin up, raise the hood, and feed only while the shot is ready. */
+    /**
+     * Hold to shoot: put the intake out, spin up, raise the hood, and feed only while the shot is
+     * ready.
+     */
     public Command shoot() {
         return Commands.parallel(
             m_flywheel.spin(() -> m_shot.flywheelRps()),
-            m_hood.aim(() -> m_shot.hoodDeg()),
-            m_feeder.feedWhen(this::feedGate)).finallyDo(() -> m_feeding = false).withName("Shoot");
+            m_hood.aim(this::hoodGoal),
+            m_feeder.feedWhen(this::feedGate))
+            .beforeStarting(() -> m_shooting = true)
+            .finallyDo(() -> {
+                m_feeding = false;
+                m_shooting = false;
+            }).withName("Shoot");
     }
 
     /**
@@ -121,7 +176,7 @@ public class Superstructure extends SubsystemBase {
     public Command prepare() {
         return Commands.parallel(
             m_flywheel.spin(() -> m_shot.flywheelRps()),
-            m_hood.aim(() -> m_shot.hoodDeg())).withName("Prepare Shot");
+            m_hood.aim(this::hoodGoal)).withName("Prepare Shot");
     }
 
     /** Hold to eject: the feed path and the intake rollers run out. */

@@ -40,6 +40,7 @@ public class DriveSim {
     private Pose2d m_truth;
     private int m_resetCount = 0;
     private DoubleSupplier m_rackOut = () -> 0;
+    private DoubleSupplier m_hoodDeg = () -> 0;
     private int m_contacts = 0;
     private String m_lastContact = "none";
 
@@ -60,7 +61,8 @@ public class DriveSim {
         double factor = BumpTerrain.groundFactor(m_truth);
         m_truth = m_truth.plus(new Transform2d(move.getTranslation().times(factor), move.getRotation()));
         m_lastWheels = wheels;
-        var contact = FieldObstacles.resolve(m_truth, m_rackOut.getAsDouble(), IntakeConstants.kRackStroke, truthPose3d().getZ());
+        var contact = FieldObstacles.resolve(m_truth, m_rackOut.getAsDouble(), IntakeConstants.kRackStroke,
+            m_hoodDeg.getAsDouble(), truthPose3d().getZ());
         if (contact.obstacle() != null) {
             m_truth = contact.pose();
             m_contacts++;
@@ -71,13 +73,18 @@ public class DriveSim {
         Telemetry.log("Sim/Touching", contact.obstacle() == null ? "" : contact.obstacle());
     }
 
-    /** The intake travel, so the sim knows whether the robot fits under a trench arm. */
-    public void setRackOut(DoubleSupplier rackOut) {
+    /** The intake travel and the hood angle, so the sim knows whether the robot fits under a trench arm. */
+    public void setRobotHeight(DoubleSupplier rackOut, DoubleSupplier hoodDeg) {
         m_rackOut = rackOut;
+        m_hoodDeg = hoodDeg;
     }
 
     public double rackOut() {
         return m_rackOut.getAsDouble();
+    }
+
+    public double hoodDeg() {
+        return m_hoodDeg.getAsDouble();
     }
 
     /** Loops in which the robot touched a field structure, since the start. */

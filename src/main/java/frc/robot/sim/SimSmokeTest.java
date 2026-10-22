@@ -29,6 +29,8 @@ public class SimSmokeTest {
     private static final boolean kRedAuto = "red".equalsIgnoreCase(System.getenv("SIM_SMOKE_ALLIANCE"));
     /** SIM_SMOKE_STAY=<seconds>: keep the sim running after the script, to look at it in AdvantageScope. */
     private static final double kStaySeconds = parseStay();
+    /** The script ends here; then it stays up kStaySeconds. */
+    private static final double kScriptEnd = 57;
     private final RobotContainer m_container;
     private final Drive m_drive;
     // Scripted sticks. (DriverStationSim joystick axes did not reach Gamepad in a headless run,
@@ -59,11 +61,22 @@ public class SimSmokeTest {
     private String m_leadMaxAt = "";
     private double m_readyTime = Double.NaN;
     private boolean m_fed = false;
+    private double m_firstFeedIntakeOut = Double.NaN;
+    private boolean m_firstFeedIntakeExtended = false;
     private double m_lastFlywheel = 0;
     private double m_autoMaxZ = 0;
     private double m_autoMaxPitchDeg = 0;
     private double m_autoMaxTruthError = 0;
     private int m_autoContactsAtStart = -1;
+    private boolean m_trenchRunScheduled = false;
+    private double m_hoodBeforeTrench = Double.NaN;
+    private double m_rackBeforeTrench = Double.NaN;
+    private int m_teleopContactsAtStart = -1;
+    private double m_teleopMinHeadroom = Double.POSITIVE_INFINITY;
+    private double m_teleopMinRackUnder = Double.POSITIVE_INFINITY;
+    private double m_teleopMaxHoodUnder = 0;
+    private double m_teleopGuardTime = 0;
+    private boolean m_teleopFedNearTrench = false;
     private double m_autoMinHeadroom = Double.POSITIVE_INFINITY;
 
     public SimSmokeTest(RobotContainer container, Drive drive) {
@@ -117,18 +130,37 @@ public class SimSmokeTest {
             step(6, "disabled, kick pose", RobotMode.AUTONOMOUS, false);
         } else if (t < 49) {
             step(7, "disabled, vision corrects", RobotMode.AUTONOMOUS, false);
+        } else if (t < 50) {
+            step(8, "disabled, robot to (2.0, 0.65) in the blue zone, lined up with the right trench", RobotMode.TELEOPERATED, false);
+            m_leftY = 0;
+            m_leftX = 0;
+            m_rightX = 0;
+        } else if (t < 51) {
+            step(9, "teleop: intake in, shot prepared (hood up)", RobotMode.TELEOPERATED, true);
+        } else if (t < kScriptEnd) {
+            step(14, "teleop: drive through the trench with the intake in and the hood up", RobotMode.TELEOPERATED, true);
+            m_leftY = -0.45;
+            trackTeleopTrench();
         } else if (m_step != 99) {
             step(99, "script done", RobotMode.TELEOPERATED, false);
             report("end");
             writeTopicList();
-            if (t >= 49 + kStaySeconds) {
+            if (t >= kScriptEnd + kStaySeconds) {
                 System.exit(0);
             }
             System.out.println("SMOKE staying up for " + kStaySeconds + " s (SIM_SMOKE_STAY) for AdvantageScope");
-        } else if (t >= 49 + kStaySeconds) {
+        } else if (t >= kScriptEnd + kStaySeconds) {
             System.exit(0);
         }
         // The scheduler drops a command scheduled while disabled, so wait for the enable.
+        if (m_step == 9 && !m_trenchRunScheduled && RobotState.isEnabled()) {
+            // The auto took the drive; teleop drive again, the intake in, the shot prepared.
+            CommandScheduler.getInstance().schedule(DriveCommands.teleop(
+                m_drive, () -> m_leftY, () -> m_leftX, () -> m_rightX, () -> false));
+            CommandScheduler.getInstance().schedule(m_container.getIntakeRack().retract());
+            CommandScheduler.getInstance().schedule(m_container.getSuperstructure().prepare());
+            m_trenchRunScheduled = true;
+        }
         if (m_step == 1 && !m_teleopScheduled && RobotState.isEnabled()) {
             CommandScheduler.getInstance().schedule(DriveCommands.teleop(
                 m_drive, () -> m_leftY, () -> m_leftX, () -> m_rightX, () -> false));
@@ -148,7 +180,12 @@ public class SimSmokeTest {
             if (Double.isNaN(m_readyTime) && sup.isReady()) {
                 m_readyTime = t - 16;
             }
-            m_fed |= m_container.getFeeder().isFeeding();
+            boolean feeding = m_container.getFeeder().isFeeding();
+            if (feeding && !m_fed) {
+                m_firstFeedIntakeOut = m_container.getIntakeRack().getPosition();
+                m_firstFeedIntakeExtended = m_container.getIntakeRack().isExtended();
+            }
+            m_fed |= feeding;
             m_lastFlywheel = m_container.getFlywheel().getSpeed();
         }
         // The rack must be out (lower) before the robot reaches the trench. The auto checks use the
@@ -171,7 +208,7 @@ public class SimSmokeTest {
                 m_autoContactsAtStart = sim.contacts();
             }
             m_autoMinHeadroom = Math.min(m_autoMinHeadroom, frc.robot.sim.field.FieldObstacles.trenchHeadroom(
-                sim.truthPose(), sim.rackOut(), IntakeConstants.kRackStroke, truth3d.getZ()));
+                sim.truthPose(), sim.rackOut(), IntakeConstants.kRackStroke, sim.hoodDeg(), truth3d.getZ()));
             // Intake leading: in the neutral zone, while moving, how far the robot front (the
             // intake) points from the direction of travel.
             var v = m_drive.getFieldVelocity();
@@ -259,7 +296,8 @@ public class SimSmokeTest {
         } else if (step == 13) {
             System.out.println("SMOKE intake after the blocked extend: " + rack.status());
             m_drive.resetPose(new Pose2d(2.5, 3.0, Rotation2d.ZERO));
-            m_pendingIntake = m_container.getSuperstructure().shoot();
+            // Intake in first: the shot must put it out, and feed only once it is fully out.
+            m_pendingIntake = org.wpilib.command2.Commands.sequence(rack.retract(), m_container.getSuperstructure().shoot());
         } else if (step == 4) {
             var sup = m_container.getSuperstructure();
             var shot = sup.getShot();
@@ -273,12 +311,27 @@ public class SimSmokeTest {
                     System.out.println("SMOKE alert " + level + ": " + text);
                 }
             }
+            System.out.printf("SMOKE shoot with the intake in first: at the first feed the intake was %.3f m out, fully out %b%n",
+                m_firstFeedIntakeOut, m_firstFeedIntakeExtended);
             printFuel("teleop so far");
         }
         if (step == 11) {
             // Step 3 (stick released) just ended: the heading should not have moved.
             System.out.printf("SMOKE heading hold: %.1f deg at release, %.1f deg after 3 s%n",
                 m_headingAtRelease, m_drive.getHeading().getDegrees());
+        }
+        if (step == 8) {
+            DriverStationSim.setAllianceStationId(AllianceStationID.BLUE_1);
+            m_drive.resetPose(new Pose2d(2.0, 0.65, Rotation2d.ZERO));
+        }
+        if (step == 99) {
+            var sim = m_drive.getSim();
+            System.out.printf("SMOKE teleop trench: before it, intake %.3f m out and hood %.1f deg; near the trench %.1f s;"
+                    + " under the arm: intake at least %.3f m out (stroke %.3f), hood at most %.1f deg, headroom %.3f m;"
+                    + " fed near the trench %b; field contacts %d (last: %s); robot reached x %.2f%n",
+                m_rackBeforeTrench, m_hoodBeforeTrench, m_teleopGuardTime, m_teleopMinRackUnder, IntakeConstants.kRackStroke,
+                m_teleopMaxHoodUnder, m_teleopMinHeadroom, m_teleopFedNearTrench, sim.contacts() - m_teleopContactsAtStart,
+                sim.lastContact(), sim.truthPose().getX());
         }
         if (step == 6) {
             System.out.println("SMOKE auto: " + m_container.getAutos().status()
@@ -297,6 +350,28 @@ public class SimSmokeTest {
                 m_drive.getSim().contacts() - m_autoContactsAtStart, m_drive.getSim().lastContact(), m_autoMinHeadroom);
             m_drive.getSim().kickPose();
             report("after kick");
+        }
+    }
+
+    /** The teleop trench run: the guard must put the intake out and the hood down in time. */
+    private void trackTeleopTrench() {
+        var sim = m_drive.getSim();
+        var sup = m_container.getSuperstructure();
+        if (m_teleopContactsAtStart < 0) {
+            m_teleopContactsAtStart = sim.contacts();
+            m_hoodBeforeTrench = m_container.getHood().getAngleDeg();
+            m_rackBeforeTrench = m_container.getIntakeRack().getPosition();
+        }
+        if (sup.isNearTrench()) {
+            m_teleopGuardTime += 0.020;
+            m_teleopFedNearTrench |= m_container.getFeeder().isFeeding();
+        }
+        double headroom = frc.robot.sim.field.FieldObstacles.trenchHeadroom(sim.truthPose(), sim.rackOut(),
+            IntakeConstants.kRackStroke, sim.hoodDeg(), sim.truthPose3d().getZ());
+        if (Double.isFinite(headroom)) {
+            m_teleopMinHeadroom = Math.min(m_teleopMinHeadroom, headroom);
+            m_teleopMinRackUnder = Math.min(m_teleopMinRackUnder, sim.rackOut());
+            m_teleopMaxHoodUnder = Math.max(m_teleopMaxHoodUnder, sim.hoodDeg());
         }
     }
 
