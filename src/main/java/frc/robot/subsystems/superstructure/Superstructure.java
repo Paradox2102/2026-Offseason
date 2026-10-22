@@ -134,10 +134,15 @@ public class Superstructure extends SubsystemBase {
     /**
      * The shot may go: not near a trench, the intake fully out (we cannot shoot with it in), and a
      * shot at the hub only from inside our zone (the look ahead aims at it a little early).
+     *
+     * <p>A dead rack Talon: the intake can never count as out, so the shot does not wait for it
+     * (user, 2026-10-22: we cannot collect any more, so shoot the balls we have). The shot still
+     * sends the working side out.
      */
     private boolean allowed() {
         boolean inZoneForHub = !m_shot.scoring() || ShotCalculator.inOurZone(m_drive.getPose(), Drive.isRedAlliance());
-        return !m_nearTrench && m_intakeRack.isExtended() && inZoneForHub;
+        boolean intakeOk = m_intakeRack.isExtended() || m_intakeRack.hasDeadTalon();
+        return !m_nearTrench && intakeOk && inZoneForHub;
     }
 
     /**

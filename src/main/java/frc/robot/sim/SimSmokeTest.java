@@ -30,10 +30,16 @@ public class SimSmokeTest {
     /** SIM_SMOKE_AUTO=left runs the left trench auto; its checks are mirrored onto the right side. */
     private static final boolean kLeftAuto = "left".equalsIgnoreCase(System.getenv("SIM_SMOKE_AUTO"));
     /**
-     * SIM_SMOKE_RACK=blocked: something blocks the left rack side at 0.10 m for the whole auto,
-     * so the intake never gets fully out: the auto must not go under the trench (fallback path).
+     * SIM_SMOKE_RACK: a rack fault for the whole auto.
+     * <ul>
+     *   <li>blocked: something blocks the left side at 0.10 m. The intake never gets fully out:
+     *       the auto must not go under the trench (fallback path), and no shot goes.
+     *   <li>short: something holds the right side 2.4 cm short of its out stop (the frame flexes,
+     *       the left side gets out). Same result: the short side must not count as out.
+     *   <li>dead: Talon 22 stops answering before auto. Fallback path, and the shot goes anyway.
+     * </ul>
      */
-    private static final boolean kRackBlocked = "blocked".equalsIgnoreCase(System.getenv("SIM_SMOKE_RACK"));
+    private static final String kRackFault = System.getenv().getOrDefault("SIM_SMOKE_RACK", "").toLowerCase();
     /** SIM_SMOKE_STAY=<seconds>: keep the sim running after the script, to look at it in AdvantageScope. */
     private static final double kStaySeconds = parseStay();
     /** The script ends here; then it stays up kStaySeconds. */
@@ -409,10 +415,19 @@ public class SimSmokeTest {
             CommandScheduler.getInstance().cancel(m_shotCommand);
             m_pendingIntake = rack.retract();
         } else if (step == 4) {
+            if (kRackFault.equals("dead")) {
+                rack.simKillRight();
+                System.out.println("SMOKE auto: Talon 22 (right) stops answering (SIM_SMOKE_RACK=dead)");
+            }
+        } else if (step == 5) {
             System.out.println("SMOKE intake at the start of auto: " + rack.status() + ", fully out " + rack.isExtended());
-        } else if (step == 5 && kRackBlocked) {
-            rack.simBlockLeft(0.10);
-            System.out.println("SMOKE auto: left rack side blocked at 0.10 m (SIM_SMOKE_RACK=blocked)");
+            if (kRackFault.equals("blocked")) {
+                rack.simBlockLeft(0.10);
+                System.out.println("SMOKE auto: left rack side blocked at 0.10 m (SIM_SMOKE_RACK=blocked)");
+            } else if (kRackFault.equals("short")) {
+                rack.simBlockRight(IntakeConstants.kOutStopRight - 0.024);
+                System.out.println("SMOKE auto: right rack side held 2.4 cm short of its out stop (SIM_SMOKE_RACK=short)");
+            }
         }
         if (step == 11) {
             // Step 3 (stick released) just ended: the heading should not have moved.
@@ -433,9 +448,8 @@ public class SimSmokeTest {
                 sim.lastContact(), sim.truthPose().getX());
         }
         if (step == 6) {
-            if (kRackBlocked) {
-                m_container.getIntakeRack().simBlockLeft(Double.NaN);
-            }
+            m_container.getIntakeRack().simBlockLeft(Double.NaN);
+            m_container.getIntakeRack().simBlockRight(Double.NaN);
             System.out.println("SMOKE auto intake at the end: " + m_container.getIntakeRack().status()
                 + ", fully out " + m_container.getIntakeRack().isExtended());
             for (var text : frc.robot.lib.util.AlertPublisher.active("Health", org.wpilib.util.Alert.Level.HIGH)) {

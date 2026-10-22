@@ -11,8 +11,20 @@ public final class IntakeConstants {
 
     // ---- Rack (Talons 21 and 22, Kraken X44, CAN_S4) ----
 
-    /** Full stroke from the CAD, meters. The first extend measures the real one. */
+    /** Full stroke from the CAD, meters. */
     public static final double kRackStroke = 0.324;
+    /**
+     * Out stop of each side, meters: where each side reads when it rests at its out stop. The
+     * code trusts a stall short of these as "not out" (something may hold the side), so they
+     * must be measured on the robot, with nothing in the way, not learned in a match (a ball on
+     * the first extend would make a short stop look like the out stop). CAD values until then.
+     *
+     * <p>To measure: power the robot on with the intake fully in, enable, extend, and read
+     * Intake/Rack/Left/Last Stall m and Intake/Rack/Right/Last Stall m (the reading at the stall,
+     * before any fix). Do it three times (retract between) and write the largest of each here.
+     */
+    public static final double kOutStopLeft = kRackStroke;
+    public static final double kOutStopRight = kRackStroke;
     /**
      * Motor rotations per meter of rack travel. From the old code's full stroke (3.95 motor
      * rotations) over the CAD stroke. Check on the robot: push the rack out by hand and read the
@@ -75,6 +87,8 @@ public final class IntakeConstants {
     public static final double kRetryDelay = 2.0;
     /** Reboot flags in the first seconds after code start are the devices' own boot, seconds. */
     public static final double kStartupGrace = 3.0;
+    /** A rack Talon that does not answer for this long counts as dead, seconds. */
+    public static final double kDeadTime = 0.5;
     /** A Motion Magic move is done within this distance of its goal, meters. */
     public static final double kAtGoalTolerance = 0.01;
 

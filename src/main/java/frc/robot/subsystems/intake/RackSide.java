@@ -5,18 +5,23 @@ package frc.robot.subsystems.intake;
  *
  * <p>The intake gets hit. A hit can push it in (the motor is backdriven: the reading follows) or
  * make a gear skip teeth on the rack (the reading is then wrong). One side can skip while the
- * other does not, so each side keeps its own knowledge, and trusts a reading only when the side
- * stalls against a hard stop:
+ * other does not, and the frame flexes, so one side can also sit short while the other is out:
+ * each side keeps its own knowledge, and trusts a reading only when the side stalls against a
+ * hard stop. The motor's sensor cannot tell skipped teeth from something in the way, so the
+ * direction of the error decides:
  * <ul>
  *   <li>At boot the side reads 0, and 0 is "in" (the robot boots with the intake in).
- *   <li>Every move ends with a push into its stop. At the stall the reading is set to the stop:
- *       0 for the in stop, the measured stroke for the out stop. The first out stall measures the
- *       stroke.
- *   <li>A stall 1 to 5 cm from the expected stop means skipped teeth: fixed, with an alert.
- *   <li>A stall more than 5 cm away is not a skip: something blocks the rack. The reading is not
- *       changed (re-truing it would make it wrong by the whole distance).
- *   <li>A side whose Talon rebooted ("lost") reads a position copied from the other side; its
- *       stall always re-trues it, with no alert.
+ *   <li>Every move ends with a push into its stop. A stall within 1 cm of the stop sets the
+ *       reading to the stop: 0 for the in stop, the measured out stop of this side
+ *       (IntakeConstants) for the out stop.
+ *   <li>A stall 1 to 5 cm PAST the stop: a hard stop cannot be passed, so the reading is wrong
+ *       (skipped teeth). Fixed, with an alert. More than 5 cm past: not trusted.
+ *   <li>A stall more than 1 cm SHORT of the stop is never fixed: something may hold the side
+ *       there, and then the reading is right. Fixing it would make a short side look out (too
+ *       tall for the trench). A real skip of this kind is fixed at the other stop, where the
+ *       reading is past it.
+ *   <li>A side whose Talon rebooted ("lost") reads a position copied from the other side; the
+ *       same rule applies to it, with no skip alert when it is fixed.
  * </ul>
  */
 public class RackSide {
@@ -31,44 +36,33 @@ public class RackSide {
 
     /** The push starts this far before the stop, meters. */
     public static final double kApproachDistance = 0.035;
-    /** A stall further than this from the expected stop means skipped teeth, meters. */
+    /** A stall within this of the expected stop is normal, meters. */
     public static final double kSkipTolerance = 0.01;
-    /** A stall further than this from the expected stop is not a skip: the rack is blocked, meters. */
+    /** A stall further than this past the expected stop is not trusted, meters. */
     public static final double kMaxCorrection = 0.05;
     /** Further than this from its stop at rest, the side was pushed away and goes back, meters. */
     public static final double kPushedAway = 0.02;
-    /**
-     * The first out stop is measured only within these fractions of the CAD stroke (about +-2 cm,
-     * less than the 3.5 cm approach).
-     */
-    public static final double kPlausibleLow = 0.94;
-    public static final double kPlausibleHigh = 1.06;
 
     private final String m_name;
-    private final double m_cadStroke;
-    private double m_outStop = Double.NaN;
+    private final double m_outStop;
     private boolean m_lost = false;
 
     /**
      * @param name for alerts, for example "Talon 22 (right)"
-     * @param cadStroke stroke from the CAD, meters; used until the out stop is measured
+     * @param outStop this side's out stop, measured on the robot, meters
      */
-    public RackSide(String name, double cadStroke) {
+    public RackSide(String name, double outStop) {
         m_name = name;
-        m_cadStroke = cadStroke;
+        m_outStop = outStop;
     }
 
     public boolean isLost() {
         return m_lost;
     }
 
-    public boolean hasOutStop() {
-        return !Double.isNaN(m_outStop);
-    }
-
-    /** The out stop: measured, or the CAD stroke until it is measured. */
+    /** The out stop, meters. */
     public double outStop() {
-        return hasOutStop() ? m_outStop : m_cadStroke;
+        return m_outStop;
     }
 
     /** Where the stop of a move is: 0 or the out stop. */
@@ -98,31 +92,25 @@ public class RackSide {
      * @param position the position the side reads now
      */
     public StopResult stalledAt(boolean out, double position) {
-        if (m_lost) {
-            // The reading was copied from the other side: trust the stop, measure nothing.
-            m_lost = false;
-            return new StopResult(stopPosition(out), null, true);
-        }
         double stop = stopPosition(out);
-        double error = Math.abs(position - stop);
         String where = out ? "out" : "in";
-        if (error > kMaxCorrection) {
+        // How far the reading is past the stop, in the direction of the push (negative = short).
+        double past = out ? position - stop : stop - position;
+        if (past < -kSkipTolerance) {
             return new StopResult(Double.NaN, String.format(
-                "Intake %s stopped %.1f cm before the %s stop: something blocks it (or it was not in at boot)",
-                m_name, error * 100, where), false);
+                "Intake %s stopped %.1f cm short of the %s stop: something holds it, or it skipped teeth."
+                    + " Move it to the other stop and back to check again",
+                m_name, -past * 100, where), false);
         }
-        if (out && !hasOutStop()) {
-            // First time at the out stop: measure the stroke.
-            if (position >= kPlausibleLow * m_cadStroke && position <= kPlausibleHigh * m_cadStroke) {
-                m_outStop = position;
-                return new StopResult(Double.NaN, null, true);
-            }
-            return new StopResult(m_cadStroke, String.format("Intake %s out stop read %.3f m, expected about %.3f:"
-                + " position set from the CAD stroke; the next extend measures again", m_name, position, m_cadStroke), true);
+        if (past > kMaxCorrection) {
+            return new StopResult(Double.NaN, String.format(
+                "Intake %s read %.1f cm past the %s stop: the reading is wrong; check the rack and its gear",
+                m_name, past * 100, where), false);
         }
-        String alert = error > kSkipTolerance
-            ? String.format("Intake %s skipped teeth (%.1f cm off at the %s stop): position fixed", m_name, error * 100, where)
+        String alert = past > kSkipTolerance && !m_lost
+            ? String.format("Intake %s skipped teeth (%.1f cm past the %s stop): position fixed", m_name, past * 100, where)
             : null;
+        m_lost = false;
         return new StopResult(stop, alert, true);
     }
 

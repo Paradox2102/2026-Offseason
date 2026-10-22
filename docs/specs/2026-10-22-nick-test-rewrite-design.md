@@ -713,3 +713,36 @@ From the whole-branch review: two auto defects that the sim did not show.
   auto. Sim: normal run 43 of 43 scored, intake 100 % out at the trench, no contacts; blocked run:
   fallback taken, never under an arm, alert raised, no shot (the intake never got out); run with
   the `prepare` event removed: 44 of 44 scored.
+
+### Rack trust and a dead rack Talon (user, 2026-10-22)
+
+From the whole-branch review. The intake frame is not rigid (user): one side can sit short while
+the other is out, so the other side tells nothing about this one.
+
+- **Short or past (replaces "Hits, skipped teeth, rest" for the 1-5 cm band).** The motor's
+  sensor cannot tell skipped teeth from something in the way, so `RackSide.stalledAt` decides by
+  the direction of the error. Within 1 cm of the stop: set to the stop. 1-5 cm PAST the stop: a
+  hard stop cannot be passed, so the reading is wrong: set to the stop, LOW "skipped teeth" alert.
+  More than 5 cm past: not trusted. More than 1 cm SHORT: never fixed (something may hold the side
+  there, and then the reading is right): the side does not count as out, MEDIUM alert, retry after
+  2 s. A hit that pushes a side in and skips leaves the reading high, so it is fixed at the next
+  out stop. A skip that leaves the reading low is fixed at the in stop.
+- **Fixed out stops.** The first extend no longer measures the stroke (a ball on that extend
+  would make a short stop the "out stop"). `IntakeConstants.kOutStopLeft/Right` are measured in
+  the pit from `Intake/Rack/<side>/Last Stall m` (the reading at the stall, before any fix); CAD
+  0.324 m until then. The 94-106 % plausibility band is gone.
+- **Rebooted side.** No special trust: its copied reading follows the same rule (no skip alert
+  when it is fixed).
+- **Dead rack Talon** (user: "if a Talon is dead, we can't score... shoot what balls we already
+  have"). A rack Talon not answering for 0.5 s (after the 3 s startup grace) is dead: its side's
+  place is unknown, so `isExtended()` stays false (trench guard, trench alert and the auto's
+  trench choice unchanged), and a HIGH alert says so. `Superstructure.allowed()` then does not
+  wait for the intake (`isExtended() || hasDeadTalon()`); the shot still sends the working side
+  out. No toggle.
+- **Remaining limit.** A side pushed in by a hit whose gear skips, then held there, still reads
+  its out stop: no motor sensor can see it. A switch at each out stop (for example on a CTRE
+  CANdi, as a remote limit) would; a hardware choice, not in this change.
+- Smoke test `SIM_SMOKE_RACK=short|dead|blocked`. Sim: normal 44 of 44 scored, intake 100 % out at
+  the trench, no contacts, the teleop skip (3 cm) fixed as "past". short (right side 2.4 cm short)
+  and blocked: fallback, never under an arm, no shot. dead (Talon 22 before auto): fallback, HIGH
+  alert, 8 of 8 preload scored.

@@ -9,6 +9,8 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.driverstation.RobotState;
 import org.wpilib.framework.RobotBase;
+import org.wpilib.math.filter.Debouncer;
+import org.wpilib.math.filter.Debouncer.DebounceType;
 import org.wpilib.system.Timer;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.util.Alert;
@@ -75,10 +77,17 @@ public class IntakeRack extends SubsystemBase {
         /** Position to give a rebooted Talon (RESYNC tries until the Talon takes it). */
         double m_resyncValue = Double.NaN;
 
-        Side(String label, int canId, InvertedValue inverted) {
+        /** The reading when the last push stalled, before any fix (to measure the out stops). */
+        double m_lastStall = Double.NaN;
+        /** Simulator only: this Talon does not answer. */
+        boolean m_simDead = false;
+        final Debouncer m_deadDebounce = new Debouncer(IntakeConstants.kDeadTime, DebounceType.RISING);
+        boolean m_dead = false;
+
+        Side(String label, int canId, InvertedValue inverted, double outStop) {
             m_label = label;
             m_talon = new TalonFX(canId, CanIds.k_canBus4);
-            m_state = new RackSide(label, IntakeConstants.kRackStroke);
+            m_state = new RackSide(label, outStop);
             m_rebootAlert = AlertPublisher.create("Health", "intake/" + canId + "/reboot",
                 "Intake rack " + label + " rebooted: position copied from the other side until its next stop", Level.MEDIUM);
             m_problemAlert = AlertPublisher.create("Health", "intake/" + canId + "/stop", "", Level.MEDIUM);
@@ -111,6 +120,10 @@ public class IntakeRack extends SubsystemBase {
 
         double position() {
             return m_talon.getPosition().getValueAsDouble();
+        }
+
+        boolean connected() {
+            return !m_simDead && m_talon.isConnected();
         }
 
         double velocity() {
@@ -186,7 +199,8 @@ public class IntakeRack extends SubsystemBase {
                 case PUSH -> {
                     m_talon.setControl(m_currentRequest.withOutput(sign * IntakeConstants.kPushCurrent - IntakeConstants.kGravityAmps));
                     if (m_stall.update(now, velocity())) {
-                        var result = m_state.stalledAt(m_out, position());
+                        m_lastStall = position();
+                        var result = m_state.stalledAt(m_out, m_lastStall);
                         if (!Double.isNaN(result.setPosition())) {
                             m_talon.setPosition(result.setPosition());
                         }
@@ -239,12 +253,15 @@ public class IntakeRack extends SubsystemBase {
     }
 
     // Talon 21 is on the turret (left) side; Talon 22 turns the other way on the right side.
-    private final Side m_left = new Side("Talon 21 (left)", CanIds.intakeExtensionLeader, InvertedValue.CounterClockwise_Positive);
-    private final Side m_right = new Side("Talon 22 (right)", CanIds.intakeExtensionFollower, InvertedValue.Clockwise_Positive);
+    private final Side m_left = new Side("Talon 21 (left)", CanIds.intakeExtensionLeader, InvertedValue.CounterClockwise_Positive,
+        IntakeConstants.kOutStopLeft);
+    private final Side m_right = new Side("Talon 22 (right)", CanIds.intakeExtensionFollower, InvertedValue.Clockwise_Positive,
+        IntakeConstants.kOutStopRight);
 
     private final SkewGuard m_skewGuard = new SkewGuard(IntakeConstants.kSkewLimit, IntakeConstants.kSkewTime);
     private final Alert m_skewAlert = AlertPublisher.create("Health", "intake/skew",
         "Intake rack sides disagree by more than 2.5 cm (skipped teeth or binding): each side fixes itself at its stop", Level.LOW);
+    private final Alert m_deadAlert = AlertPublisher.create("Health", "intake/dead", "", Level.HIGH);
     private boolean m_goalOut = false;
     private boolean m_wasEnabled = false;
     /** Reasons the rack must stay out (near a trench, shooting): while one is true it extends and ignores retract. */
@@ -263,6 +280,7 @@ public class IntakeRack extends SubsystemBase {
     public void periodic() {
         double now = Timer.getTimestamp();
         checkReboots(now);
+        checkDead(now);
 
         // On enable, each side goes to the stop of the present goal (it may have been moved by
         // hand while disabled), and is re-trued there.
@@ -317,6 +335,34 @@ public class IntakeRack extends SubsystemBase {
         if (left || right) {
             m_skewGuard.reset();
         }
+    }
+
+    /** A Talon that does not answer for {@link IntakeConstants#kDeadTime}: its side's place is unknown. */
+    private void checkDead(double now) {
+        if (now - m_startTime < IntakeConstants.kStartupGrace) {
+            return; // the devices are still booting
+        }
+        String dead = null;
+        for (Side side : new Side[] {m_left, m_right}) {
+            side.m_dead = side.m_deadDebounce.calculate(!side.connected());
+            if (side.m_dead) {
+                dead = dead == null ? side.m_label : dead + " and " + side.m_label;
+            }
+        }
+        if (dead != null) {
+            m_deadAlert.setText("Intake: " + dead + " not answering. Do not drive under a trench."
+                + " Shots no longer wait for the intake");
+        }
+        m_deadAlert.set(dead != null);
+    }
+
+    /**
+     * A rack Talon does not answer: nothing tells where its side is, so the intake can never
+     * count as out. The shot then goes anyway (user, 2026-10-22: with a dead Talon we cannot
+     * score from the field, so shoot the balls we have).
+     */
+    public boolean hasDeadTalon() {
+        return m_left.m_dead || m_right.m_dead;
     }
 
     private void start(boolean out) {
@@ -393,6 +439,21 @@ public class IntakeRack extends SubsystemBase {
         }
     }
 
+    /** Simulator only: Talon 22 (right) stops answering; its side gets no power and its reading freezes. */
+    public void simKillRight() {
+        if (m_sim != null) {
+            m_right.m_simDead = true;
+            m_sim.killRight();
+        }
+    }
+
+    /** Simulator only: something blocks the right side at this position (NaN: nothing). */
+    public void simBlockRight(double position) {
+        if (m_sim != null) {
+            m_sim.blockRight(position);
+        }
+    }
+
     /** Simulator only: something blocks the left side at this position (NaN: nothing). */
     public void simBlockLeft(double position) {
         if (m_sim != null) {
@@ -406,9 +467,9 @@ public class IntakeRack extends SubsystemBase {
     }
 
     private static String describe(Side side) {
-        return String.format("%s %.3f m, out stop %.3f%s, %s%s, %d reboots", side.m_label, side.position(),
-            side.m_state.outStop(), side.m_state.hasOutStop() ? " measured" : " (CAD)", side.m_phase,
-            side.m_confirmed ? " at stop" : "", side.m_resets);
+        return String.format("%s %.3f m, out stop %.3f, %s%s, %d reboots%s", side.m_label, side.position(),
+            side.m_state.outStop(), side.m_phase, side.m_confirmed ? " at stop" : "", side.m_resets,
+            side.m_dead ? ", NOT ANSWERING" : "");
     }
 
     private void log() {
@@ -422,7 +483,8 @@ public class IntakeRack extends SubsystemBase {
             Telemetry.log(prefix + "Position m", side.position());
             Telemetry.log(prefix + "Phase", side.m_phase.name());
             Telemetry.log(prefix + "Out Stop m", side.m_state.outStop());
-            Telemetry.log(prefix + "Out Stop Measured", side.m_state.hasOutStop());
+            Telemetry.log(prefix + "Last Stall m", side.m_lastStall);
+            Telemetry.log(prefix + "Connected", !side.m_dead);
             Telemetry.log(prefix + "Lost", side.m_state.isLost());
             Telemetry.log(prefix + "Current A", side.m_talon.getStatorCurrent().getValueAsDouble());
         }

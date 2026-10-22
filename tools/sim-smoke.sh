@@ -19,7 +19,8 @@
 # "Near Trench" (stripes): watch the teleop trench run at the end of the script.
 # SIM_SMOKE_ALLIANCE=red runs the auto as red (the auto checks are then given in the blue frame).
 # SIM_SMOKE_AUTO=left runs the left trench auto (its checks are mirrored onto the right side).
-# SIM_SMOKE_RACK=blocked blocks the left rack side during the auto: it must take the fallback path, not the trench.
+# SIM_SMOKE_RACK=blocked|short|dead: a rack fault during the auto (left side blocked at 0.10 m, right
+# side held 2.4 cm short, or Talon 22 dead): it must take the fallback path, not the trench.
 set -u
 cd "$(dirname "$0")/.."
 LIB="$PWD/build/jni/release"
