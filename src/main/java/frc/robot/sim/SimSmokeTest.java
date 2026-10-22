@@ -101,16 +101,16 @@ public class SimSmokeTest {
         if (t < 1) {
             step(0, "disabled", RobotMode.TELEOPERATED, false);
         } else if (t < 3) {
-            step(1, "teleop: drive forward and left", RobotMode.TELEOPERATED, true);
-            m_leftY = -0.8; // pushed away from the driver
-            m_leftX = -0.3; // pushed left
+            // The robot stays in the blue zone here (user: no drive over the bump into the fuel and
+            // across the center line before the auto). The teleop trench run at the end drives.
+            step(1, "teleop: stand still, intake first extend", RobotMode.TELEOPERATED, true);
+            m_leftY = 0;
+            m_leftX = 0;
             m_rightX = 0;
         } else if (t < 4) {
-            step(10, "teleop: slow down", RobotMode.TELEOPERATED, true);
-            m_leftY = -0.3;
-            m_leftX = 0;
+            step(10, "teleop: stand still", RobotMode.TELEOPERATED, true);
         } else if (t < 6) {
-            step(2, "teleop: turn while driving", RobotMode.TELEOPERATED, true);
+            step(2, "teleop: turn in place", RobotMode.TELEOPERATED, true);
             m_rightX = -0.6; // turn left (counterclockwise)
         } else if (t < 9) {
             step(3, "teleop: stick released, heading hold", RobotMode.TELEOPERATED, true);

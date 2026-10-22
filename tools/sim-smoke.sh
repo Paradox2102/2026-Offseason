@@ -23,6 +23,14 @@ cd "$(dirname "$0")/.."
 LIB="$PWD/build/jni/release"
 LOG="$PWD/build/sim-smoke.log"
 rm -f "$LOG" build/sim-topics.txt
+# A sim of this project left from an earlier run holds the NetworkTables port (5810): the new sim
+# could not serve AdvantageScope, which would keep showing the old one. Stop it first.
+OLD=$(pgrep -f "$PWD/build/classes/java/main.* frc.robot.Main" || true)
+if [ -n "$OLD" ]; then
+    echo "Stopping a sim of this project left from an earlier run (PID $OLD)"
+    kill $OLD
+    sleep 2
+fi
 sh ./gradlew build -q || { echo "FAIL: build"; exit 1; }
 SIM_SMOKE=1 SIM_SMOKE_STAY="${SIM_SMOKE_STAY:-0}" SIM_SMOKE_ALLIANCE="${SIM_SMOKE_ALLIANCE:-blue}" DYLD_LIBRARY_PATH="$LIB" LD_LIBRARY_PATH="$LIB" JAVA_TOOL_OPTIONS="-Djava.library.path=$LIB" \
     sh ./gradlew run -q > "$LOG" 2>&1
