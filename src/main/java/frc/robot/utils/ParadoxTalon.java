@@ -4,6 +4,8 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import frc.robot.health.HealthMonitor;
+
 public class ParadoxTalon extends TalonFX {
     private ControlRequest m_request;
     private final double k_stallShutDownTime;

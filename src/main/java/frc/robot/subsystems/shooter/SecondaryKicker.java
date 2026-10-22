@@ -8,7 +8,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import frc.robot.Constants.CANIDConstants;
+import frc.robot.constants.CanIds;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.utils.ParadoxTalon;
 
@@ -23,13 +23,13 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class SecondaryKicker extends SubsystemBase {
-    private final CANBus k_CANBus = CANIDConstants.k_canBus3;
+    private final CANBus k_CANBus = CanIds.k_canBus3;
 
     private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withSlot(0);
     private final CoastOut m_coastRequest = new CoastOut();
     private final StaticBrake m_brakeRequest = new StaticBrake();
 
-    private final ParadoxTalon m_secondaryKickerMotor = new ParadoxTalon(CANIDConstants.goUp, k_CANBus, m_coastRequest, 0.1);
+    private final ParadoxTalon m_secondaryKickerMotor = new ParadoxTalon(CanIds.goUp, k_CANBus, m_coastRequest, 0.1);
 
     private final double k_gearRatio = 1;
 

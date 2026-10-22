@@ -8,7 +8,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import frc.robot.Constants.CANIDConstants;
+import frc.robot.constants.CanIds;
 import frc.robot.Constants.IndexerConstants;
 import frc.robot.utils.ParadoxTalon;
 
@@ -30,9 +30,9 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
     private final MotionMagicVelocityDutyCycle m_velocityRequest = new MotionMagicVelocityDutyCycle(0);
     private final StaticBrake m_brakeRequest = new StaticBrake();
 
-    private final CANBus k_CANBus = CANIDConstants.k_canBus1;
-    private final ParadoxTalon m_indexerConveyorTop = new ParadoxTalon(CANIDConstants.indexerConveyorLeader, k_CANBus, m_brakeRequest, 0.1);
-    private final ParadoxTalon m_indexerConveyorBottom = new ParadoxTalon(CANIDConstants.indexerConveyorFollower, k_CANBus, m_brakeRequest, 0.1);
+    private final CANBus k_CANBus = CanIds.k_canBus1;
+    private final ParadoxTalon m_indexerConveyorTop = new ParadoxTalon(CanIds.indexerConveyorLeader, k_CANBus, m_brakeRequest, 0.1);
+    private final ParadoxTalon m_indexerConveyorBottom = new ParadoxTalon(CanIds.indexerConveyorFollower, k_CANBus, m_brakeRequest, 0.1);
 
     private final double k_gearRatio = 1;
 

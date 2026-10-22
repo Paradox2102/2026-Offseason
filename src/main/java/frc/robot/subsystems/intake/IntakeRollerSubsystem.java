@@ -9,7 +9,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import frc.robot.Constants.CANIDConstants;
+import frc.robot.constants.CanIds;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.utils.ParadoxTalon;
 
@@ -29,9 +29,9 @@ public class IntakeRollerSubsystem extends SubsystemBase {
     private final CoastOut m_coastRequest = new CoastOut(); 
     private final MotionMagicVelocityVoltage m_velocityRequest = new MotionMagicVelocityVoltage(0);
 
-    private final CANBus k_CANBus = CANIDConstants.k_canBus4;
+    private final CANBus k_CANBus = CanIds.k_canBus4;
 
-    private final ParadoxTalon m_intakeRollerMotor = new ParadoxTalon(CANIDConstants.intakeRoller, k_CANBus, m_coastRequest, 0.1);
+    private final ParadoxTalon m_intakeRollerMotor = new ParadoxTalon(CanIds.intakeRoller, k_CANBus, m_coastRequest, 0.1);
     
     private final BangBangController k_bangBang = new BangBangController();
 

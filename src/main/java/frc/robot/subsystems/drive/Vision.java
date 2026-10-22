@@ -22,7 +22,7 @@ import org.wpilib.networktables.NetworkTablesJNI;
 import org.wpilib.smartdashboard.Field2d;
 import frc.robot.Robot;
 import frc.robot.Constants.VisionConstants;
-import frc.robot.utils.HealthMonitor;
+import frc.robot.health.HealthMonitor;
 
 import java.awt.Desktop;
 import java.io.IOException;

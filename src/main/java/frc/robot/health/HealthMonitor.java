@@ -1,4 +1,4 @@
-package frc.robot.utils;
+package frc.robot.health;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +60,7 @@ public final class HealthMonitor {
     private static final List<WatchedBus> s_buses = new ArrayList<>();
     private static final List<WatchedDevice> s_devices = new ArrayList<>();
     private static final List<WatchedCamera> s_cameras = new ArrayList<>();
+    private static SwerveHealth s_swerve = null;
 
     private static final Timer s_checkTimer = new Timer();
     private static double s_lastLoopTime = -1;
@@ -97,18 +98,42 @@ public final class HealthMonitor {
         addDevice(device, describe(device));
     }
 
-    /** Watch all the motors, CANcoders and the Pigeon in a swerve drivetrain. */
+    /**
+     * Watch all the motors, CANcoders and the Pigeon in a swerve drivetrain, and start the live
+     * swerve checks in {@link SwerveHealth}.
+     */
     public static void registerDrivetrain(SwerveDrivetrain<TalonFX, TalonFX, CANcoder> drivetrain) {
         String[] corner = {"FL", "FR", "BL", "BR"}; // the order TunerConstants creates the modules
         SwerveModule<TalonFX, TalonFX, CANcoder>[] modules = drivetrain.getModules();
         for (int i = 0; i < modules.length; i++) {
             String prefix = (i < corner.length ? corner[i] : "Module " + i) + " ";
             addDevice(modules[i].getDriveMotor(), prefix + "drive " + describe(modules[i].getDriveMotor()));
-            addDevice(modules[i].getSteerMotor(), prefix + "steer " + describe(modules[i].getSteerMotor()));
-            addDevice(modules[i].getEncoder(), prefix + "encoder " + describe(modules[i].getEncoder()));
+
+            String steerName = prefix + "steer " + describe(modules[i].getSteerMotor());
+            WatchedDevice steer = addDevice(modules[i].getSteerMotor(), steerName);
+            if (steer != null) {
+                // The steer motor reads its angle from the CANcoder over CAN. This fault means
+                // that data stopped (CANcoder unplugged, damaged or silent after a hit).
+                steer.addFault(modules[i].getSteerMotor().getStickyFault_RemoteSensorDataInvalid(false),
+                    steerName + " lost its CANcoder data", Level.HIGH);
+            }
+
+            String encoderName = prefix + "encoder " + describe(modules[i].getEncoder());
+            WatchedDevice encoder = addDevice(modules[i].getEncoder(), encoderName);
+            if (encoder != null) {
+                // Our through-bore encoders cannot slip on the hex shaft, but a weak magnet
+                // signal still means the housing sits too far from the magnet (loose screws,
+                // not seated after maintenance).
+                encoder.addFault(modules[i].getEncoder().getStickyFault_BadMagnet(false),
+                    encoderName + " magnet signal too weak: check that the encoder is seated and its screws are tight", Level.MEDIUM);
+            }
         }
         Pigeon2 pigeon = drivetrain.getPigeon2();
         addDevice(pigeon, "Gyro " + describe(pigeon));
+
+        if (s_swerve == null) {
+            s_swerve = new SwerveHealth(drivetrain);
+        }
     }
 
     /** Watch a PhotonVision camera: is its coprocessor still sending data? */
@@ -121,14 +146,20 @@ public final class HealthMonitor {
         s_cameras.add(new WatchedCamera(camera));
     }
 
-    /** Each alert needs a unique name, so a second registration of the same device is skipped. */
-    private static void addDevice(ParentDevice device, String name) {
+    /**
+     * Each alert needs a unique name, so a second registration of the same device is skipped.
+     *
+     * @return the new WatchedDevice, or null if the device was already registered
+     */
+    private static WatchedDevice addDevice(ParentDevice device, String name) {
         for (WatchedDevice watched : s_devices) {
             if (watched.m_device == device) {
-                return;
+                return null;
             }
         }
-        s_devices.add(new WatchedDevice(device, name));
+        WatchedDevice watched = new WatchedDevice(device, name);
+        s_devices.add(watched);
+        return watched;
     }
 
     /** Call every loop from Robot.robotPeriodic(). */
@@ -163,6 +194,11 @@ public final class HealthMonitor {
         }
         s_wasBrownedOut = brownedOut;
         s_brownoutAlert.set(k_showHardwareAlerts && s_brownouts > 0);
+
+        // The swerve checks compare the modules on every loop.
+        if (s_swerve != null) {
+            s_swerve.periodic();
+        }
 
         if (s_checkTimer.advanceIfElapsed(k_checkPeriod)) {
             checkSystem();
@@ -285,11 +321,17 @@ public final class HealthMonitor {
             if (device instanceof TalonFX talon) {
                 m_faults.add(new StickyFault(talon.getStickyFault_BootDuringEnable(false), name + " rebooted while enabled", Level.HIGH));
                 m_faults.add(new StickyFault(talon.getStickyFault_BridgeBrownout(false), name + " motor output browned out", Level.MEDIUM));
+                m_faults.add(new StickyFault(talon.getStickyFault_DeviceTemp(false), name + " is too hot: let it cool, and check for binding", Level.MEDIUM));
             } else if (device instanceof CANcoder encoder) {
                 m_faults.add(new StickyFault(encoder.getStickyFault_BootDuringEnable(false), name + " rebooted while enabled", Level.HIGH));
             } else if (device instanceof Pigeon2 pigeon) {
                 m_faults.add(new StickyFault(pigeon.getStickyFault_BootDuringEnable(false), name + " rebooted while enabled", Level.HIGH));
             }
+        }
+
+        /** Watch one more sticky fault on this device. */
+        void addFault(StatusSignal<Boolean> signal, String text, Level level) {
+            m_faults.add(new StickyFault(signal, text, level));
         }
 
         void check() {

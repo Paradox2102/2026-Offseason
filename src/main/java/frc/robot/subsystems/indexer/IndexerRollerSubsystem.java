@@ -7,7 +7,7 @@ import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import frc.robot.Constants.CANIDConstants;
+import frc.robot.constants.CanIds;
 import frc.robot.Constants.IndexerConstants;
 import frc.robot.utils.ParadoxTalon;
 
@@ -25,8 +25,8 @@ import org.wpilib.command2.SubsystemBase;
 public class IndexerRollerSubsystem extends SubsystemBase {
     private final MotionMagicVelocityVoltage m_velocityRequest = new MotionMagicVelocityVoltage(0).withEnableFOC(true);
     private final CoastOut m_coastRequest = new CoastOut();
-    private final CANBus k_CANBus = CANIDConstants.k_canBus1;
-    private final ParadoxTalon m_indexerRollerMotor = new ParadoxTalon(CANIDConstants.indexerRoller, k_CANBus, m_coastRequest, 0.1);
+    private final CANBus k_CANBus = CanIds.k_canBus1;
+    private final ParadoxTalon m_indexerRollerMotor = new ParadoxTalon(CanIds.indexerRoller, k_CANBus, m_coastRequest, 0.1);
     
 
     private final double k_gearRatio = 0.31;

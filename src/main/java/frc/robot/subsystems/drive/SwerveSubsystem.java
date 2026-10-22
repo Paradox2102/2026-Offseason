@@ -46,7 +46,7 @@ import org.wpilib.command2.sysid.SysIdRoutine;
 
 import frc.robot.Constants.DrivebaseConstants;
 // import frc.robot.RobotContainer;
-import frc.robot.Constants.FieldConstants;
+import frc.robot.constants.FieldConstants;
 import frc.robot.Constants.ShooterConstants;
 // import frc.robot.Constants.Subsystems;
 import frc.robot.generated.TunerConstants;

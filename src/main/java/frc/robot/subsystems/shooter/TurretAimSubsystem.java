@@ -21,8 +21,8 @@ import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import frc.robot.Constants.CANIDConstants;
-import frc.robot.Constants.FieldConstants;
+import frc.robot.constants.CanIds;
+import frc.robot.constants.FieldConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
@@ -30,12 +30,12 @@ import frc.robot.utils.DoubleNumber;
 import frc.robot.utils.ParadoxTalon;
 
 public class TurretAimSubsystem extends SubsystemBase{
-    private final CANBus k_CANBus = CANIDConstants.k_canBus1;
+    private final CANBus k_CANBus = CanIds.k_canBus1;
 
     public final PositionVoltage m_positionRequest = new PositionVoltage(0);
     public final CoastOut m_coastRequest = new CoastOut();
 
-    private final ParadoxTalon m_shooterAzimuth = new ParadoxTalon(CANIDConstants.shooterAzimuth, k_CANBus, m_coastRequest, 0.1);
+    private final ParadoxTalon m_shooterAzimuth = new ParadoxTalon(CanIds.shooterAzimuth, k_CANBus, m_coastRequest, 0.1);
     
 
     public boolean isOnTarget() {

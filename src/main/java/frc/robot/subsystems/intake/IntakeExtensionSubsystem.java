@@ -10,7 +10,7 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import frc.robot.Constants.CANIDConstants;
+import frc.robot.constants.CanIds;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.utils.ParadoxTalon;
 
@@ -28,15 +28,15 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     private static final double k_intakeMaxExtension = 3.95;
     private static final double k_elevatorDrimRadius = 0.038091; // If something is wrong then this is the first thing to check. Idk if I did this right
     private static final double k_elevatorMass = 5.401715051809;
-    private final CANBus k_CANBus = CANIDConstants.k_canBus4;
+    private final CANBus k_CANBus = CanIds.k_canBus4;
 
     private final PositionTorqueCurrentFOC m_positionRequest = new PositionTorqueCurrentFOC(0).withSlot(0);
     private final MotionMagicVelocityVoltage m_velocityRequest = new MotionMagicVelocityVoltage(0);
-    private final Follower m_followRequest = new Follower(CANIDConstants.intakeExtensionLeader, MotorAlignmentValue.Opposed);
+    private final Follower m_followRequest = new Follower(CanIds.intakeExtensionLeader, MotorAlignmentValue.Opposed);
     private final StaticBrake m_brakeRequest = new StaticBrake();
     
-    private final ParadoxTalon m_intakeExtensionLeader = new ParadoxTalon(CANIDConstants.intakeExtensionLeader, k_CANBus, m_brakeRequest, 0.1);
-    private final ParadoxTalon m_intakeExtensionFollower = new ParadoxTalon(CANIDConstants.intakeExtensionFollower, k_CANBus, m_brakeRequest, 0.1); 
+    private final ParadoxTalon m_intakeExtensionLeader = new ParadoxTalon(CanIds.intakeExtensionLeader, k_CANBus, m_brakeRequest, 0.1);
+    private final ParadoxTalon m_intakeExtensionFollower = new ParadoxTalon(CanIds.intakeExtensionFollower, k_CANBus, m_brakeRequest, 0.1); 
 
     
 

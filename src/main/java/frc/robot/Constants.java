@@ -35,49 +35,7 @@ import frc.robot.utils.DoubleNumber;
 public class Constants {
 
 
-    public static class CANIDConstants {
-
-        public static final CANBus k_canBus0 = new CANBus(CANPort.CAN_S0);
-        public static final CANBus k_canBus1 = new CANBus(CANPort.CAN_S1);
-        public static final CANBus k_canBus2 = new CANBus(CANPort.CAN_S2);
-        public static final CANBus k_canBus3 = new CANBus(CANPort.CAN_S3);
-        public static final CANBus k_canBus4 = new CANBus(CANPort.CAN_S4);
-
-        public static final int gyro = 0;
-
-        // The PDH is alone on CAN_S0 with CAN ID 21 (REV default is 1)
-        public static final CANPort k_pdhPort = CANPort.CAN_S0;
-        public static final int pdh = 21;
-
-        public static final int fl_drive = 1;
-        public static final int fl_steer = 2;
-        public static final int fr_drive = 3;
-        public static final int fr_steer = 4;
-        public static final int bl_drive = 5;
-        public static final int bl_steer = 6;
-        public static final int br_drive = 7;
-        public static final int br_steer = 8;
-        public static final int fl_encoder = 9;
-        public static final int fr_encoder = 10;
-        public static final int bl_encoder = 11;
-        public static final int br_encoder = 12;
-
-        public static final int intakeRoller = 20;
-        public static final int intakeExtensionLeader = 21;
-        public static final int intakeExtensionFollower = 22;
-
-        public static final int indexerRoller = 30;
-        public static final int indexerConveyorLeader = 31;
-        public static final int indexerConveyorFollower = 32;
-
-        public static final int kicker = 40;
-        public static final int hood = 41;
-        public static final int shooterLeader = 42;
-        public static final int shooterFollower = 43;
-        public static final int shooterAzimuth = 44;
-        public static final int goUp = 45;
-
-    }    
+    
 
     public static class Subsystems {
         public static final SwerveSubsystem m_swerveSubsystem;
@@ -278,47 +236,7 @@ public class Constants {
     }
   }
 
-  public static class FieldConstants {
-    public static final Translation2d k_blueHub = new Translation2d(4.62, 4.03);
-    public static final Translation2d k_redHub = new Translation2d(11.92, 4.03);
 
-    public static Translation2d k_blueOutpost = new Translation2d(1, 1);
-    public static Translation2d k_blueDepot = new Translation2d(1, 7);
-
-    public static Translation2d k_redOutpost = new Translation2d(15.6, 1);
-    public static Translation2d k_redDepot = new Translation2d(15.6, 7);
-
-    public static Translation2d k_fullPassRedDepot = new Translation2d(11.3, 5.5); // Need to implement this
-    public static Translation2d k_fullPassRedOutpost = new Translation2d(11.3, 2.5);
-    public static Translation2d k_fullPassBlueDepot = new Translation2d(5.3, 5.5);
-    public static Translation2d k_fullPassBlueOutpost = new Translation2d(5.3, 2.5);
-
-    public static final double k_redZoneTransition = 11.925;
-    public static final double k_blueZoneTransition = 4.625;
-    public static final double k_yCenterline = 4.0;
-    public static final double k_depotIntermediatePoint = 5.940;
-    public static final double k_outpostIntermediatePoint = 1.0;
-    
-    // public static final Rectangle2d k_blueTrenchLeft = new Rectangle2d(
-    //     new Translation2d(2.5, 8),
-    //     new Translation2d(6.6, 6.8)
-    // );
-
-    // public static final Rectangle2d k_blueTrenchRight = new Rectangle2d(
-    //     new Translation2d(2.5, 1.3),
-    //     new Translation2d(6.6, 0)
-    // );
-
-    // public static final Rectangle2d k_redTrenchLeft = new Rectangle2d(
-    //     new Translation2d(14, 8),
-    //     new Translation2d(10.2, 6.8)
-    // );
-
-    // public static final Rectangle2d k_redTrenchRight = new Rectangle2d(
-    //     new Translation2d(14, 1.3),
-    //     new Translation2d(10.2, 0)
-    // );
-  }
 
   
 

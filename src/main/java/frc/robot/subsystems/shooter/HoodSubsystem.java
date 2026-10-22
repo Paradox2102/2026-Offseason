@@ -9,7 +9,7 @@ import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState.MotorType;
 
-import frc.robot.Constants.CANIDConstants;
+import frc.robot.constants.CanIds;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.utils.ParadoxTalon;
 import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
@@ -23,12 +23,12 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class HoodSubsystem extends SubsystemBase{
-    private final CANBus k_CANBus = CANIDConstants.k_canBus3;
+    private final CANBus k_CANBus = CanIds.k_canBus3;
 
     private final PositionVoltage m_positionRequest = new PositionVoltage(0);
     private final StaticBrake m_brakeRequest = new StaticBrake();
 
-    private final ParadoxTalon m_hoodMotor = new ParadoxTalon(CANIDConstants.hood, k_CANBus, m_brakeRequest, 0.1);
+    private final ParadoxTalon m_hoodMotor = new ParadoxTalon(CanIds.hood, k_CANBus, m_brakeRequest, 0.1);
 
     private final InterpolatingDoubleTreeMap m_hoodLerpTable = new InterpolatingDoubleTreeMap();
 

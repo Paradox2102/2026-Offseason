@@ -7,9 +7,9 @@ package frc.robot;
 import com.ctre.phoenix6.HootAutoReplay;
 import com.ctre.phoenix6.SignalLogger;
 
-import frc.robot.Constants.CANIDConstants;
+import frc.robot.constants.CanIds;
 import frc.robot.Constants.Subsystems;
-import frc.robot.utils.HealthMonitor;
+import frc.robot.health.HealthMonitor;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.networktables.NetworkTableInstance;
@@ -38,7 +38,7 @@ public class Robot extends TimedRobot {
         .withJoystickReplay();
 
     /* log PDH channel currents into the hoot log, next to the Talon signals */
-    private final PowerDistribution m_pdh = new PowerDistribution(CANIDConstants.k_pdhPort, CANIDConstants.pdh, ModuleType.REV);
+    private final PowerDistribution m_pdh = new PowerDistribution(CanIds.k_pdhPort, CanIds.pdh, ModuleType.REV);
 
     // private final boolean kUseLimelight = false;
 

@@ -12,7 +12,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import frc.robot.Constants.CANIDConstants;
+import frc.robot.constants.CanIds;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.utils.ParadoxTalon;
 
@@ -30,12 +30,12 @@ import org.wpilib.command2.SubsystemBase;
 public class ShooterSubsystem extends SubsystemBase{
 
     private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withSlot(0);
-    private final Follower m_followRequest = new Follower(CANIDConstants.shooterLeader, MotorAlignmentValue.Opposed);
+    private final Follower m_followRequest = new Follower(CanIds.shooterLeader, MotorAlignmentValue.Opposed);
     private final CoastOut m_coastRequest = new CoastOut();
 
-    private final CANBus k_CANBus = CANIDConstants.k_canBus3;
-    private final ParadoxTalon m_shooterLeader = new ParadoxTalon(CANIDConstants.shooterLeader, k_CANBus, m_coastRequest, 0.1);
-    private final ParadoxTalon m_shooterFollower = new ParadoxTalon(CANIDConstants.shooterFollower, k_CANBus, m_followRequest, 0.1);
+    private final CANBus k_CANBus = CanIds.k_canBus3;
+    private final ParadoxTalon m_shooterLeader = new ParadoxTalon(CanIds.shooterLeader, k_CANBus, m_coastRequest, 0.1);
+    private final ParadoxTalon m_shooterFollower = new ParadoxTalon(CanIds.shooterFollower, k_CANBus, m_followRequest, 0.1);
 
     private final InterpolatingDoubleTreeMap m_shooterLerpTable = new InterpolatingDoubleTreeMap();
 
