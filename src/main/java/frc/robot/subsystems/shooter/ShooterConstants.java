@@ -17,9 +17,19 @@ public final class ShooterConstants {
     public static final double kTurretRatio = 67.86;
     /** In the jig at power-on, the shooter points to the robot's left: turret 0 = robot +90 degrees. */
     public static final double kTurretZeroOnRobotDeg = 90;
-    /** Cable chain limits from the jig position (old code: +-250 degrees). Check on the robot. */
-    public static final double kTurretMinRot = -250.0 / 360;
-    public static final double kTurretMaxRot = 250.0 / 360;
+    /**
+     * Wiring limits (user, 2026-10-22): one full turn each way from the jig, 720 degrees in all.
+     * The Talon's soft limits sit here, so the turret can never go past them.
+     */
+    public static final double kTurretMinRot = -1.0;
+    public static final double kTurretMaxRot = 1.0;
+    /**
+     * The aim uses 5 degrees less each way, so the turret never presses the wiring at its end. At
+     * the edge of this range, a target that keeps moving makes the turret unwind the other way
+     * round (TurretMath picks the nearest angle that is inside the range).
+     */
+    public static final double kTurretAimMinRot = kTurretMinRot + 5.0 / 360;
+    public static final double kTurretAimMaxRot = kTurretMaxRot - 5.0 / 360;
     /** Turret pivot from the robot center, meters (old code; CAD turret gear center agrees within 2 mm). */
     public static final Translation2d kTurretOffset =
         new Translation2d(Units.inchesToMeters(-5.965), Units.inchesToMeters(7.5429));

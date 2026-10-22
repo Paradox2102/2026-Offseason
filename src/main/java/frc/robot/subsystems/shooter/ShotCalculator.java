@@ -109,11 +109,11 @@ public class ShotCalculator {
         double lead = omega * ShooterConstants.kTurretLeadTime;
         double aimRad = fieldAngle - heading - Math.toRadians(ShooterConstants.kTurretZeroOnRobotDeg);
         double turretAimRot = TurretMath.chooseAngle(aimRad / (2 * Math.PI), currentTurretRot,
-            ShooterConstants.kTurretMinRot, ShooterConstants.kTurretMaxRot);
+            ShooterConstants.kTurretAimMinRot, ShooterConstants.kTurretAimMaxRot);
         // The goal is the aim angle less the lead (the robot turns +omega, so the turret must turn
         // -omega relative to it), kept inside the limits.
         double turretRot = Math.clamp(turretAimRot - lead / (2 * Math.PI),
-            ShooterConstants.kTurretMinRot, ShooterConstants.kTurretMaxRot);
+            ShooterConstants.kTurretAimMinRot, ShooterConstants.kTurretAimMaxRot);
         return new Aim(turretRot, turretAimRot, aim.getDistance(pivot));
     }
 }

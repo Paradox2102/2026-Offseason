@@ -1,6 +1,7 @@
 package frc.robot.subsystems.shooter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +26,35 @@ class TurretMathTest {
         // At +0.65 rot (234 deg), the direction +0.75 rot (270 deg) is past the +250 deg limit,
         // so the turret must go round to -0.25 rot.
         assertEquals(-0.25, TurretMath.chooseAngle(0.75, 0.65, kMin, kMax), 1e-9);
+    }
+
+    @Test
+    void unwindsAtTheWiringLimit() {
+        // The real limits: one full turn each way from the jig, aim range 5 degrees inside them.
+        double min = ShooterConstants.kTurretAimMinRot;
+        double max = ShooterConstants.kTurretAimMaxRot;
+        // At +350 degrees, a target that moved on to 380 is past the limit: the turret unwinds
+        // back round to +20 (the same direction), not on past +355.
+        assertEquals(20.0 / 360, TurretMath.chooseAngle(20.0 / 360, 350.0 / 360, min, max), 1e-9);
+        // The same at the other end.
+        assertEquals(-20.0 / 360, TurretMath.chooseAngle(-20.0 / 360, -350.0 / 360, min, max), 1e-9);
+        // Before the limit it keeps going the short way: at +340, the direction 350 stays +350.
+        assertEquals(350.0 / 360, TurretMath.chooseAngle(-10.0 / 360, 340.0 / 360, min, max), 1e-9);
+        // In the middle of the range it takes the nearer way, never past a limit.
+        double a = TurretMath.chooseAngle(0.9, 0.0, min, max);
+        assertEquals(-0.1, a, 1e-9);
+    }
+
+    @Test
+    void neverLeavesTheAimRange() {
+        double min = ShooterConstants.kTurretAimMinRot;
+        double max = ShooterConstants.kTurretAimMaxRot;
+        for (double wanted = -3; wanted <= 3; wanted += 0.013) {
+            for (double current = min; current <= max; current += 0.05) {
+                double a = TurretMath.chooseAngle(wanted, current, min, max);
+                assertTrue(a >= min - 1e-9 && a <= max + 1e-9, "angle " + a + " outside the range");
+            }
+        }
     }
 
     @Test
