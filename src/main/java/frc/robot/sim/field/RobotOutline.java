@@ -1,5 +1,11 @@
 package frc.robot.sim.field;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Translation2d;
+
 /**
  * Simulator only: the size of our robot, measured from its AdvantageScope model ("2102 2026
  * Offseason", CAD of 2026-10-22). Robot frame: +x = the intake side, +y = left, z up from the
@@ -55,5 +61,24 @@ public final class RobotOutline {
     /** Highest point of the robot above the floor under it, meters. */
     public static double top(double rackOut, double rackStroke, double hoodDeg) {
         return Math.max(kTopWithIntakeOut + Math.max(0, rackStroke - rackOut) * kRackSin, hoodTop(hoodDeg));
+    }
+
+    /** Field positions of the corners of the robot (and of the intake, when it is out). */
+    public static List<Translation2d> corners(Pose2d pose, double rackOut) {
+        var local = new ArrayList<Translation2d>();
+        for (double x : new double[] {kBackX, kFrontX}) {
+            for (double y : new double[] {-kHalfWidth, kHalfWidth}) {
+                local.add(new Translation2d(x, y));
+            }
+        }
+        if (intakeOut(rackOut)) {
+            local.add(new Translation2d(intakeFront(rackOut), -kIntakeHalfWidth));
+            local.add(new Translation2d(intakeFront(rackOut), kIntakeHalfWidth));
+        }
+        var out = new ArrayList<Translation2d>(local.size());
+        for (var c : local) {
+            out.add(pose.getTranslation().plus(c.rotateBy(pose.getRotation())));
+        }
+        return out;
     }
 }

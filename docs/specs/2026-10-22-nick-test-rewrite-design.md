@@ -620,3 +620,25 @@ intake in. Both in teleop and auto.
 - Smoke test: the teleop shot starts with the intake in (first feed with the rack fully out); a
   teleop run drives through the right trench with the intake in and the hood at 22 degrees: the
   intake is fully out and the hood at 0 under the arm, no contacts, no feed.
+
+### Auto start and center lines (user, 2026-10-22)
+
+User: a robot must start with some part over its starting line, so start in the trench lane on
+the line with the intake facing the alliance wall; never fully cross the center line (touching is
+fine); stay off the long center line, where our partner's auto runs.
+
+- Field tape (AdvantageScope field model; its frame is WPILib's turned 180 degrees, which leaves
+  every symmetric element where it was): blue starting line x 3.978-4.029 (the near faces of the
+  hub, bumps and trench, out to the walls); center line x 8.245-8.296; long center line
+  y 3.984-4.085.
+- Start (3.80, 0.65) heading 180: the robot spans x 3.355-4.206 (over the line), 0.23 m short of
+  the trench arm (4.435). The routine sets the pose, waits for the intake (`extend()`, 1 s at
+  most), then follows path 1: backwards under the arm, intake trailing; it turns at x 6.10, once a
+  turning corner (0.63 m) clears the trench, and sweeps x 7.55, y 1.30-3.05, intake leading.
+- Path 2's tight sweep moved to x 7.05-7.40, y up to 3.00, at 1.5 m/s: the intake's front corner
+  reaches 0.73 m from the robot center, and while the robot turned it reached x 8.34 and y 4.06.
+- Sim (blue and red): farthest robot part x 8.21-8.22 (does not touch the center line), highest
+  y 3.72-3.73, no field contacts, 35 balls picked up, 43 of 43 scored. The intake trails for about
+  0.5 s after the trench exit while the robot turns (mean 46 degrees off the travel direction while
+  collecting, from x 6.4).
+- `Path.flip()` is deprecated in BLine beta.3: `setFlipped(red)`.

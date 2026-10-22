@@ -69,6 +69,11 @@ public class SimSmokeTest {
     private double m_autoMaxTruthError = 0;
     private int m_autoContactsAtStart = -1;
     private boolean m_trenchRunScheduled = false;
+    private double m_autoMaxPartX = Double.NEGATIVE_INFINITY;
+    private double m_autoMinPartXMax = Double.NEGATIVE_INFINITY;
+    private double m_autoMaxPartY = Double.NEGATIVE_INFINITY;
+    private String m_autoMaxPartXAt = "";
+    private String m_autoMaxPartYAt = "";
     private double m_hoodBeforeTrench = Double.NaN;
     private double m_rackBeforeTrench = Double.NaN;
     private int m_teleopContactsAtStart = -1;
@@ -207,6 +212,24 @@ public class SimSmokeTest {
             if (m_autoContactsAtStart < 0) {
                 m_autoContactsAtStart = sim.contacts();
             }
+            // Center lines, in the blue frame: never fully across x 8.27 (all of the robot past the
+            // tape's far edge, 8.296); stay below y 4.03 (the tape starts at 3.984).
+            double minX = Double.POSITIVE_INFINITY;
+            var blueTruth = toBlueFrame(sim.truthPose());
+            String at = String.format("robot (%.2f, %.2f) heading %.0f, t %.1f s", blueTruth.getX(), blueTruth.getY(),
+                blueTruth.getRotation().getDegrees(), t - 21);
+            for (var c : frc.robot.sim.field.RobotOutline.corners(blueTruth, sim.rackOut())) {
+                if (c.getX() > m_autoMaxPartX) {
+                    m_autoMaxPartX = c.getX();
+                    m_autoMaxPartXAt = at;
+                }
+                if (c.getY() > m_autoMaxPartY) {
+                    m_autoMaxPartY = c.getY();
+                    m_autoMaxPartYAt = at;
+                }
+                minX = Math.min(minX, c.getX());
+            }
+            m_autoMinPartXMax = Math.max(m_autoMinPartXMax, minX);
             m_autoMinHeadroom = Math.min(m_autoMinHeadroom, frc.robot.sim.field.FieldObstacles.trenchHeadroom(
                 sim.truthPose(), sim.rackOut(), IntakeConstants.kRackStroke, sim.hoodDeg(), truth3d.getZ()));
             // Intake leading: in the neutral zone, while moving, how far the robot front (the
@@ -215,9 +238,9 @@ public class SimSmokeTest {
             double speed = Math.hypot(v.vx, v.vy);
             double vxBlue = kRedAuto ? -v.vx : v.vx;
             double vyBlue = kRedAuto ? -v.vy : v.vy;
-            // Only the collecting part: out and along the center line, not the drive back
-            // (there the intake trails on purpose).
-            if (pose.getX() > 5.9 && speed > 0.5 && vxBlue > -0.5 * speed) {
+            // Only the collecting part: after the turn at the trench exit (it backs out of the
+            // trench, intake trailing, on purpose) and along the center line, not the drive back.
+            if (pose.getX() > 6.4 && speed > 0.5 && vxBlue > -0.5 * speed) {
                 double travel = Math.atan2(vyBlue, vxBlue);
                 double off = Math.abs(Math.toDegrees(Math.IEEEremainder(pose.getRotation().getRadians() - travel, 2 * Math.PI)));
                 m_leadSum += off * 0.020;
@@ -235,7 +258,7 @@ public class SimSmokeTest {
             }
             m_autoMaxX = Math.max(m_autoMaxX, pose.getX());
         }
-        if (m_step == 5 && !m_trenchReported && pose.getY() < 1.0 && pose.getX() > 3.6) {
+        if (m_step == 5 && !m_trenchReported && m_autoStartReported && pose.getY() < 1.0 && pose.getX() > 3.95) {
             m_trenchReported = true;
             System.out.printf("SMOKE auto trench entry at t=%.1f: intake %.0f %% out%n", t - 21,
                 100 * m_container.getIntakeRack().getExtensionFraction());
@@ -244,6 +267,15 @@ public class SimSmokeTest {
             m_autoStartReported = true;
             System.out.println("SMOKE auto start pose" + (kRedAuto ? " (red, in the blue frame): " : ": ") + toBlueFrame(m_drive.getPose())
                 + (kRedAuto ? "  field: " + m_drive.getPose() : ""));
+            // A robot must start with some part over its starting line (blue frame x 3.978-4.029).
+            double lo = Double.POSITIVE_INFINITY;
+            double hi = Double.NEGATIVE_INFINITY;
+            for (var c : frc.robot.sim.field.RobotOutline.corners(toBlueFrame(m_drive.getSim().truthPose()), 0)) {
+                lo = Math.min(lo, c.getX());
+                hi = Math.max(hi, c.getX());
+            }
+            System.out.printf("SMOKE auto start: robot spans x %.3f-%.3f, starting line 3.978-4.029: overlaps %b%n",
+                lo, hi, hi >= 3.978 && lo <= 4.029);
         }
         if (m_step == 12 && !m_blockReported && t > 12.8) {
             m_blockReported = true;
@@ -346,6 +378,10 @@ public class SimSmokeTest {
             printFuel("auto");
             System.out.printf("SMOKE auto bump: highest z %.3f m, steepest pitch %.1f deg, odometry off the truth by up to %.2f m%n",
                 m_autoMaxZ, m_autoMaxPitchDeg, m_autoMaxTruthError);
+            System.out.printf("SMOKE auto center lines: farthest part at x %.2f, nearest part at most x %.2f"
+                    + " (fully across = more than 8.296); highest part y %.2f (long center line tape from 3.984)%n",
+                m_autoMaxPartX, m_autoMinPartXMax, m_autoMaxPartY);
+            System.out.println("SMOKE auto center lines: farthest x at " + m_autoMaxPartXAt + "; highest y at " + m_autoMaxPartYAt);
             System.out.printf("SMOKE auto field contacts: %d loops touching a structure (last: %s); trench headroom %.3f m%n",
                 m_drive.getSim().contacts() - m_autoContactsAtStart, m_drive.getSim().lastContact(), m_autoMinHeadroom);
             m_drive.getSim().kickPose();

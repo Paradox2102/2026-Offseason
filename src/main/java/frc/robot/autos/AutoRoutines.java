@@ -52,11 +52,13 @@ public class AutoRoutines {
     private int m_intakeEvents = 0;
     private int m_shootEvents = 0;
     private double m_routineStart = Double.NaN;
+    private final IntakeRack m_rack;
     private double m_routineTime = Double.NaN;
     private double m_lastShotStart = Double.NaN;
 
     public AutoRoutines(Drive drive, IntakeRack rack, IntakeRoller roller, Superstructure superstructure) {
         m_drive = drive;
+        m_rack = rack;
 
         /*
          * Events: a path can name an event at a point along it ("event_trigger" in the path file).
@@ -91,17 +93,25 @@ public class AutoRoutines {
 
         m_chooser.addDefault("Do nothing", Commands.none().withName("Do nothing"));
         /*
-         * Right trench, two bump trips (user, 2026-10-22). Start on the starting line at
-         * (3.51, 2.66) facing the neutral zone. The intake goes out at once: out, the rack sits
-         * lower, which it must to fit under the trench. Through the right trench, sweep the
-         * center line, back over the right bump and shoot. Out over the bump again for a tighter
+         * Right trench, two bump trips (user, 2026-10-22). Start in the right trench lane, on the
+         * starting line (a robot must start overlapping it: x 3.98-4.03), the intake facing the
+         * alliance wall, 0.23 m short of the trench arm. The intake goes out first and the robot
+         * waits for it: only with it out is the robot low enough for the trench. Back through the
+         * trench (intake trailing), turn once clear of it, sweep the center line with the intake
+         * leading, back over the right bump and shoot. Out over the bump again for a tighter
          * sweep, back over the bump, and shoot until auto ends. On each bump crossing the
          * "prepare" event spins up the flywheel and raises the hood, so the shot is ready when
          * the robot stops. The robot stops to shoot: shoot-on-the-move stays off until the time
          * of flight is measured.
+         *
+         * The robot stays off both center lines (user): never fully across the center line
+         * (x 8.27) to the other alliance, and below the long center line (y 4.03), where our
+         * partner's auto runs.
          */
         add("Right trench + bump x2", () -> Commands.sequence(
-            follow("right-trench-1", true),
+            startAt("right-trench-1"),
+            m_rack.extend().withTimeout(1.0),
+            follow("right-trench-1", false),
             shootFor(),
             follow("right-trench-2", false),
             countShot(m_superstructure.shoot()))); // until auto ends
@@ -156,6 +166,14 @@ public class AutoRoutines {
         return shoot.beforeStarting(() -> {
             m_shootEvents++;
             m_lastShotStart = Timer.getTimestamp() - m_routineStart;
+        });
+    }
+
+    /** Set the pose to a path's first point (flipped for red), without moving. */
+    private Command startAt(String pathName) {
+        return Commands.runOnce(() -> {
+            var path = new Path(pathName).setFlipped(Drive.isRedAlliance());
+            m_drive.resetPose(path.getStartPose());
         });
     }
 
