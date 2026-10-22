@@ -31,6 +31,7 @@ import frc.robot.Constants.Subsystems;
 import frc.robot.constants.CanIds;
 import frc.robot.health.HealthMonitor;
 import frc.robot.lib.util.AlertPublisher;
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.sim.SimSmokeTest;
 
 public class Robot extends TimedRobot {
@@ -102,20 +103,22 @@ public class Robot extends TimedRobot {
      * the students' poses from the old Robot.java, which match that AdvantageScope model.
      */
     private Pose3d[] componentPoses() {
-        // Turret: turns about its vertical axis. Assumes the model shows the turret at its jig
-        // angle (pointing left); if the 3D turret is off by a fixed angle, add it here.
+        // Built from the CAD of 2026-10-22, where the turret points left (its jig angle), the hood
+        // is down and the intake is OUT. Each pose turns or slides its part from there.
+
+        // Turret: turns about its axis at (-152.4, +190.5) mm.
         double turretYaw = m_robotContainer.getTurret().getPosition() * 2 * Math.PI;
-        Pose3d turret = new Pose3d(-0.16, 0.19, 0.38, new Rotation3d(0, 0, turretYaw));
-        // Hood: rides on the turret and tilts about its own axis (the old pose turned it about the
-        // wrong point when the turret turned).
+        Pose3d turret = new Pose3d(-0.1524, 0.1905, 0, new Rotation3d(0, 0, turretYaw));
+        // Hood: rides on the turret and tilts about the flywheel axis (y 274, z 455 mm). If the 3D
+        // hood tilts the wrong way when it rises, change the sign of hoodRad.
         double hoodRad = Math.toRadians(m_robotContainer.getHood().getAngleDeg());
-        Pose3d hood = turret.transformBy(new Transform3d(new Translation3d(0, 0.275 - 0.19, 0.455 - 0.38),
+        Pose3d hood = turret.transformBy(new Transform3d(new Translation3d(0, 0.2742 - 0.1905, 0.4552),
             new Rotation3d(hoodRad, 0, 0)));
-        // The students' intake formula: 0 = in (x -0.15), 1 = out (x +0.13), along the model's 15 degree slide.
-        double extension = m_robotContainer.getIntakeRack().getExtensionFraction();
-        double travel = extension * (0.13 - (-0.15));
-        Pose3d intake = new Pose3d(-0.15 + travel, 0, 0.31 - travel * Math.tan(Math.toRadians(-15.133)),
-            new Rotation3d(0, Math.toRadians(15.133), 0));
+        // Intake: slides along its 20 degree slope; the model is drawn fully out, so "in" is the
+        // whole stroke back up the slope.
+        double back = IntakeConstants.kRackStroke - m_robotContainer.getIntakeRack().getPosition();
+        double slope = Math.toRadians(IntakeConstants.kRackSlopeDeg);
+        Pose3d intake = new Pose3d(-back * Math.cos(slope), 0, back * Math.sin(slope), Rotation3d.ZERO);
         return new Pose3d[] {turret, hood, intake};
     }
 

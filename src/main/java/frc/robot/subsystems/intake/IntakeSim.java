@@ -9,17 +9,17 @@ import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 /**
- * Simulator only: the two rack sides as two level "elevators" with hard stops.
+ * Simulator only: the two rack sides as two "elevators" with hard stops, with gravity along the
+ * rack's 20 degree slope.
  *
  * <p>The stops make the push into the out stop work in the sim. The right side's out stop is 6 mm
  * past the CAD stroke, to show that each side measures its own.
  */
 class IntakeSim {
     private static final double kDt = 0.020;
-    private static final double kSideMass = 2.7; // kg, half of the old code's 5.4 kg rack
-    // Pinion radius that gives kRotationsPerMeter with the 2.8:1 gears.
-    private static final double kGearing = 2.8;
-    private static final double kPinionRadius = kGearing / (2 * Math.PI * IntakeConstants.kRotationsPerMeter);
+    private static final double kSideMass = IntakeConstants.kRackSideMass;
+    private static final double kGearing = IntakeConstants.kRackGearRatio;
+    private static final double kPinionRadius = IntakeConstants.kRackPinionRadius;
 
     private final TalonFX m_leftTalon;
     private final TalonFX m_rightTalon;
@@ -74,7 +74,9 @@ class IntakeSim {
 
     private static void step(TalonFXSimState talon, ElevatorSim side, double skip, double block) {
         talon.setSupplyVoltage(RobotController.getBatteryVoltage());
-        side.setInputVoltage(talon.getMotorVoltage());
+        // Gravity down the 20 degree slope pushes the rack out: the same as this much more
+        // voltage on the motor (at low speed, where the back voltage is small).
+        side.setInputVoltage(talon.getMotorVoltage() + IntakeConstants.kGravityVolts);
         side.update(kDt);
         if (!Double.isNaN(block) && side.getPosition() > block) {
             side.setState(block, 0); // stopped by the obstacle: no speed past it

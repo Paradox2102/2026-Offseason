@@ -14,6 +14,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -30,13 +31,14 @@ import frc.robot.lib.util.StallDetector;
  * <ol>
  *   <li>MOTION: Motion Magic to 3.5 cm before the stop. (The old code made Talon 22 a Follower,
  *       which copies the leader's output, not its position, so the sides drifted.)
- *   <li>PUSH: a gentle push (6 A) into the stop until the side stops moving. Then its position is
+ *   <li>PUSH: a push (12 A net) into the stop until the side stops moving. Then its position is
  *       set to the stop ({@link RackSide}): this corrects skipped teeth.
- *   <li>REST: a light push (2 A) holds the side against the stop. A hit can push the intake in
+ *   <li>REST: a light push (2 A net) holds the side against the stop. A hit can push the intake in
  *       without the motors fighting it.
  *   <li>Pushed more than 2 cm away and still again: back to MOTION/PUSH.
  * </ol>
- * Positions are meters of rack travel, 0 = in.
+ * Positions are meters of rack travel along its 20 degree slope, 0 = in. Gravity pulls the rack
+ * out; every request includes a term against it, so the currents named here are the net push.
  */
 public class IntakeRack extends SubsystemBase {
     private enum Phase { MOTION, PUSH, REST, RESYNC }
@@ -85,6 +87,10 @@ public class IntakeRack extends SubsystemBase {
             config.Slot0.kS = IntakeConstants.kRackS;
             config.Slot0.kV = IntakeConstants.kRackV;
             config.Slot0.kP = IntakeConstants.kRackP;
+            // Gravity pulls the rack out (down its slope) with the same force everywhere: a
+            // constant kG pulls in against it (negative = toward in).
+            config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
+            config.Slot0.kG = -IntakeConstants.kGravityVolts;
             config.MotionMagic.MotionMagicCruiseVelocity = IntakeConstants.kRackCruise;
             config.MotionMagic.MotionMagicAcceleration = IntakeConstants.kRackAcceleration;
             config.CurrentLimits.StatorCurrentLimit = IntakeConstants.kRackStatorLimit;
@@ -174,7 +180,7 @@ public class IntakeRack extends SubsystemBase {
                     }
                 }
                 case PUSH -> {
-                    m_talon.setControl(m_currentRequest.withOutput(sign * IntakeConstants.kPushCurrent));
+                    m_talon.setControl(m_currentRequest.withOutput(sign * IntakeConstants.kPushCurrent - IntakeConstants.kGravityAmps));
                     if (m_stall.update(now, velocity())) {
                         var result = m_state.stalledAt(m_out, position());
                         if (!Double.isNaN(result.setPosition())) {
@@ -204,7 +210,7 @@ public class IntakeRack extends SubsystemBase {
                     }
                 }
                 case REST -> {
-                    m_talon.setControl(m_currentRequest.withOutput(sign * IntakeConstants.kRestCurrent));
+                    m_talon.setControl(m_currentRequest.withOutput(sign * IntakeConstants.kRestCurrent - IntakeConstants.kGravityAmps));
                     // Pushed away by a hit: do not fight it while it moves; once it is still, go back.
                     // Not confirmed (a blocked or timed-out push): also try again, even if the side
                     // has drifted onto its stop by itself, so a push confirms it there.

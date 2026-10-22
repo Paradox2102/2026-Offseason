@@ -30,9 +30,9 @@ public final class ShooterConstants {
      */
     public static final double kTurretAimMinRot = kTurretMinRot + 5.0 / 360;
     public static final double kTurretAimMaxRot = kTurretMaxRot - 5.0 / 360;
-    /** Turret pivot from the robot center, meters (old code; CAD turret gear center agrees within 2 mm). */
+    /** Turret axis from the robot center, meters (CAD 2026-10-22: turret gear center (-6.0, +7.5) in). */
     public static final Translation2d kTurretOffset =
-        new Translation2d(Units.inchesToMeters(-5.965), Units.inchesToMeters(7.5429));
+        new Translation2d(Units.inchesToMeters(-6.0), Units.inchesToMeters(7.5));
     /** Aim this far ahead of the robot's turn, seconds (the turret lags behind a turning robot). */
     public static final double kTurretLeadTime = 0.1;
     /** Torque-current gains (amps). Start values: tune kP until the turret holds without shaking. */

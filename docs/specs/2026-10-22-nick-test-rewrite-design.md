@@ -270,7 +270,10 @@ have the origin at the blue wall corner). Tabs:
 
 - Rack: two Kraken X44, Talon 21 (turret side, left) and Talon 22 (other side, right), both on
   `CAN_S4`. Each drives its own side: 10T to 28T (2.8:1) to a toothed rack plate. No shaft links
-  the sides. The rack is level (CAD z 382 mm at both ends): no gravity term. Stroke 324 mm (CAD).
+  the sides. Stroke 324 mm along a 20 degree slope, out = downhill (CAD 2026-10-22: the plates
+  move 304.3 mm forward and 110.8 mm down). Gravity pushes the rack out with about 9 N per side
+  (old code's 5.4 kg rack): every rack request has a gravity term (`kG` Elevator_Static for
+  Motion Magic, about 8 A added to the pushes and the rest), so the named currents are net.
   The old code's full stroke is 3.95 motor rotations; with the CAD stroke that is 12.19 motor
   rotations per meter (a check on the robot: push the rack out by hand, read the rotations).
 - Rollers: Talon 20, Kraken X60, 24T to 36T (1.5:1). (The old sim used 0.5.)
@@ -477,3 +480,11 @@ code: +-250 degrees from the jig), shot speeds and hood angles per distance, tim
   On-target checks also need the Talon on CAN.
 - Turret profile planned at half the motor's speed (Expo kV 16, kA 3). The turret sim runs every
   5 ms: with 20 ms steps the Talon's 1 kHz loop saw stale positions and the sim turret swung.
+
+### CAD update (2026-10-22, export 89082afd)
+
+- Swerve module positions = the steer axes in the CAD: (+-10.25, +-11.75) in (were 10 and 11.5).
+- Turret axis (-6.0, +7.5) in. Intake slide 20 degrees (see sub-project 2).
+- The AdvantageScope model was rebuilt from this export (it was built from the 2026-10-08 export:
+  old belt motors and camera mounts). The model shows the intake OUT; `Final Poses` slides it back
+  along the slope.

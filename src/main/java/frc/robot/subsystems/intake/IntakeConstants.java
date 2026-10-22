@@ -1,5 +1,7 @@
 package frc.robot.subsystems.intake;
 
+import org.wpilib.math.system.DCMotor;
+
 /**
  * Intake values. Rack positions are meters of rack travel (0 = in); roller speeds are roller
  * rotations per second.
@@ -17,6 +19,27 @@ public final class IntakeConstants {
      * motor rotations (Tuner X): rotations / 0.324 should be about this.
      */
     public static final double kRotationsPerMeter = 3.95 / kRackStroke;
+
+    /**
+     * The rack slides on a 20 degree slope, out = downhill (CAD 2026-10-22: the rack plates move
+     * 304.3 mm forward and 110.8 mm down between in and out). So gravity pushes the rack out.
+     */
+    public static final double kRackSlopeDeg = 20.0;
+    /** Mass per side, kg (the old code's 5.4 kg rack, halved). Weigh the rack to check. */
+    public static final double kRackSideMass = 2.7;
+    /** Pinion pitch radius that gives kRotationsPerMeter with the 2.8:1 gears, meters. */
+    public static final double kRackGearRatio = 2.8;
+    public static final double kRackPinionRadius = kRackGearRatio / (2 * Math.PI * kRotationsPerMeter);
+    private static final DCMotor kX44 = DCMotor.getKrakenX44Foc(1);
+    /**
+     * Motor current that balances gravity along the slope, per side, amps (about 8 A). Every
+     * torque request adds -kGravityAmps, so the push and rest currents below are the NET push
+     * into the stop. Without it, a 2 A "rest in" could not hold the rack against gravity.
+     */
+    public static final double kGravityAmps = kRackSideMass * 9.81 * Math.sin(Math.toRadians(kRackSlopeDeg))
+        * kRackPinionRadius / (kRackGearRatio * kX44.Kt);
+    /** The same as a voltage, for the Motion Magic gravity feedforward (kG), volts. */
+    public static final double kGravityVolts = kGravityAmps * kX44.R;
 
     /** Start gains (volts). kV: X44 0.096 V per motor rps x kRotationsPerMeter. */
     public static final double kRackS = 0.25; // V
