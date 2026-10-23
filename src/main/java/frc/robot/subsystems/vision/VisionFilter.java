@@ -1,6 +1,7 @@
 package frc.robot.subsystems.vision;
 
 import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation2d;
 
 /**
  * Decides if a vision pose is good enough to use, and how much to trust it.
@@ -24,6 +25,11 @@ public final class VisionFilter {
     public static final double kMaxAmbiguity = 0.2;
     /** One tag farther than this gives a pose that is too noisy to use. */
     public static final double kMaxSingleTagDistance = 4.0;
+    /**
+     * A single-tag pose this far from the gyro heading, radians, is a wrong solution: neither of
+     * the two solutions of the tag agrees with the gyro.
+     */
+    public static final double kMaxSingleTagHeadingError = Math.toRadians(15);
     /** The robot is on the floor. A pose higher or lower than this is a bad solve. */
     public static final double kMaxZError = 0.25;
     /** Standard deviation per (meter of tag distance) squared, for x and y, in meters. */
@@ -52,14 +58,28 @@ public final class VisionFilter {
      * @param tagCount tags used in the solve
      * @param averageDistance mean camera-to-tag distance, meters
      * @param ambiguity pose ambiguity of a single-tag solve (0 to 1); ignored for multi-tag
+     * @param headingError |gyro heading - pose heading|, radians; ignored for multi-tag (a wrong
+     *     gyro, after a Pigeon reboot, must not block the frames that can fix it)
      */
-    public record Observation(Pose3d pose, int tagCount, double averageDistance, double ambiguity) {}
+    public record Observation(Pose3d pose, int tagCount, double averageDistance, double ambiguity,
+                              double headingError) {}
 
     /** Accept or reject, and the standard deviations to use when accepted. */
     public record Result(boolean accepted, String reason, double xyStdDev, double thetaStdDev) {
         static Result reject(String reason) {
             return new Result(false, reason, kUntrusted, kUntrusted);
         }
+    }
+
+    /**
+     * One tag gives two robot poses: the solution with the lower error and the "flipped" one. The
+     * lower error can be the wrong one; the gyro tells them apart. Returns the pose whose heading
+     * is nearer {@code heading} ({@code best} on a tie).
+     */
+    public static Pose3d closerToHeading(Pose3d best, Pose3d alt, Rotation2d heading) {
+        double bestError = Math.abs(best.toPose2d().getRotation().minus(heading).getRadians());
+        double altError = Math.abs(alt.toPose2d().getRotation().minus(heading).getRadians());
+        return altError < bestError ? alt : best;
     }
 
     /**
@@ -85,6 +105,9 @@ public final class VisionFilter {
             }
             if (obs.averageDistance() > kMaxSingleTagDistance) {
                 return Result.reject("single tag too far");
+            }
+            if (obs.headingError() > kMaxSingleTagHeadingError) {
+                return Result.reject("heading");
             }
         }
 

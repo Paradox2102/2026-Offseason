@@ -12,6 +12,8 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.linalg.Matrix;
 import org.wpilib.math.linalg.VecBuilder;
 import org.wpilib.math.numbers.N1;
@@ -26,6 +28,10 @@ import frc.robot.constants.FieldConstants;
  * fps gives 0, 1 or 2 frames per 20 ms loop) and passes them here. Every frame gives at most one
  * measurement, with its own capture time, so the pose estimator can put it at the right moment in
  * the past. Nothing is kept from one loop to the next, so a frame is never added twice.
+ *
+ * <p>A frame with one tag gives two possible robot poses. This class takes the one whose heading
+ * is nearer the gyro heading, not simply the one with the lower error: the lower error is
+ * sometimes the "flipped" solution, tens of centimeters off.
  */
 public class VisionCamera {
     /** A pose for the drive's estimator. */
@@ -69,12 +75,16 @@ public class VisionCamera {
         return m_camera.getAllUnreadResults();
     }
 
+    /** One frame's robot pose and what the filter needs to judge it. */
+    private record Solve(Pose3d pose, List<PhotonTrackedTarget> used, double ambiguity, double headingError) {}
+
     /**
      * Turn frames into measurements, oldest first. Rejected frames are left out.
      *
      * @param visionNowSeconds now, on the clock of the frame timestamps (see {@link VisionClock})
+     * @param heading the robot heading now (gyro): picks the right single-tag solution
      */
-    public List<Measurement> process(List<PhotonPipelineResult> results, double visionNowSeconds) {
+    public List<Measurement> process(List<PhotonPipelineResult> results, double visionNowSeconds, Rotation2d heading) {
         m_accepted.clear();
         m_rejected.clear();
         m_lastRejectReason = "";
@@ -93,38 +103,30 @@ public class VisionCamera {
             }
 
             // Multi-tag (solved on the coprocessor with every tag in view) is far better; with one
-            // tag in view, fall back to that tag's least ambiguous solution.
-            Optional<EstimatedRobotPose> estimate = m_estimator.estimateCoprocMultiTagPose(result);
-            boolean multiTag = estimate.isPresent();
-            if (estimate.isEmpty()) {
-                estimate = m_estimator.estimateLowestAmbiguityPose(result);
+            // tag in view, fall back to that tag's solution that agrees with the gyro.
+            Optional<Solve> solve = multiTagSolve(result);
+            if (solve.isEmpty()) {
+                solve = singleTagSolve(result, heading);
             }
-            if (estimate.isEmpty()) {
+            if (solve.isEmpty()) {
                 continue;
             }
-            var est = estimate.get();
-            List<PhotonTrackedTarget> used = est.targetsUsed;
-            if (multiTag) {
-                // PhotonLib lists every tag in the frame; the coprocessor may have left some out.
-                var ids = result.getMultiTagResult().get().fiducialIDsUsed;
-                used = used.stream().filter(t -> ids.contains((short) t.getFiducialId())).toList();
-            }
-            int tagCount = used.size();
-            double distance = used.stream()
+            var s = solve.get();
+            int tagCount = s.used().size();
+            double distance = s.used().stream()
                 .mapToDouble(t -> t.getBestCameraToTarget().getTranslation().getNorm())
                 .average().orElse(0);
-            double ambiguity = tagCount == 1 ? used.get(0).getPoseAmbiguity() : 0;
 
-            m_lastEstimate = est.estimatedPose;
+            m_lastEstimate = s.pose();
             m_lastTagCount = tagCount;
             var verdict = VisionFilter.evaluate(
-                new VisionFilter.Observation(est.estimatedPose, tagCount, distance, ambiguity),
+                new VisionFilter.Observation(s.pose(), tagCount, distance, s.ambiguity(), s.headingError()),
                 FieldConstants.kFieldLength, FieldConstants.kFieldWidth, m_trustHeading);
-            Pose2d pose = est.estimatedPose.toPose2d();
+            Pose2d pose = s.pose().toPose2d();
             if (verdict.accepted()) {
                 m_accepted.add(pose);
                 double factor = m_config.stdDevFactor();
-                measurements.add(new Measurement(pose, est.timestampSeconds,
+                measurements.add(new Measurement(pose, result.getTimestampSeconds(),
                     VecBuilder.fill(verdict.xyStdDev() * factor, verdict.xyStdDev() * factor, verdict.thetaStdDev() * factor)));
             } else {
                 m_rejected.add(pose);
@@ -132,6 +134,46 @@ public class VisionCamera {
             }
         }
         return measurements;
+    }
+
+    /** The pose the coprocessor solved from all its tags, if it saw 2 or more. */
+    private Optional<Solve> multiTagSolve(PhotonPipelineResult result) {
+        Optional<EstimatedRobotPose> estimate = m_estimator.estimateCoprocMultiTagPose(result);
+        if (estimate.isEmpty()) {
+            return Optional.empty();
+        }
+        // PhotonLib lists every tag in the frame; the coprocessor may have left some out.
+        var ids = result.getMultiTagResult().get().fiducialIDsUsed;
+        var used = estimate.get().targetsUsed.stream().filter(t -> ids.contains((short) t.getFiducialId())).toList();
+        return Optional.of(new Solve(estimate.get().estimatedPose, used, 0, 0));
+    }
+
+    /**
+     * The least ambiguous tag of the frame. A tag seen alone has two solutions; the one with the
+     * lower error can be the "flipped" one, so take the one whose heading is nearer the gyro
+     * (6328 does the same). The filter rejects it if even that one is far from the gyro.
+     */
+    private Optional<Solve> singleTagSolve(PhotonPipelineResult result, Rotation2d heading) {
+        PhotonTrackedTarget target = null;
+        for (var t : result.getTargets()) {
+            // -1: not a fiducial target.
+            if (t.getPoseAmbiguity() != -1 && (target == null || t.getPoseAmbiguity() < target.getPoseAmbiguity())) {
+                target = t;
+            }
+        }
+        if (target == null) {
+            return Optional.empty();
+        }
+        var tagPose = FieldConstants.kField.getTagPose(target.getFiducialId());
+        if (tagPose.isEmpty()) {
+            return Optional.empty();
+        }
+        Transform3d cameraToRobot = m_config.robotToCamera().inverse();
+        Pose3d best = tagPose.get().transformBy(target.getBestCameraToTarget().inverse()).transformBy(cameraToRobot);
+        Pose3d alt = tagPose.get().transformBy(target.getAlternateCameraToTarget().inverse()).transformBy(cameraToRobot);
+        Pose3d pose = VisionFilter.closerToHeading(best, alt, heading);
+        double headingError = Math.abs(pose.toPose2d().getRotation().minus(heading).getRadians());
+        return Optional.of(new Solve(pose, List.of(target), target.getPoseAmbiguity(), headingError));
     }
 
     public List<Pose2d> acceptedPoses() {

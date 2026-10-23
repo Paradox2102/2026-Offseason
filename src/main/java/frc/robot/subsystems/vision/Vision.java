@@ -81,12 +81,13 @@ public class Vision extends SubsystemBase {
         Telemetry.log("Vision/Clock Offset ms", (driveNow - visionNow) * 1000);
         Telemetry.log("Vision/Timer Offset ms", (driveNow - Timer.getTimestamp()) * 1000);
 
+        Rotation2d heading = m_drive.getHeading();
         List<Pose2d> accepted = new ArrayList<>();
         List<Pose2d> rejected = new ArrayList<>();
         List<Pose3d> tags = new ArrayList<>();
         for (var camera : m_cameras) {
             var frames = camera.readNewFrames();
-            var measurements = camera.process(frames, visionNow);
+            var measurements = camera.process(frames, visionNow, heading);
             for (var m : measurements) {
                 m_drive.addVisionMeasurement(m.pose(), VisionClock.toDriveTime(m.timestamp(), driveNow, visionNow),
                     m.stdDevs());

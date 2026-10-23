@@ -14,6 +14,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import org.photonvision.targeting.PnpResult;
 import org.photonvision.targeting.TargetCorner;
 import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.geometry.Translation3d;
@@ -40,6 +41,28 @@ class VisionCameraTest {
 
     private static Pose3d cameraPose() {
         return robotPose().transformBy(kRobotToCamera);
+    }
+
+    /** The gyro heading when it agrees with {@link #robotPose()}. */
+    private static Rotation2d heading() {
+        return robotPose().toPose2d().getRotation();
+    }
+
+    /** The other single-tag solution: {@link #robotPose()} 0.3 m to the side and turned 50 degrees. */
+    private static Pose3d flipped() {
+        return robotPose().transformBy(new Transform3d(new Translation3d(0, 0.3, 0), new Rotation3d(0, 0, Math.toRadians(50))));
+    }
+
+    private static Transform3d cameraToTagFrom(Pose3d robot) {
+        return new Transform3d(robot.transformBy(kRobotToCamera), FieldConstants.kField.getTagPose(kTag).orElseThrow());
+    }
+
+    /** One view of tag 10 whose best and alternate solutions put the robot at these two poses. */
+    private static PhotonPipelineResult resultWith(Pose3d bestRobot, Pose3d altRobot, double ambiguity) {
+        var corners = List.of(new TargetCorner(0, 0), new TargetCorner(10, 0), new TargetCorner(10, 10), new TargetCorner(0, 10));
+        var target = new PhotonTrackedTarget(0, 0, 1, 0, kTag, -1, -1f, cameraToTagFrom(bestRobot), cameraToTagFrom(altRobot),
+            ambiguity, corners, corners);
+        return new PhotonPipelineResult(metadataAt(10.0), List.of(target), Optional.empty());
     }
 
     /** Tag {@code id} as seen from {@link #robotPose()}. */
@@ -74,12 +97,12 @@ class VisionCameraTest {
 
     @Test
     void emptyResultsGiveNoMeasurements() {
-        assertTrue(m_camera.process(List.of(), 10.03).isEmpty());
+        assertTrue(m_camera.process(List.of(), 10.03, heading()).isEmpty());
     }
 
     @Test
     void eachResultGivesItsOwnMeasurement() {
-        var measurements = m_camera.process(List.of(resultAt(10.0, 0.05), resultAt(10.03, 0.05)), 10.06);
+        var measurements = m_camera.process(List.of(resultAt(10.0, 0.05), resultAt(10.03, 0.05)), 10.06, heading());
         assertEquals(2, measurements.size());
         assertEquals(10.0, measurements.get(0).timestamp(), 1e-6);
         assertEquals(10.03, measurements.get(1).timestamp(), 1e-6);
@@ -91,43 +114,61 @@ class VisionCameraTest {
 
     @Test
     void rejectedPoseIsNotReturned() {
-        assertTrue(m_camera.process(List.of(resultAt(10.0, 0.6)), 10.03).isEmpty());
+        assertTrue(m_camera.process(List.of(resultAt(10.0, 0.6)), 10.03, heading()).isEmpty());
         assertEquals("ambiguity", m_camera.lastRejectReason());
     }
 
     @Test
     void oldFrameIsRejected() {
-        assertTrue(m_camera.process(List.of(resultAt(10.0, 0.05)), 11.0).isEmpty());
+        assertTrue(m_camera.process(List.of(resultAt(10.0, 0.05)), 11.0, heading()).isEmpty());
         assertEquals("old", m_camera.lastRejectReason());
     }
 
     @Test
     void multiTagCountsOnlyTheTagsInTheSolve() {
-        var measurements = m_camera.process(List.of(multiTagAt(10.0, List.of((short) 10, (short) 11))), 10.03);
+        var measurements = m_camera.process(List.of(multiTagAt(10.0, List.of((short) 10, (short) 11))), 10.03, heading());
         assertEquals(1, measurements.size());
         assertEquals(2, m_camera.lastTagCount(), "tag 9 was seen but not used in the solve");
         double distance = (distanceTo(10) + distanceTo(11)) / 2;
-        var expected = VisionFilter.evaluate(new VisionFilter.Observation(robotPose(), 2, distance, 0),
+        var expected = VisionFilter.evaluate(new VisionFilter.Observation(robotPose(), 2, distance, 0, 0),
             FieldConstants.kFieldLength, FieldConstants.kFieldWidth, false);
         assertEquals(expected.xyStdDev(), measurements.get(0).stdDevs().get(0, 0), 1e-9);
     }
 
     @Test
     void stdDevFactorScalesTheTrust() {
-        double one = camera(1.0, false).process(List.of(resultAt(10.0, 0.05)), 10.03).get(0).stdDevs().get(0, 0);
-        double two = camera(2.0, false).process(List.of(resultAt(10.0, 0.05)), 10.03).get(0).stdDevs().get(0, 0);
+        double one = camera(1.0, false).process(List.of(resultAt(10.0, 0.05)), 10.03, heading()).get(0).stdDevs().get(0, 0);
+        double two = camera(2.0, false).process(List.of(resultAt(10.0, 0.05)), 10.03, heading()).get(0).stdDevs().get(0, 0);
         assertEquals(2 * one, two, 1e-9);
     }
 
     @Test
     void trustedMultiTagGivesAHeading() {
-        var measurements = camera(1.0, true).process(List.of(multiTagAt(10.0, List.of((short) 10, (short) 11))), 10.03);
+        var measurements = camera(1.0, true).process(List.of(multiTagAt(10.0, List.of((short) 10, (short) 11))), 10.03, heading());
         assertTrue(measurements.get(0).stdDevs().get(2, 0) < 1);
     }
 
     @Test
+    void singleTagUsesTheSolutionThatMatchesTheGyro() {
+        // The lower-error ("best") solution is the wrong one here.
+        var measurements = m_camera.process(List.of(resultWith(flipped(), robotPose(), 0.1)), 10.03, heading());
+        assertEquals(1, measurements.size());
+        var expected = robotPose().toPose2d();
+        assertEquals(expected.getX(), measurements.get(0).pose().getX(), 1e-6);
+        assertEquals(expected.getY(), measurements.get(0).pose().getY(), 1e-6);
+        assertEquals(expected.getRotation().getDegrees(), measurements.get(0).pose().getRotation().getDegrees(), 1e-6);
+    }
+
+    @Test
+    void singleTagFarFromBothSolutionsIsRejected() {
+        var gyro = heading().plus(Rotation2d.fromDegrees(90));
+        assertTrue(m_camera.process(List.of(resultWith(flipped(), robotPose(), 0.1)), 10.03, gyro).isEmpty());
+        assertEquals("heading", m_camera.lastRejectReason());
+    }
+
+    @Test
     void latencyIsTheAgeOfTheNewestFrame() {
-        m_camera.process(List.of(resultAt(10.0, 0.05), resultAt(10.03, 0.05)), 10.05);
+        m_camera.process(List.of(resultAt(10.0, 0.05), resultAt(10.03, 0.05)), 10.05, heading());
         assertEquals(0.02, m_camera.lastLatencySeconds(), 1e-6);
     }
 }

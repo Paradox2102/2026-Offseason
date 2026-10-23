@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 
 class VisionFilterTest {
@@ -15,17 +16,47 @@ class VisionFilterTest {
     /** Heading not trusted (cameras not checked). */
     private static VisionFilter.Result evaluate(Pose3d pose, int tags, double distance, double ambiguity) {
         return VisionFilter.evaluate(
-            new VisionFilter.Observation(pose, tags, distance, ambiguity), kFieldLength, kFieldWidth, false);
+            new VisionFilter.Observation(pose, tags, distance, ambiguity, 0), kFieldLength, kFieldWidth, false);
     }
 
     /** Heading trusted (cameras checked, or the sim). */
     private static VisionFilter.Result evaluateTrusted(Pose3d pose, int tags, double distance, double ambiguity) {
         return VisionFilter.evaluate(
-            new VisionFilter.Observation(pose, tags, distance, ambiguity), kFieldLength, kFieldWidth, true);
+            new VisionFilter.Observation(pose, tags, distance, ambiguity, 0), kFieldLength, kFieldWidth, true);
+    }
+
+    /** A frame 2 m from its tags, with the gyro this far (degrees) from the vision heading. */
+    private static VisionFilter.Result evaluateWithGyroOff(int tags, double headingErrorDeg) {
+        return VisionFilter.evaluate(new VisionFilter.Observation(pose(3, 4, 0), tags, 2.0, 0.05,
+            Math.toRadians(headingErrorDeg)), kFieldLength, kFieldWidth, true);
     }
 
     private static Pose3d pose(double x, double y, double z) {
         return new Pose3d(x, y, z, Rotation3d.ZERO);
+    }
+
+    private static Pose3d poseWithYaw(double yawDeg) {
+        return new Pose3d(3, 4, 0, new Rotation3d(0, 0, Math.toRadians(yawDeg)));
+    }
+
+    @Test
+    void closerToHeadingPicksTheMatchingSolution() {
+        var best = poseWithYaw(40);
+        var alt = poseWithYaw(0);
+        assertEquals(alt, VisionFilter.closerToHeading(best, alt, Rotation2d.fromDegrees(2)));
+    }
+
+    @Test
+    void rejectsSingleTagFarFromGyroHeading() {
+        var result = evaluateWithGyroOff(1, 20);
+        assertFalse(result.accepted());
+        assertEquals("heading", result.reason());
+    }
+
+    @Test
+    void multiTagIgnoresTheGyroHeading() {
+        // After a Pigeon reboot the gyro is far off: multi-tag frames must still get through to fix it.
+        assertTrue(evaluateWithGyroOff(3, 30).accepted());
     }
 
     @Test
