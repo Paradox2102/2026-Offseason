@@ -116,6 +116,26 @@ after a pack takes a moment.
 - In the autos the robot packs only while it shoots away from the trench lanes: the double trench
   auto shoots in the lane and then drives under the arm, so there it does not pack.
 
+### 1.5 Hood down before the trench (user, 2026-10-22)
+
+The double trench auto's first path ends stopped in the trench lane at (3.1, 0.7), and path 2
+goes from there straight under the arm. The "shoot" event ran until the trench guard said "near",
+which came only as path 2 started, so the hood was still up and the trench brake held the robot
+~0.25 s (12-15 loops). Now the routine ends the shot when path 1 ends: the hood comes down while
+the robot is stopped. The smoke test prints when the last ball is shot and scored (auto ends at
+20.0 s).
+
+Sim (trench brake loops; last ball shot / scored; balls scored):
+
+| Run | Brake | Last shot | Last scored | Scored |
+|---|---|---|---|---|
+| right-sotm | 2 (was 13; the 2 are the start, intake going out) | 16.2 s | 17.1 s | 40 of 40 |
+| left-sotm | 0 (was 12) | 16.6 s | 17.5 s | 41 of 41 |
+| right-sotm, red | 1 (was 14) | 16.1 s | 17.0 s | 41 of 41 |
+
+The last shot (after path 2) starts at 14.4-14.5 s (was 14.7-14.8). Every ball is scored 2.5 s or
+more before the auto ends, with none left in the hopper.
+
 ---
 
 ## Sub-project 2: calibration tool

@@ -273,6 +273,11 @@ public class AutoRoutines {
     private Command trenchShootOnTheMove(String side) {
         Command route = Commands.sequence(
             Commands.parallel(m_rack.extend().asProxy(), follow(side + "-trench-sotm-1", false)),
+            // Path 1 ends stopped in the lane, and path 2 goes straight under the arm from there:
+            // end the shot now, so the hood comes down while the robot is stopped. The trench
+            // guard's own "near" comes only as path 2 starts, and the trench brake then held the
+            // robot ~0.25 s for the hood.
+            Commands.runOnce(m_shootEvent::cancel),
             follow(side + "-trench-sotm-2", false),
             shoot()); // until auto ends
         var stuckFor = new Debouncer(kStuckTime, DebounceType.RISING);

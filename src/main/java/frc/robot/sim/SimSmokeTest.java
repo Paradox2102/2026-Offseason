@@ -85,6 +85,9 @@ public class SimSmokeTest {
     private double m_autoFeedMovingSpeedSum = 0;
     private int m_autoCrossingsSeen = 0;
     private int m_autoShotsSeen = 0;
+    /** Auto: when the last ball was shot and the last one scored, seconds from the auto start. */
+    private double m_autoLastShot = Double.NaN;
+    private double m_autoLastScored = Double.NaN;
     private double m_leadSum = 0;
     private double m_leadTime = 0;
     private double m_leadMax = 0;
@@ -284,6 +287,9 @@ public class SimSmokeTest {
             var crossings = m_container.getFuelSim().getField().crossings();
             for (int i = m_autoCrossingsSeen; i < crossings.size(); i++) {
                 var c = crossings.get(i);
+                if (c.scored()) {
+                    m_autoLastScored = t - 21;
+                }
                 if (!c.scored() || "1".equals(System.getenv("SIM_SMOKE_TRACE"))) {
                     System.out.printf("SMOKE auto " + (c.scored() ? "hit" : "miss") + " at t %.1f: %.2f m from the hub center (shot %.1f s before, robot now at %s)%n",
                         t - 21, c.miss(), c.flightTime(), toBlueFrame(m_drive.getPose()).getTranslation());
@@ -291,6 +297,9 @@ public class SimSmokeTest {
             }
             m_autoCrossingsSeen = crossings.size();
             int shots = m_container.getFuelSim().getField().shots();
+            if (shots > m_autoShotsSeen) {
+                m_autoLastShot = t - 21;
+            }
             if ("1".equals(System.getenv("SIM_SMOKE_TRACE")) && shots > m_autoShotsSeen) {
                 var sup = m_container.getSuperstructure();
                 var shot = sup.getShot();
@@ -584,6 +593,9 @@ public class SimSmokeTest {
                 m_leadSum / m_leadTime, m_leadMax, m_leadTime);
             System.out.println("SMOKE auto intake leading worst at " + m_leadMaxAt);
             printFuel("auto");
+            System.out.printf("SMOKE auto finish (auto ends at 20.0 s): last ball shot at %.1f s, last ball scored at %.1f s,"
+                    + " %d balls left in the hopper%n", m_autoLastShot, m_autoLastScored,
+                m_container.getFuelSim().getField().hopper());
             System.out.printf("SMOKE auto turn after the trench: heading %.0f deg at x 6.5, %.0f deg at x 7.0; within 15 deg of 90 at %s"
                     + " (fuel starts at x 7.43); up the sweep at most %.0f deg off 90%n", m_autoHeadingAt65, m_autoHeadingAt70,
                 m_autoTurnDoneAt, m_autoSweepHeadingErr);
