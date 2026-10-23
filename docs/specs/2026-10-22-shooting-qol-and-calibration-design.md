@@ -100,7 +100,21 @@ after a pack takes a moment.
 
 ### 1.4 Sim results
 
-(Filled in after the runs.)
+143 unit tests pass. Smoke runs (all PASS): right, left, right-sotm, left-sotm, red, red-sotm,
+`SIM_SMOKE_RACK=blocked`, `SIM_SMOKE_RACK=dead`.
+
+- **Clear:** after the release the vertical roller ran on 0.26 s, then every stage ran back from
+  0.26-0.28 s for 0.48-0.50 s (vertical roller -45 rps), in every run.
+- **Pack (teleop shot):** the pack starts 1.01-1.02 s after the first feed; the feed kept going the
+  whole time it packed (0.52-0.60 s, to the end of the step). Pulsing, the rack read 0.242-0.313 m
+  (pack position 0.275 m): it lags the 4 Hz sine and swings past it. Gate at 0.225 m.
+- **Autos:** right 45 of 45 scored, left 44 of 44, red 43 of 43: no contacts, intake 100 % out at
+  the trench. Right/left/red shoot on the move: 41-42 of 41-42, 2.8-3.2 s of feeding on the move,
+  no fallback, no contacts. Their trench brake held 12-14 loops: the same as before this change
+  (13 loops at c0bcb0f); it waits for the hood, which the shot leaves up until the trench guard
+  stows it. Blocked: fallback, no shot. Dead Talon 22: fallback, 8 of 8 preload scored.
+- In the autos the robot packs only while it shoots away from the trench lanes: the double trench
+  auto shoots in the lane and then drives under the arm, so there it does not pack.
 
 ---
 
@@ -115,10 +129,15 @@ after a pack takes a moment.
   its constant. A missing or unreadable file: constants only, and a MEDIUM alert for a bad file.
 - **Save:** the old file is copied first to `calibration-backup/calibration-<time>.json` next to
   it; the new file is written to a temporary file and moved over the old one. The values are
-  printed to the console and to `Calibration/Last Save` as Java constant lines, so they can be
-  committed later.
+  printed to the console as Java constant lines, so they can be committed later; the dashboard
+  shows where it saved (`Calibration/Message`).
 - `calibration/CalibrationData` (a record of optional values) and `calibration/CalibrationStore`
-  (load, save, backup). Unit test: save and load round trip, the backup, a missing file.
+  (load, save, backup). Unit test: save and load round trip, the backup, a missing file, a broken
+  file. The JSON is read and written by a small reader in the store: WPILib 2027 brings no JSON
+  library, and BLine's json-simple is not ours to depend on.
+- `CALIBRATION_FILE` (environment) picks another file. The sim scripts use their own: the smoke
+  and shoot-on-the-move runs a file that does not exist (constants only), the calibration run
+  `build/sim-calibration.json`.
 
 Stored values (each optional: missing = the constant):
 
@@ -135,8 +154,9 @@ Stored values (each optional: missing = the constant):
 
 - Elastic tab **Calibration** (`tools/make-elastic-layout.py`): the procedure chooser, the step,
   its instructions, live readings, the typed values, Capture and Save buttons.
-- **Test mode only.** The test gamepad (port 2) acts only in Test mode and only for the procedure
-  picked in the chooser. The dashboard buttons do nothing outside Test mode (the step says so).
+- **Test mode only.** WPILib 2027 calls Test mode "Utility" (`RobotState.isUtility()`). The test
+  gamepad (port 2) acts only in Utility mode and only for the procedure picked in the chooser. The
+  dashboard buttons do nothing outside it (the message says so).
 - The SysId bindings of the test pad (`RobotContainer.configureTest`) become the procedure
   "Drive SysId", so no buttons clash.
 - Each procedure is a class with the same actions the buttons call, so the sim script calls them
