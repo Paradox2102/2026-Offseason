@@ -91,14 +91,67 @@ class VisionCameraTest {
 
     /** Sees tags 9, 10 and 11; the coprocessor solved with {@code used} only. */
     private static PhotonPipelineResult multiTagAt(double seconds, List<Short> used) {
+        return multiTagAt(seconds, used, 0.05);
+    }
+
+    /** As above, with this ambiguity on every target (what the single-tag fallback sees). */
+    private static PhotonPipelineResult multiTagAt(double seconds, List<Short> used, double ambiguity) {
         var fieldToCamera = new Transform3d(Pose3d.ZERO, cameraPose());
         var multiTag = new MultiTargetPNPResult(new PnpResult(fieldToCamera, 0.1), used);
-        var targets = List.of(target(9, 0.05), target(10, 0.05), target(11, 0.05));
+        var targets = List.of(target(9, ambiguity), target(10, ambiguity), target(11, ambiguity));
         return new PhotonPipelineResult(metadataAt(seconds), targets, Optional.of(multiTag));
+    }
+
+    /** One view of tag 10 with the best solution from {@code bestRobot} and this raw alternate. */
+    private static PhotonPipelineResult resultWithAlt(Pose3d bestRobot, Transform3d altCameraToTag) {
+        var corners = List.of(new TargetCorner(0, 0), new TargetCorner(10, 0), new TargetCorner(10, 10), new TargetCorner(0, 10));
+        var target = new PhotonTrackedTarget(0, 0, 1, 0, kTag, -1, -1f, cameraToTagFrom(bestRobot), altCameraToTag,
+            0.1, corners, corners);
+        return new PhotonPipelineResult(metadataAt(10.0), List.of(target), Optional.empty());
     }
 
     private static double distanceTo(int id) {
         return target(id, 0).getBestCameraToTarget().getTranslation().getNorm();
+    }
+
+    @Test
+    void multiTagWithOneUsedTagFallsBackToSingleTag() {
+        var m = m_camera.process(List.of(multiTagAt(10.0, List.of((short) 10))), 10.03, t -> heading());
+        assertEquals(1, m.size());
+        assertFalse(m.get(0).multiTag());
+        assertEquals(1, m_camera.lastTagCount());
+    }
+
+    @Test
+    void multiTagWithNoUsedTagFallsBackToSingleTag() {
+        var m = m_camera.process(List.of(multiTagAt(10.0, List.of())), 10.03, t -> heading());
+        assertEquals(1, m.size());
+        assertFalse(m.get(0).multiTag());
+    }
+
+    @Test
+    void fallbackFrameUsesTheSingleTagGates() {
+        assertTrue(m_camera.process(List.of(multiTagAt(10.0, List.of((short) 10), 0.5)), 10.03, t -> heading()).isEmpty());
+        assertEquals("ambiguity", m_camera.lastRejectReason());
+    }
+
+    @Test
+    void zeroAlternateIsNeverPicked() {
+        // A zero alternate would put the robot at the tag; make the gyro agree with that pose.
+        var atTag = FieldConstants.kField.getTagPose(kTag).orElseThrow().transformBy(kRobotToCamera.inverse());
+        m_camera.process(List.of(resultWithAlt(robotPose(), new Transform3d())), 10.03, t -> atTag.toPose2d().getRotation());
+        assertEquals(0, robotPose().getTranslation().getDistance(m_camera.lastEstimate().orElseThrow().getTranslation()), 1e-6);
+    }
+
+    @Test
+    void singleTagDistanceIsFromThePickedSolution() {
+        var best = robotPose().transformBy(new Transform3d(new Translation3d(), new Rotation3d(0, 0, Math.toRadians(10))));
+        var alt = robotPose().transformBy(new Transform3d(new Translation3d(1.5, 0, 0), new Rotation3d()));
+        var m = m_camera.process(List.of(resultWith(best, alt, 0.1)), 10.03, t -> heading());
+        double distance = cameraToTagFrom(alt).getTranslation().getNorm();
+        var expected = VisionFilter.evaluate(new VisionFilter.Observation(alt, 1, distance, 0.1, 0),
+            FieldConstants.kFieldLength, FieldConstants.kFieldWidth, false);
+        assertEquals(expected.xyStdDev(), m.get(0).stdDevs().get(0, 0), 1e-9);
     }
 
     @Test

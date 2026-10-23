@@ -78,7 +78,10 @@ public class VisionCamera {
 
     /** One frame's robot pose and what the filter needs to judge it. */
     private record Solve(Pose3d pose, List<PhotonTrackedTarget> used, double ambiguity, double headingError,
-                         boolean multiTag) {}
+                         boolean multiTag, double distance) {}
+
+    /** An alternate solution shorter than this, meters, is "none" (PhotonVision sent a zero). */
+    private static final double kNoAlternate = 1e-6;
 
     /**
      * Turn frames into measurements, oldest first. Rejected frames are left out.
@@ -118,14 +121,11 @@ public class VisionCamera {
             }
             var s = solve.get();
             int tagCount = s.used().size();
-            double distance = s.used().stream()
-                .mapToDouble(t -> t.getBestCameraToTarget().getTranslation().getNorm())
-                .average().orElse(0);
 
             m_lastEstimate = s.pose();
             m_lastTagCount = tagCount;
             var verdict = VisionFilter.evaluate(
-                new VisionFilter.Observation(s.pose(), tagCount, distance, s.ambiguity(), s.headingError()),
+                new VisionFilter.Observation(s.pose(), tagCount, s.distance(), s.ambiguity(), s.headingError()),
                 FieldConstants.kFieldLength, FieldConstants.kFieldWidth, m_trustHeading);
             Pose2d pose = s.pose().toPose2d();
             if (verdict.accepted()) {
@@ -142,7 +142,10 @@ public class VisionCamera {
         return measurements;
     }
 
-    /** The pose the coprocessor solved from all its tags, if it saw 2 or more. */
+    /**
+     * The pose the coprocessor solved from all its tags, if it used 2 or more of the tags in the
+     * frame. With fewer, the frame goes to the single-tag path and its gates.
+     */
     private Optional<Solve> multiTagSolve(PhotonPipelineResult result) {
         Optional<EstimatedRobotPose> estimate = m_estimator.estimateCoprocMultiTagPose(result);
         if (estimate.isEmpty()) {
@@ -151,7 +154,13 @@ public class VisionCamera {
         // PhotonLib lists every tag in the frame; the coprocessor may have left some out.
         var ids = result.getMultiTagResult().get().fiducialIDsUsed;
         var used = estimate.get().targetsUsed.stream().filter(t -> ids.contains((short) t.getFiducialId())).toList();
-        return Optional.of(new Solve(estimate.get().estimatedPose, used, 0, 0, true));
+        if (used.size() < 2) {
+            return Optional.empty();
+        }
+        double distance = used.stream()
+            .mapToDouble(t -> t.getBestCameraToTarget().getTranslation().getNorm())
+            .average().orElse(0);
+        return Optional.of(new Solve(estimate.get().estimatedPose, used, 0, 0, true, distance));
     }
 
     /**
@@ -175,11 +184,20 @@ public class VisionCamera {
             return Optional.empty();
         }
         Transform3d cameraToRobot = m_config.robotToCamera().inverse();
-        Pose3d best = tagPose.get().transformBy(target.getBestCameraToTarget().inverse()).transformBy(cameraToRobot);
-        Pose3d alt = tagPose.get().transformBy(target.getAlternateCameraToTarget().inverse()).transformBy(cameraToRobot);
-        Pose3d pose = VisionFilter.closerToHeading(best, alt, heading);
+        Transform3d bestToTag = target.getBestCameraToTarget();
+        Transform3d altToTag = target.getAlternateCameraToTarget();
+        Pose3d best = tagPose.get().transformBy(bestToTag.inverse()).transformBy(cameraToRobot);
+        Pose3d pose = best;
+        Transform3d picked = bestToTag;
+        // A zero alternate would put the robot at the tag: use the best solution alone.
+        if (altToTag.getTranslation().getNorm() >= kNoAlternate) {
+            Pose3d alt = tagPose.get().transformBy(altToTag.inverse()).transformBy(cameraToRobot);
+            pose = VisionFilter.closerToHeading(best, alt, heading);
+            picked = pose == alt ? altToTag : bestToTag;
+        }
         double headingError = Math.abs(pose.toPose2d().getRotation().minus(heading).getRadians());
-        return Optional.of(new Solve(pose, List.of(target), target.getPoseAmbiguity(), headingError, false));
+        return Optional.of(new Solve(pose, List.of(target), target.getPoseAmbiguity(), headingError, false,
+            picked.getTranslation().getNorm()));
     }
 
     public List<Pose2d> acceptedPoses() {
