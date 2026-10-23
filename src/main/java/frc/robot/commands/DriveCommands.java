@@ -7,6 +7,7 @@ import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.telemetry.Telemetry;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveModule.SteerRequestType;
@@ -93,6 +94,29 @@ public final class DriveCommands {
             double[] v = translation(leftY, leftX);
             drive.setControl(request.withVelocityX(v[0]).withVelocityY(v[1]).withTargetDirection(target));
         }).withName("Snap " + Math.round(target.getDegrees()));
+    }
+
+    /**
+     * Drive with the sticks while the robot holds the field angle (a multiple of 90 degrees)
+     * nearest its heading when the button is pressed: square to the field walls. The angle is
+     * chosen once, at the press: worked out again every loop, it would flip between two angles
+     * while the heading is near 45 degrees.
+     */
+    public static Command snapToNearestQuarterTurn(Drive drive, DoubleSupplier leftY, DoubleSupplier leftX) {
+        var request = facingAngle(TargetDirectionPerspectiveValue.BlueAlliance);
+        var target = new Rotation2d[] {Rotation2d.ZERO};
+        return drive.startRun(() -> {
+            target[0] = nearestQuarterTurn(drive.getHeading());
+            Telemetry.log("Drive/Snap Target deg", target[0].getDegrees());
+        }, () -> {
+            double[] v = translation(leftY, leftX);
+            drive.setControl(request.withVelocityX(v[0]).withVelocityY(v[1]).withTargetDirection(target[0]));
+        }).withName("Snap Nearest 90");
+    }
+
+    /** The multiple of 90 degrees nearest {@code heading} (field frame). */
+    public static Rotation2d nearestQuarterTurn(Rotation2d heading) {
+        return Rotation2d.fromDegrees(90 * Math.round(heading.getDegrees() / 90));
     }
 
     /** Drive with the sticks while the robot front points at our hub. */

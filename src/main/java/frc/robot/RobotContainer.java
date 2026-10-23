@@ -99,6 +99,8 @@ public class RobotContainer {
         m_driver.dpadLeft().whileTrue(DriveCommands.snapTo(m_drive, m_driver::getLeftY, m_driver::getLeftX, Rotation2d.fromDegrees(90)));
         m_driver.dpadDown().whileTrue(DriveCommands.snapTo(m_drive, m_driver::getLeftY, m_driver::getLeftX, Rotation2d.fromDegrees(180)));
         m_driver.dpadRight().whileTrue(DriveCommands.snapTo(m_drive, m_driver::getLeftY, m_driver::getLeftX, Rotation2d.fromDegrees(270)));
+        // X: hold square to the field (the nearest 90 degrees when pressed), still driving.
+        m_driver.faceLeft().whileTrue(DriveCommands.snapToNearestQuarterTurn(m_drive, m_driver::getLeftY, m_driver::getLeftX));
         m_driver.faceRight().whileTrue(DriveCommands.xLock(m_drive));
         m_driver.start().onTrue(DriveCommands.resetHeading(m_drive));
 

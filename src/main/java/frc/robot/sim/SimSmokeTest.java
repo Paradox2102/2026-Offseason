@@ -58,6 +58,8 @@ public class SimSmokeTest {
     private boolean m_teleopScheduled = false;
     private org.wpilib.command2.Command m_pendingIntake = null;
     private org.wpilib.command2.Command m_shotCommand = null;
+    private org.wpilib.command2.Command m_snap = null;
+    private double m_headingBeforeSnap = Double.NaN;
     private double m_intakeStart = Double.NaN;
     private double m_secondExtendTime = Double.NaN;
     private boolean m_hitDone = false;
@@ -388,7 +390,15 @@ public class SimSmokeTest {
         } else if (step == 11) {
             System.out.printf("SMOKE intake after second extend and hit: %s; out in %.2f s%n", rack.status(), m_secondExtendTime);
             m_pendingIntake = rack.retract();
+            // Hold X (snap to the nearest 90 degrees) while the robot stands still.
+            m_headingBeforeSnap = m_drive.getHeading().getDegrees();
+            m_snap = DriveCommands.snapToNearestQuarterTurn(m_drive, () -> 0.0, () -> 0.0);
+            CommandScheduler.getInstance().schedule(m_snap);
         } else if (step == 12) {
+            CommandScheduler.getInstance().cancel(m_snap);
+            System.out.printf("SMOKE snap to nearest 90 (X): heading %.1f deg before, target %.0f deg, %.1f deg after 2 s%n",
+                m_headingBeforeSnap, DriveCommands.nearestQuarterTurn(Rotation2d.fromDegrees(m_headingBeforeSnap)).getDegrees(),
+                m_drive.getHeading().getDegrees());
             m_pendingIntake = rack.extend();
         } else if (step == 13) {
             System.out.println("SMOKE intake after the blocked extend: " + rack.status());
