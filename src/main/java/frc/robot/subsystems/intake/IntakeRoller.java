@@ -1,9 +1,11 @@
 package frc.robot.subsystems.intake;
 
 import java.util.ArrayDeque;
+import java.util.function.BooleanSupplier;
 
 import org.wpilib.command2.Command;
 import org.wpilib.command2.SubsystemBase;
+import org.wpilib.driverstation.RobotState;
 import org.wpilib.framework.RobotBase;
 import org.wpilib.math.filter.Debouncer;
 import org.wpilib.math.filter.Debouncer.DebounceType;
@@ -36,6 +38,9 @@ import frc.robot.lib.util.AlertPublisher;
  * <p>Jam recovery: when the rollers should spin but stall with a high current (a game piece stuck
  * across them), they run out for a moment and then in again. Three jams in a few seconds raise
  * an alert, because then something is wrong that a short reverse cannot fix.
+ *
+ * <p>While the intake packs for a shot ({@link #runInWhile}) the rollers run in, unless a command
+ * drives them (the driver's intake, an eject).
  */
 public class IntakeRoller extends SubsystemBase {
     private final TalonFX m_talon = new TalonFX(CanIds.intakeRoller, CanIds.k_canBus4);
@@ -48,6 +53,8 @@ public class IntakeRoller extends SubsystemBase {
         "Intake rollers jam again and again: check for a stuck game piece or a broken belt", Level.MEDIUM);
     private double m_target = 0;
     private double m_unjamUntil = Double.NEGATIVE_INFINITY;
+    private BooleanSupplier m_runInWhile = () -> false;
+    private boolean m_runningIn = false;
 
     private FlywheelSim m_sim = null;
 
@@ -84,6 +91,11 @@ public class IntakeRoller extends SubsystemBase {
     private void resetJamCheck() {
         m_unjamUntil = Double.NEGATIVE_INFINITY;
         m_jamDebouncer.calculate(false);
+    }
+
+    /** Run the rollers in (with jam recovery) while {@code active} is true and no command drives them. */
+    public void runInWhile(BooleanSupplier active) {
+        m_runInWhile = active;
     }
 
     /** Run the rollers out until the command ends; then brake. */
@@ -129,6 +141,18 @@ public class IntakeRoller extends SubsystemBase {
             m_jamTimes.removeFirst();
         }
         m_jamAlert.set(m_jamTimes.size() >= IntakeConstants.kJamAlertCount);
+        if (getCurrentCommand() == null && RobotState.isEnabled() && m_runInWhile.getAsBoolean()) {
+            if (!m_runningIn) {
+                resetJamCheck();
+            }
+            spin(IntakeConstants.kRollerInSpeed, true);
+            m_runningIn = true;
+        } else if (m_runningIn) {
+            if (getCurrentCommand() == null) {
+                stop();
+            }
+            m_runningIn = false;
+        }
         Telemetry.log("Intake/Roller/Target rps", m_target);
         Telemetry.log("Intake/Roller/Speed rps", m_talon.getVelocity().getValueAsDouble());
         Telemetry.log("Intake/Roller/Current A", m_talon.getStatorCurrent().getValueAsDouble());

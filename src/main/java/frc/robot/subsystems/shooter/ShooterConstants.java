@@ -182,6 +182,12 @@ public final class ShooterConstants {
     public static final double kFeedJamWindow = 5.0;
     /** When the feed stops, the vertical roller (40) runs on this long, so it does not hold a ball against the wheel. */
     public static final double kFeedRunOnTime = 0.25;
+    /**
+     * At the end of a shot (not a pause), after the run-on, every stage runs back this long, so no
+     * ball is left at the turret entrance. Check on the robot: no ball left there, none pushed
+     * back out of the hopper.
+     */
+    public static final double kFeedClearTime = 0.5;
     /** Eject: every feed motor runs out at this fraction of its feed speed. */
     public static final double kEjectFraction = -0.5;
 

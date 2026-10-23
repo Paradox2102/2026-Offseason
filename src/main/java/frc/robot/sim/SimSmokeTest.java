@@ -92,6 +92,17 @@ public class SimSmokeTest {
     private double m_firstFeedIntakeOut = Double.NaN;
     private boolean m_firstFeedIntakeExtended = false;
     private double m_lastFlywheel = 0;
+    /** The teleop shot: first feed, the pack and the clear after the release. */
+    private double m_firstFeedTime = Double.NaN;
+    private double m_packStartTime = Double.NaN;
+    private double m_packMin = Double.POSITIVE_INFINITY;
+    private double m_packMax = Double.NEGATIVE_INFINITY;
+    private double m_packFeedTime = 0;
+    private double m_packTime = 0;
+    private double m_runOnTime = 0;
+    private double m_clearStart = Double.NaN;
+    private double m_clearTime = 0;
+    private double m_clearRollerSpeed = 0;
     private double m_autoMaxZ = 0;
     private double m_autoMaxPitchDeg = 0;
     private double m_autoMaxTruthError = 0;
@@ -231,6 +242,37 @@ public class SimSmokeTest {
             }
             m_fed |= feeding;
             m_lastFlywheel = m_container.getFlywheel().getSpeed();
+            if (feeding && Double.isNaN(m_firstFeedTime)) {
+                m_firstFeedTime = t;
+            }
+            if (rack.isPacking()) {
+                if (Double.isNaN(m_packStartTime)) {
+                    m_packStartTime = t;
+                }
+                m_packTime += 0.020;
+                if ("1".equals(System.getenv("SIM_SMOKE_TRACE"))) {
+                    System.out.printf("SMOKE pack trace t %.2f: rack %.3f m, feeding %b%n", t - m_packStartTime, rack.getPosition(), feeding);
+                }
+                m_packFeedTime += feeding ? 0.020 : 0;
+                // After it got there: the pulse around the pack position.
+                if (t - m_packStartTime > 0.3) {
+                    m_packMin = Math.min(m_packMin, rack.getPosition());
+                    m_packMax = Math.max(m_packMax, rack.getPosition());
+                }
+            }
+        }
+        if (m_step == 15) {
+            // The shot was released at t 19.2: the vertical roller runs on, then everything runs back.
+            var feeder = m_container.getFeeder();
+            if (feeder.isClearing()) {
+                if (Double.isNaN(m_clearStart)) {
+                    m_clearStart = t - 19.2;
+                }
+                m_clearTime += 0.020;
+                m_clearRollerSpeed = Math.min(m_clearRollerSpeed, feeder.verticalRollerSpeed());
+            } else if (Double.isNaN(m_clearStart) && feeder.verticalRollerSpeed() > 5) {
+                m_runOnTime += 0.020;
+            }
         }
         // The rack must be out (lower) before the robot reaches the trench. The auto checks use the
         // blue frame: a red pose is turned 180 degrees about the field center first.
@@ -262,10 +304,12 @@ public class SimSmokeTest {
             if ("1".equals(System.getenv("SIM_SMOKE_TRACE")) && Math.round((t - 21) * 50) % 5 == 0) {
                 var fv = m_drive.getFieldVelocity();
                 var sup = m_container.getSuperstructure();
-                System.out.printf("SMOKE trace t %.1f: %s %.1f m/s, hopper %d, feeding %b, blocked by '%s', aim d %.2f%n", t - 21,
+                System.out.printf("SMOKE trace t %.1f: %s %.1f m/s, hopper %d, feeding %b, blocked by '%s', aim d %.2f,"
+                        + " rack %.3f m%s%s%n", t - 21,
                     toBlueFrame(m_drive.getPose()).getTranslation(), Math.hypot(fv.vx, fv.vy),
                     m_container.getFuelSim().getField().hopper(), m_container.getFeeder().isFeeding(), sup.blockedBy(),
-                    sup.getShot().distance());
+                    sup.getShot().distance(), m_container.getIntakeRack().getPosition(),
+                    m_container.getIntakeRack().isPacking() ? " packing" : "", sup.isNearTrench() ? " near trench" : "");
             }
             if (m_container.getFeeder().isFeeding()) {
                 m_autoFeedTime += 0.020;
@@ -469,6 +513,10 @@ public class SimSmokeTest {
             }
             System.out.printf("SMOKE shoot with the intake in first: at the first feed the intake was %.3f m out, fully out %b%n",
                 m_firstFeedIntakeOut, m_firstFeedIntakeExtended);
+            System.out.printf("SMOKE shot pack: first feed at %.2f s, pack %.2f s after it, packing %.2f s (fed %.2f s of it),"
+                    + " rack %.3f-%.3f m while pulsing (pack position %.3f m, out stop %.3f)%n",
+                m_firstFeedTime - 16, m_packStartTime - m_firstFeedTime, m_packTime, m_packFeedTime, m_packMin, m_packMax,
+                0.85 * IntakeConstants.kOutStopLeft, IntakeConstants.kOutStopLeft);
             printFuel("teleop so far");
             CommandScheduler.getInstance().cancel(m_shotCommand);
             m_pendingIntake = rack.retract();
@@ -486,6 +534,11 @@ public class SimSmokeTest {
                 rack.simBlockRight(IntakeConstants.kOutStopRight - 0.024);
                 System.out.println("SMOKE auto: right rack side held 2.4 cm short of its out stop (SIM_SMOKE_RACK=short)");
             }
+        }
+        if (step == 4) {
+            System.out.printf("SMOKE shot release: vertical roller ran on %.2f s, then every stage ran back from %.2f s"
+                    + " for %.2f s (vertical roller down to %.0f rps); intake %s%n",
+                m_runOnTime, m_clearStart, m_clearTime, m_clearRollerSpeed, rack.status());
         }
         if (step == 11) {
             // Step 3 (stick released) just ended: the heading should not have moved.

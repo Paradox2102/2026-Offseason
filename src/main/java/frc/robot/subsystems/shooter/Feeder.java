@@ -35,7 +35,8 @@ import frc.robot.subsystems.shooter.FeedLogic.Out;
  * rollers (45) and vertical roller (40, the last one, into the wheel). They run together: only
  * when the shot is ready, or all out to eject. Stopped, they brake, so a ball does not roll into
  * the flywheel early; the vertical roller runs on for a moment first, so it does not hold a ball
- * against the spinning wheel. A stage that jams makes them all run back for a moment
+ * against the spinning wheel. At the end of a shot they then all run back for a moment, so no ball
+ * is left at the turret entrance. A stage that jams makes them all run back for a moment
  * ({@link FeedLogic}).
  *
  * <p>Speeds are motor rps: the CAEL robot's duty cycles as speeds (ShooterConstants). Inversions
@@ -67,7 +68,8 @@ public class Feeder extends SubsystemBase {
                 ShooterConstants.kScottyRps, ShooterConstants.kScottyKv, 23, x60, true),
             stage("Vertical roller (40)", CanIds.kicker, CanIds.k_canBus3, InvertedValue.CounterClockwise_Positive,
                 ShooterConstants.kVerticalRollerRps, ShooterConstants.kVerticalRollerKv, 23, x60, true));
-        m_logic = new FeedLogic(m_stages.size(), ShooterConstants.kFeedRunOnTime, ShooterConstants.kFeedJamTime,
+        m_logic = new FeedLogic(m_stages.size(), ShooterConstants.kFeedRunOnTime, ShooterConstants.kFeedClearTime,
+            ShooterConstants.kFeedJamTime,
             ShooterConstants.kFeedUnjamTime, ShooterConstants.kFeedJamAlertCount, ShooterConstants.kFeedJamWindow);
     }
 
@@ -119,6 +121,10 @@ public class Feeder extends SubsystemBase {
             m_state = m_logic.isUnjamming(now) ? "Unjamming" : "Feeding";
         } else if (m_mode == Mode.EJECT) {
             m_state = "Ejecting";
+        } else if (m_logic.isClearing(now)) {
+            m_state = "Clearing";
+        } else if (m_state.equals("Clearing")) {
+            m_state = "Stopped";
         }
     }
 
@@ -128,7 +134,10 @@ public class Feeder extends SubsystemBase {
         apply();
     }
 
-    /** Feed balls to the flywheel while {@code ready} is true; stop while it is false. */
+    /**
+     * Feed balls to the flywheel while {@code ready} is true; pause while it is false. When the
+     * command ends (the shot is over) the feed path clears: everything runs back for a moment.
+     */
     public Command feedWhen(java.util.function.BooleanSupplier ready) {
         return runEnd(() -> {
             if (ready.getAsBoolean()) {
@@ -136,7 +145,7 @@ public class Feeder extends SubsystemBase {
             } else {
                 set(Mode.STOP, "Waiting");
             }
-        }, () -> set(Mode.STOP, "Stopped")).withName("Feed When Ready");
+        }, () -> set(Mode.END, "Stopped")).withName("Feed When Ready");
     }
 
     /** Everything out (a jam, or a ball we do not want). */
@@ -149,7 +158,17 @@ public class Feeder extends SubsystemBase {
         return m_logic.recentJams(Timer.getTimestamp());
     }
 
-    /** True while the balls are being fed to the flywheel (not while unjamming). */
+    /** True while every stage runs back at the end of a shot. */
+    public boolean isClearing() {
+        return m_logic.isClearing(Timer.getTimestamp());
+    }
+
+    /** The vertical roller's speed (the last stage, into the wheel), motor rps. */
+    public double verticalRollerSpeed() {
+        return m_stages.get(m_stages.size() - 1).talon().getVelocity().getValueAsDouble();
+    }
+
+    /** True while the balls are being fed to the flywheel (not while unjamming or clearing). */
     public boolean isFeeding() {
         return m_state.equals("Feeding");
     }
@@ -157,9 +176,9 @@ public class Feeder extends SubsystemBase {
     @Override
     public void periodic() {
         double now = Timer.getTimestamp();
-        // No command runs: finish the vertical roller's run-on. Disabled, the Talons are neutral
-        // anyway: send nothing (at code start they may not be up yet).
-        if (m_mode == Mode.STOP && RobotState.isEnabled()) {
+        // No command runs: finish the vertical roller's run-on and the clear. Disabled, the Talons
+        // are neutral anyway: send nothing (at code start they may not be up yet).
+        if ((m_mode == Mode.STOP || m_mode == Mode.END) && RobotState.isEnabled()) {
             apply();
         }
         int jams = m_logic.recentJams(now);

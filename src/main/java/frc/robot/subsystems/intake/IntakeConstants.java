@@ -57,6 +57,11 @@ public final class IntakeConstants {
     public static final double kRackS = 0.25; // V
     public static final double kRackV = 1.2; // V per m/s
     public static final double kRackP = 30; // V per m of error
+    /**
+     * Acceleration feedforward, V per m/s^2: the side's mass on the pinion, through the gears, as
+     * motor current, as volts. Without it the rack lags a goal that keeps moving (the pulse).
+     */
+    public static final double kRackA = kRackSideMass * kRackPinionRadius / (kRackGearRatio * kX44.Kt) * kX44.R;
     public static final double kRackCruise = 1.0; // m/s
     public static final double kRackAcceleration = 6.0; // m/s^2
     public static final double kRackStatorLimit = 40; // A per side

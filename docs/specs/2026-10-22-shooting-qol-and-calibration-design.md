@@ -57,8 +57,13 @@ robot.
 - **Shot ends** (trigger released, auto shoot ends): no pack; the rack goes fully out with the
   normal stop logic (Motion Magic, push, stall, re-true), so `isExtended()` is true again only once
   each side is at its out stop.
-- **Near a trench** (`Superstructure.isNearTrench()`): no pack, no pulse, the intake stays fully
-  out. Teleop and auto alike (the auto's "shoot" event uses `Superstructure.shoot()`).
+- **Near a trench:** no pack, no pulse, the intake stays fully out. Teleop and auto alike (the
+  auto's "shoot" event uses `Superstructure.shoot()`). "Near" for the pack is wider than the trench
+  guard's (`TrenchGuard.nearTrench(pose, velocity, lookahead, extraMargin)`): 0.6 s more look ahead
+  and 0.8 m more room, because the rack needs ~0.4 s to get fully out again, and the double trench
+  auto stops in the lane, then goes at 3.5 m/s (a velocity look ahead does not see that coming).
+  Found in the sim: with the guard's own "near", the rack was still going out when the auto's trench
+  brake checked, and the auto gave up the second trench.
 
 **Rack position mode.** `IntakeRack` is stop-based (`RackSide`): every move ends with a push into
 a hard stop, and short stalls are never trusted. A new phase `POSITION` holds a Motion Magic goal
@@ -73,8 +78,18 @@ move to a stop (`start(out)`), which confirms it there again.
 - `isPacking()` and `atLeast(fraction, tolerance)` for the shot gate.
 
 **Shot gate** (`Superstructure.allowed()`): while the rack packs, the intake check is "each side
-at least at the pack position minus the pulse amplitude minus 1.5 cm"; else `isExtended()`. The
-dead-Talon rule is unchanged (`|| hasDeadTalon()`).
+at least at the pack position minus the pulse amplitude minus 3 cm"; else `isExtended()`. The
+dead-Talon rule is unchanged (`|| hasDeadTalon()`). (3 cm, not 1.5: in the sim the rack cannot
+follow a 2 cm, 4 Hz sine, which needs 12.6 m/s^2 against its 6 m/s^2 profile; it lags and swings
+up to 1.5 cm further.)
+
+**Rack kA.** The rack had no acceleration feedforward; with only kP 30 V/m it lagged a moving goal
+and overshot 2.7 cm on the 5 cm pack move. `IntakeConstants.kRackA` from the physics (side mass on
+the pinion, through the gears, as X44 current, as volts: ~0.1 V per m/s^2) cut that to 1.6 cm.
+
+**Auto stuck check.** The double trench auto gives up the trench when the trench brake holds with
+the intake not out (after 2 s). That must now last 0.5 s (`kStuckTime`): a rack going back out
+after a pack takes a moment.
 
 ### 1.3 Smoke test
 

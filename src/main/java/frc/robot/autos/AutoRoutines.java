@@ -6,6 +6,8 @@ import java.util.function.Supplier;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.math.controller.PIDController;
+import org.wpilib.math.filter.Debouncer;
+import org.wpilib.math.filter.Debouncer.DebounceType;
 import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.system.Timer;
@@ -67,6 +69,8 @@ public class AutoRoutines {
     private double m_lastShotStart = Double.NaN;
     /** Longest wait for the intake at the start: it takes ~0.45 s; this leaves room for a slow push. */
     private static final double kIntakeWait = 2.0;
+    /** The trench brake holds with the intake not out this long: the intake is stuck, seconds. */
+    private static final double kStuckTime = 0.5;
     private final Alert m_noTrenchAlert = AlertPublisher.create("Health", "auto-no-trench",
         "Auto: the intake was not fully out at the start, so the robot did not drive under the trench;"
             + " it backed off and shoots from the alliance zone", Level.HIGH);
@@ -262,16 +266,19 @@ public class AutoRoutines {
      * goes out, path 2 (sweep, back, shoot on the move), then shoot what is left until auto ends.
      * The trench brake ({@link #driveWithTrenchBrake}) keeps the robot out from under the arm
      * until the intake is out, so the start need not wait for it. If the intake is still not
-     * out after {@link #kIntakeWait} while the brake holds the robot, the trench is given up: back
-     * off along the lane and shoot.
+     * out after {@link #kIntakeWait} while the brake holds the robot (for {@link #kStuckTime}: a
+     * rack going back out after a pack takes a moment), the trench is given up: back off along the
+     * lane and shoot.
      */
     private Command trenchShootOnTheMove(String side) {
         Command route = Commands.sequence(
             Commands.parallel(m_rack.extend().asProxy(), follow(side + "-trench-sotm-1", false)),
             follow(side + "-trench-sotm-2", false),
             shoot()); // until auto ends
+        var stuckFor = new Debouncer(kStuckTime, DebounceType.RISING);
         Command stuck = Commands.waitSeconds(kIntakeWait)
-            .andThen(Commands.waitUntil(() -> m_brakeHolding && !m_rack.isExtended()));
+            .andThen(Commands.runOnce(() -> stuckFor.calculate(false)))
+            .andThen(Commands.waitUntil(() -> stuckFor.calculate(m_brakeHolding && !m_rack.isExtended())));
         return Commands.sequence(
             startAt(side + "-trench-sotm-1"),
             Commands.race(route, stuck),

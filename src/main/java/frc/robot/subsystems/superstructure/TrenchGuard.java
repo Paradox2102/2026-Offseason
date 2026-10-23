@@ -53,9 +53,17 @@ public final class TrenchGuard {
 
     /** The robot is in a trench lane near its arm, now or soon. */
     public static boolean nearTrench(Pose2d pose, ChassisVelocities fieldVelocity) {
+        return nearTrench(pose, fieldVelocity, kLookahead, 0);
+    }
+
+    /**
+     * The same, looking {@code lookahead} seconds ahead, with {@code extraMargin} meters more room
+     * (for something slower than the guard allows for, or a robot that may start fast from still).
+     */
+    public static boolean nearTrench(Pose2d pose, ChassisVelocities fieldVelocity, double lookahead, double extraMargin) {
         for (int i = 0; i <= kSamples; i++) {
-            double t = kLookahead * i / kSamples;
-            if (near(pose.getX() + fieldVelocity.vx * t, pose.getY() + fieldVelocity.vy * t)) {
+            double t = lookahead * i / kSamples;
+            if (near(pose.getX() + fieldVelocity.vx * t, pose.getY() + fieldVelocity.vy * t, kMargin + extraMargin)) {
                 return true;
             }
         }
@@ -113,13 +121,13 @@ public final class TrenchGuard {
         return false;
     }
 
-    private static boolean near(double x, double y) {
+    private static boolean near(double x, double y, double margin) {
         for (double[] arm : kArms) {
             if (y < arm[2] || y > arm[3]) {
                 continue;
             }
             double dx = x < arm[0] ? arm[0] - x : x > arm[1] ? x - arm[1] : 0;
-            if (dx < kReach + kMargin) {
+            if (dx < kReach + margin) {
                 return true;
             }
         }

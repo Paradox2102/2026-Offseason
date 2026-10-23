@@ -24,6 +24,21 @@ class TrenchGuardTest {
     }
 
     @Test
+    void aLongerLookAheadSeesTheTrenchSooner() {
+        var pose = new Pose2d(4.435 - 0.9 - 1.0, 0.7, Rotation2d.ZERO);
+        var toward = new ChassisVelocities(1.0, 0, 0);
+        assertFalse(TrenchGuard.nearTrench(pose, toward), "0.6 s at 1 m/s: 0.6 m, not enough");
+        assertTrue(TrenchGuard.nearTrench(pose, toward, 1.2, 0), "1.2 s: 1.2 m");
+    }
+
+    @Test
+    void anExtraMarginSeesAStillRobotSooner() {
+        var pose = new Pose2d(4.435 - 0.9 - 0.5, 0.7, Rotation2d.ZERO);
+        assertFalse(TrenchGuard.nearTrench(pose, kStill));
+        assertTrue(TrenchGuard.nearTrench(pose, kStill, 0, 0.8));
+    }
+
+    @Test
     void justOutsideTheReachIsNotNear() {
         assertTrue(near(4.435 - 0.85, 0.7, 0, 0));
         assertFalse(near(4.435 - 1.0, 0.7, 0, 0));

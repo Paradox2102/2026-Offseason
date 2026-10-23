@@ -7,9 +7,11 @@ import org.wpilib.math.filter.Debouncer;
 import org.wpilib.math.filter.Debouncer.DebounceType;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.system.Timer;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.tunable.Tunables;
 import org.wpilib.tunable.TunableBoolean;
+import org.wpilib.tunable.TunableDouble;
 import org.wpilib.util.Alert;
 import org.wpilib.util.Alert.Level;
 
@@ -45,6 +47,10 @@ import frc.robot.subsystems.shooter.Turret;
  *   <li><b>Shooting:</b> the robot cannot shoot with the intake in. A shot puts the intake out and
  *       feeds only once both rack sides are fully out.
  * </ul>
+ *
+ * <p>Pack and pulse (user, 2026-10-22): a while after the feed starts, the intake moves in a
+ * little and pulses there, with its rollers in, to push the last balls to the feed
+ * ({@link PackPulse}). Not near a trench. When the shot ends the intake goes fully out again.
  */
 public class Superstructure extends SubsystemBase {
     private static final double kKeepFeedingSpeedFraction = 0.85;
@@ -60,6 +66,23 @@ public class Superstructure extends SubsystemBase {
     private static final double kZoneLookahead = 1.0;
     /** The hood counts as down (fits under a trench) below this, degrees. */
     private static final double kHoodDownDeg = 1.0;
+    /** The intake packs this long after the first feed of a shot, seconds ... */
+    private static final double kPackDelay = 1.0;
+    /** ... and pulses once it has had this long to get there, seconds. */
+    private static final double kPackSettleTime = 0.3;
+    /**
+     * While packing, the shot waits for each side at the pack position less the pulse and this,
+     * meters. Sim: the rack goes up to 1.5 cm past the pulse (it cannot follow a 4 Hz sine).
+     */
+    private static final double kPackTolerance = 0.03;
+    /**
+     * No pack this much sooner than the trench guard asks for the intake: the rack needs ~0.4 s to
+     * go fully out again, and must be out before the guard (and the auto's trench brake) needs it.
+     * A longer look ahead for a moving robot, seconds, and more room for a still one that may
+     * start fast toward the trench (the auto stops in the lane, then goes at 3.5 m/s), meters.
+     */
+    private static final double kPackTrenchLookahead = TrenchGuard.kLookahead + 0.6;
+    private static final double kPackTrenchMargin = 0.8;
 
     private final Drive m_drive;
     private final Turret m_turret;
@@ -72,6 +95,8 @@ public class Superstructure extends SubsystemBase {
     private final Alert m_trenchAlert = AlertPublisher.create("Health", "trench",
         "Near a trench with the intake not fully out or the hood up: the robot does not fit under the arm", Level.HIGH);
     private boolean m_nearTrench = false;
+    /** Near enough a trench that the intake must not pack (it would not be out in time). */
+    private boolean m_noPackNearTrench = false;
     private boolean m_shooting = false;
     /** The turret must be on target for 0.1 s: a single loop passing through the goal is not "on target". */
     private final Debouncer m_turretSteady = new Debouncer(0.1, DebounceType.RISING);
@@ -83,6 +108,16 @@ public class Superstructure extends SubsystemBase {
     private Shot m_shot;
     /** Dashboard switch: off = aim as if still, and shoot only when (nearly) still. */
     private final TunableBoolean m_shootOnTheMove = Tunables.addBoolean("Shooter/Shoot On The Move", true);
+    /**
+     * Pack position as a fraction of each side's out stop, and the pulse. Start values (user): in
+     * only a little, so the intake does not block the shots. Find the real ones on the robot.
+     */
+    private final TunableDouble m_packFraction = Tunables.addDouble("Intake/Pack/Fraction", 0.85);
+    private final TunableDouble m_pulseAmplitude = Tunables.addDouble("Intake/Pack/Pulse Amplitude m", 0.02);
+    private final TunableDouble m_pulseRate = Tunables.addDouble("Intake/Pack/Pulse Rate Hz", 4.0);
+    private final PackPulse m_packPulse = new PackPulse(kPackDelay, kPackSettleTime);
+    /** When the feed first started in this shot (NaN: not yet). */
+    private double m_feedStart = Double.NaN;
     /** Sim test only: the lead on or off whatever the dashboard says (null = the dashboard). */
     private Boolean m_leadForTest = null;
 
@@ -98,6 +133,8 @@ public class Superstructure extends SubsystemBase {
         m_shot = compute();
         m_intakeRack.holdOutWhile("trench", () -> m_nearTrench);
         m_intakeRack.holdOutWhile("shooting", () -> m_shooting);
+        m_intakeRack.packWhile(this::packGoal);
+        m_intakeRoller.runInWhile(m_intakeRack::isPacking);
         m_turret.setDefaultCommand(m_turret.track(() -> m_shot.turretRot()));
         m_hood.setDefaultCommand(m_hood.stow());
     }
@@ -113,6 +150,8 @@ public class Superstructure extends SubsystemBase {
     public void periodic() {
         m_shot = compute();
         m_nearTrench = TrenchGuard.nearTrench(m_drive.getPose(), m_drive.getFieldVelocity());
+        m_noPackNearTrench = TrenchGuard.nearTrench(m_drive.getPose(), m_drive.getFieldVelocity(), kPackTrenchLookahead,
+            kPackTrenchMargin);
         m_trenchAlert.set(m_nearTrench && (!m_intakeRack.isExtended() || m_hood.getAngleDeg() > kHoodDownDeg));
         m_turretOnTarget = m_turretSteady.calculate(
             m_turret.isOnTarget(m_shot.turretAimRot(), ShotCalculator.turretToleranceDeg(m_shot.distance())));
@@ -127,6 +166,7 @@ public class Superstructure extends SubsystemBase {
         Telemetry.log("Shooter/Hood Ready", m_hood.isOnTarget(m_shot.hoodDeg()));
         Telemetry.log("Shooter/Near Trench", m_nearTrench);
         Telemetry.log("Shooter/Intake Extended", m_intakeRack.isExtended());
+        Telemetry.log("Shooter/Intake Packing", m_intakeRack.isPacking());
         Telemetry.getTable("Field").log("Shot Target", new Pose2d(m_shot.target(), Rotation2d.ZERO));
         Telemetry.getTable("Field").log("Shot Aim Point", new Pose2d(m_shot.aimPoint(), Rotation2d.ZERO));
         Telemetry.log("Shooter/Slow Enough", slowEnough());
@@ -156,6 +196,37 @@ public class Superstructure extends SubsystemBase {
         return m_nearTrench;
     }
 
+    /**
+     * Where the intake packs now, or null: only while shooting, after the feed has run a while,
+     * and not near a trench (with a longer look ahead, so the intake is out in time).
+     */
+    private IntakeRack.Pack packGoal() {
+        if (!m_shooting || m_noPackNearTrench) {
+            return null;
+        }
+        double offset = m_packPulse.offset(Timer.getTimestamp() - m_feedStart, pulseAmplitude(), m_pulseRate.get());
+        return Double.isNaN(offset) ? null : new IntakeRack.Pack(packFraction(), offset);
+    }
+
+    private double packFraction() {
+        return Math.clamp(m_packFraction.get(), 0.5, 1.0);
+    }
+
+    private double pulseAmplitude() {
+        return Math.clamp(m_pulseAmplitude.get(), 0.0, 0.05);
+    }
+
+    /**
+     * The intake lets a shot go: fully out, or (while it packs) each side at least at the pack
+     * position less the pulse. A dead rack Talon: see {@link #allowed}.
+     */
+    private boolean intakeOk() {
+        boolean placed = m_intakeRack.isPacking()
+            ? m_intakeRack.atLeast(packFraction(), pulseAmplitude() + kPackTolerance)
+            : m_intakeRack.isExtended();
+        return placed || m_intakeRack.hasDeadTalon();
+    }
+
     /** The hood angle to ask for: the shot's, or down near a trench. */
     private double hoodGoal() {
         return m_nearTrench ? 0 : m_shot.hoodGoalDeg();
@@ -172,7 +243,7 @@ public class Superstructure extends SubsystemBase {
      */
     private boolean allowed() {
         boolean inZoneForHub = !m_shot.scoring() || ShotCalculator.inOurZone(m_drive.getPose(), Drive.isRedAlliance());
-        boolean intakeOk = m_intakeRack.isExtended() || m_intakeRack.hasDeadTalon();
+        boolean intakeOk = intakeOk();
         boolean inTables = !m_shot.scoring() || (m_shot.distance() >= ShooterConstants.kMinShotDistance
             && m_shot.distance() <= ShooterConstants.kMaxShotDistance);
         return !m_nearTrench && intakeOk && inZoneForHub && slowEnough() && inTables;
@@ -195,7 +266,7 @@ public class Superstructure extends SubsystemBase {
             && m_shot.distance() <= ShooterConstants.kMaxShotDistance);
         if (m_nearTrench) {
             return "near a trench";
-        } else if (!(m_intakeRack.isExtended() || m_intakeRack.hasDeadTalon())) {
+        } else if (!intakeOk()) {
             return "intake not out";
         } else if (!inZoneForHub) {
             return "outside our zone";
@@ -235,12 +306,16 @@ public class Superstructure extends SubsystemBase {
     /** Start on "ready", keep on "still good" (a latch with two limits). */
     private boolean feedGate() {
         m_feeding = m_feeding ? stillGood() : isReady();
+        if (m_feeding && Double.isNaN(m_feedStart)) {
+            m_feedStart = Timer.getTimestamp(); // the pack and pulse count from here
+        }
         return m_feeding;
     }
 
     /**
      * Hold to shoot: put the intake out, spin up, raise the hood, and feed only while the shot is
-     * ready.
+     * ready. A while after the feed starts the intake packs and pulses. When it ends, the feed path
+     * clears (runs back) and the intake goes fully out.
      */
     public Command shoot() {
         return Commands.parallel(
@@ -251,6 +326,7 @@ public class Superstructure extends SubsystemBase {
             .finallyDo(() -> {
                 m_feeding = false;
                 m_shooting = false;
+                m_feedStart = Double.NaN;
             }).withName("Shoot");
     }
 

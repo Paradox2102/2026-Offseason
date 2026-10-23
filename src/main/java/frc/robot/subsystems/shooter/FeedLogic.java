@@ -7,9 +7,12 @@ import java.util.Arrays;
  * What each stage of the feed path does, loop by loop. No hardware: unit tested.
  *
  * <ul>
- *   <li><b>Staged stop.</b> When the feed stops, every stage brakes except the last one (the one
- *       that feeds the flywheel), which runs on for a short time. A ball already at the last stage
- *       then goes on into the wheel instead of being held against it (it would be scrubbed).
+ *   <li><b>Staged stop (a pause).</b> When the feed stops in the middle of a shot, every stage
+ *       brakes except the last one (the one that feeds the flywheel), which runs on for a short
+ *       time. A ball already at the last stage then goes on into the wheel instead of being held
+ *       against it (it would be scrubbed).
+ *   <li><b>End of a shot.</b> The same run-on, then every stage runs back for the clear time, so
+ *       no ball is left at the turret entrance. Only if something was fed since the last end.
  *   <li><b>Jams.</b> While feeding, a stage that stalls (the Feeder decides: slow with a high
  *       current) for the jam time is a jam: every stage runs back for the unjam time, then feeds
  *       again. After an unjam the jam check waits its full time again. Several jams in a short
@@ -18,12 +21,13 @@ import java.util.Arrays;
  * </ul>
  */
 public class FeedLogic {
-    public enum Mode { FEED, STOP, EJECT }
+    public enum Mode { FEED, STOP, END, EJECT }
 
     public enum Out { FEED, REVERSE, BRAKE }
 
     private final int m_stages;
     private final double m_runOn;
+    private final double m_clearTime;
     private final double m_jamTime;
     private final double m_unjamTime;
     private final int m_alertCount;
@@ -33,17 +37,24 @@ public class FeedLogic {
     private double m_runOnUntil = Double.NEGATIVE_INFINITY;
     private double m_unjamUntil = Double.NEGATIVE_INFINITY;
     private int m_jammedStage = -1;
+    /** A stage fed since the last end: the next end clears. */
+    private boolean m_fed = false;
+    private double m_clearFrom = Double.NaN;
+    private double m_clearUntil = Double.NEGATIVE_INFINITY;
 
     /**
      * @param stages number of stages; the last one feeds the flywheel
      * @param runOn the last stage runs on this long after a feed stops, seconds
+     * @param clearTime at the end of a shot every stage runs back this long, after the run-on, seconds
      * @param jamTime a stall this long is a jam, seconds
      * @param unjamTime every stage runs back this long after a jam, seconds
      * @param alertCount this many jams within {@code window} seconds raise the alert
      */
-    public FeedLogic(int stages, double runOn, double jamTime, double unjamTime, int alertCount, double window) {
+    public FeedLogic(int stages, double runOn, double clearTime, double jamTime, double unjamTime, int alertCount,
+                     double window) {
         m_stages = stages;
         m_runOn = runOn;
+        m_clearTime = clearTime;
         m_jamTime = jamTime;
         m_unjamTime = unjamTime;
         m_alertCount = alertCount;
@@ -62,14 +73,26 @@ public class FeedLogic {
                 resetStalls();
                 m_runOnUntil = Double.NEGATIVE_INFINITY;
                 m_unjamUntil = Double.NEGATIVE_INFINITY;
+                m_fed = false;
+                endClear();
                 return all(Out.REVERSE);
             }
-            case STOP -> {
+            case STOP, END -> {
                 resetStalls();
-                if (now < m_unjamUntil) {
+                boolean unjamming = now < m_unjamUntil;
+                if (unjamming) {
                     // Stopped in the middle of an unjam: the ball is going back, do not push it on.
                     m_unjamUntil = Double.NEGATIVE_INFINITY;
                     m_runOnUntil = Double.NEGATIVE_INFINITY;
+                }
+                if (mode == Mode.END && m_fed) {
+                    // Back from the turret entrance once the last stage has run on (at once after an unjam).
+                    m_fed = false;
+                    m_clearFrom = unjamming ? now : Math.max(now, m_runOnUntil);
+                    m_clearUntil = m_clearFrom + m_clearTime;
+                }
+                if (isClearing(now)) {
+                    return all(Out.REVERSE);
                 }
                 var out = all(Out.BRAKE);
                 if (now < m_runOnUntil) {
@@ -78,6 +101,7 @@ public class FeedLogic {
                 return out;
             }
             default -> {
+                endClear(); // a new shot: feed, whatever was going back
                 if (now < m_unjamUntil) {
                     resetStalls(); // after the unjam the check waits its full time again
                     return all(Out.REVERSE);
@@ -100,6 +124,7 @@ public class FeedLogic {
                     }
                 }
                 m_runOnUntil = now + m_runOn;
+                m_fed = true;
                 return all(Out.FEED);
             }
         }
@@ -124,6 +149,16 @@ public class FeedLogic {
 
     public boolean isUnjamming(double now) {
         return now < m_unjamUntil;
+    }
+
+    /** Every stage runs back at the end of a shot. */
+    public boolean isClearing(double now) {
+        return now >= m_clearFrom && now < m_clearUntil;
+    }
+
+    private void endClear() {
+        m_clearFrom = Double.NaN;
+        m_clearUntil = Double.NEGATIVE_INFINITY;
     }
 
     private void resetStalls() {

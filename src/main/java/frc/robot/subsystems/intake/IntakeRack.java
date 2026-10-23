@@ -3,6 +3,7 @@ package frc.robot.subsystems.intake;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
@@ -43,11 +44,14 @@ import frc.robot.lib.util.StallDetector;
  *       without the motors fighting it.
  *   <li>Pushed more than 2 cm away and still again: back to MOTION/PUSH.
  * </ol>
+ * One exception, while shooting ({@link #packWhile}): POSITION holds each side at a Motion Magic
+ * goal inside its stroke, to pack the hopper. It has no push and no stall check, never sets the
+ * Talon's position and never counts the side as at its stop: only a move back to a stop does.
  * Positions are meters of rack travel along its 20 degree slope, 0 = in. Gravity pulls the rack
  * out; every request includes a term against it, so the currents named here are the net push.
  */
 public class IntakeRack extends SubsystemBase {
-    private enum Phase { MOTION, PUSH, REST, RESYNC }
+    private enum Phase { MOTION, PUSH, REST, RESYNC, POSITION }
 
     private final MotionMagicVoltage m_motionRequest = new MotionMagicVoltage(0);
     private final TorqueCurrentFOC m_currentRequest = new TorqueCurrentFOC(0);
@@ -76,6 +80,8 @@ public class IntakeRack extends SubsystemBase {
         double m_retryAfter = Double.NEGATIVE_INFINITY;
         /** Position to give a rebooted Talon (RESYNC tries until the Talon takes it). */
         double m_resyncValue = Double.NaN;
+        /** POSITION: the Motion Magic goal, meters. */
+        double m_holdGoal = 0;
 
         /** The reading when the last push stalled, before any fix (to measure the out stops). */
         double m_lastStall = Double.NaN;
@@ -100,6 +106,7 @@ public class IntakeRack extends SubsystemBase {
             config.Slot0.kS = IntakeConstants.kRackS;
             config.Slot0.kV = IntakeConstants.kRackV;
             config.Slot0.kP = IntakeConstants.kRackP;
+            config.Slot0.kA = IntakeConstants.kRackA;
             // Gravity pulls the rack out (down its slope) with the same force everywhere: a
             // constant kG pulls in against it (negative = toward in).
             config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
@@ -167,6 +174,16 @@ public class IntakeRack extends SubsystemBase {
             m_phase = Phase.RESYNC;
         }
 
+        /** Hold this position (Motion Magic, no push). Not at a stop: a later move to a stop confirms it again. */
+        void hold(double goal) {
+            if (m_phase == Phase.RESYNC) {
+                return; // the Talon gets its position first
+            }
+            m_phase = Phase.POSITION;
+            m_confirmed = false;
+            m_holdGoal = goal;
+        }
+
         private void startPush(double now) {
             m_phase = Phase.PUSH;
             m_pushStart = now;
@@ -227,6 +244,7 @@ public class IntakeRack extends SubsystemBase {
                         rest(now);
                     }
                 }
+                case POSITION -> m_talon.setControl(m_motionRequest.withPosition(m_holdGoal));
                 case REST -> {
                     m_talon.setControl(m_currentRequest.withOutput(sign * IntakeConstants.kRestCurrent - IntakeConstants.kGravityAmps));
                     // Pushed away by a hit: do not fight it while it moves; once it is still, go back.
@@ -267,6 +285,14 @@ public class IntakeRack extends SubsystemBase {
     /** Reasons the rack must stay out (near a trench, shooting): while one is true it extends and ignores retract. */
     private record HoldOut(String reason, BooleanSupplier active) {}
     private final List<HoldOut> m_holdOuts = new ArrayList<>();
+    /**
+     * A pack: each side at {@code fraction} of its out stop, plus {@code offset} meters (the pulse).
+     */
+    public record Pack(double fraction, double offset) {}
+    private Supplier<Pack> m_packSource = () -> null;
+    private boolean m_packing = false;
+    /** A pack goal stays this far inside each stop, meters: a position move never pushes a stop. */
+    private static final double kPackMargin = 0.01;
     private final double m_startTime = Timer.getTimestamp();
     private IntakeSim m_sim = null;
 
@@ -303,6 +329,17 @@ public class IntakeRack extends SubsystemBase {
             start(true);
         }
         Telemetry.log("Intake/Rack/Held Out By", heldBy == null ? "" : heldBy);
+
+        // While shooting: pack (and pulse). When it ends, each side goes back to its stop with the
+        // normal move, which confirms it there.
+        Pack pack = enabled && m_goalOut ? m_packSource.get() : null;
+        if (pack != null) {
+            m_left.hold(packGoal(m_left, pack));
+            m_right.hold(packGoal(m_right, pack));
+        } else if (m_packing) {
+            start(m_goalOut);
+        }
+        m_packing = pack != null;
 
         // While disabled the Talons are neutral anyway: send nothing (at code start the devices may
         // not be up yet).
@@ -374,9 +411,12 @@ public class IntakeRack extends SubsystemBase {
         m_right.start(out, now);
     }
 
-    /** Extend; ends when both sides rest at the out stop. The rack stays out after the command ends. */
+    /**
+     * Extend; ends when both sides rest at the out stop (or the rack packs for a shot: it is as far
+     * out as it may be then). The rack stays out after the command ends.
+     */
     public Command extend() {
-        return runOnce(() -> start(true)).andThen(Commands.waitUntil(this::atStop)).withName("Intake Extend");
+        return runOnce(() -> start(true)).andThen(Commands.waitUntil(() -> atStop() || m_packing)).withName("Intake Extend");
     }
 
     /**
@@ -388,12 +428,37 @@ public class IntakeRack extends SubsystemBase {
             if (heldOutBy() == null) {
                 start(false);
             }
-        }).andThen(Commands.waitUntil(this::atStop)).withName("Intake Retract");
+        }).andThen(Commands.waitUntil(() -> atStop() || m_packing)).withName("Intake Retract");
     }
 
     /** Keep the rack out while {@code active} is true (extend if needed; retract is ignored). */
     public void holdOutWhile(String reason, BooleanSupplier active) {
         m_holdOuts.add(new HoldOut(reason, active));
+    }
+
+    /**
+     * Pack while {@code source} gives a pack (null: no pack). Only while enabled with the goal out
+     * (a shot holds the rack out).
+     */
+    public void packWhile(Supplier<Pack> source) {
+        m_packSource = source;
+    }
+
+    private static double packGoal(Side side, Pack pack) {
+        double stop = side.m_state.outStop();
+        return Math.clamp(pack.fraction() * stop + pack.offset(), kPackMargin, stop - kPackMargin);
+    }
+
+    /** Packing for a shot: the sides hold a position inside the stroke. */
+    public boolean isPacking() {
+        return m_packing;
+    }
+
+    /** The goal is out and each side is at least at {@code fraction} of its out stop less {@code tolerance} meters. */
+    public boolean atLeast(double fraction, double tolerance) {
+        return m_goalOut
+            && m_left.position() >= fraction * m_left.m_state.outStop() - tolerance
+            && m_right.position() >= fraction * m_right.m_state.outStop() - tolerance;
     }
 
     /** The first reason that holds the rack out now, or null. */
@@ -407,11 +472,12 @@ public class IntakeRack extends SubsystemBase {
     }
 
     /**
-     * Fully out: the goal is out and each side is within {@link IntakeConstants#kExtendedTolerance}
-     * of its out stop. Each side counts on its own: one side pushed in by a hit is "not out".
+     * Fully out: the goal is out, the rack does not pack, and each side is within
+     * {@link IntakeConstants#kExtendedTolerance} of its out stop. Each side counts on its own: one
+     * side pushed in by a hit is "not out".
      */
     public boolean isExtended() {
-        return m_goalOut
+        return m_goalOut && !m_packing
             && m_left.position() >= m_left.m_state.outStop() - IntakeConstants.kExtendedTolerance
             && m_right.position() >= m_right.m_state.outStop() - IntakeConstants.kExtendedTolerance;
     }
@@ -478,6 +544,7 @@ public class IntakeRack extends SubsystemBase {
         Telemetry.log("Intake/Rack/Skew m", m_left.position() - m_right.position());
         Telemetry.log("Intake/Rack/At Stop", atStop());
         Telemetry.log("Intake/Rack/Extended", isExtended());
+        Telemetry.log("Intake/Rack/Packing", m_packing);
         for (Side side : new Side[] {m_left, m_right}) {
             String prefix = "Intake/Rack/" + (side == m_left ? "Left" : "Right") + "/";
             Telemetry.log(prefix + "Position m", side.position());
