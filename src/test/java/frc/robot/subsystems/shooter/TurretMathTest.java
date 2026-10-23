@@ -29,19 +29,20 @@ class TurretMathTest {
     }
 
     @Test
-    void unwindsAtTheWiringLimit() {
-        // The real limits: wiring one full turn each way from the jig, soft limits 10 degrees
-        // inside it (+-350), aim range 5 degrees inside those (+-345).
+    void unwindsAtTheMechanicalLimit() {
+        // The real limits: mechanical stops 270 degrees each way from the jig, soft limits 10
+        // degrees inside them (+-260), aim range 5 degrees inside those (+-255).
         double min = ShooterConstants.kTurretAimMinRot;
         double max = ShooterConstants.kTurretAimMaxRot;
-        assertEquals(345.0 / 360, max, 1e-9);
-        // At +340 degrees, a target that moved on to 370 is past the limit: the turret unwinds
-        // back round to +10 (the same direction), not on past +345.
-        assertEquals(10.0 / 360, TurretMath.chooseAngle(10.0 / 360, 340.0 / 360, min, max), 1e-9);
+        assertEquals(255.0 / 360, max, 1e-9);
+        assertEquals(-255.0 / 360, min, 1e-9);
+        // At +250 degrees, a target that moved on to 280 is past the limit: the turret unwinds
+        // back round to -80 (the same direction), not on past +255.
+        assertEquals(-80.0 / 360, TurretMath.chooseAngle(280.0 / 360, 250.0 / 360, min, max), 1e-9);
         // The same at the other end.
-        assertEquals(-10.0 / 360, TurretMath.chooseAngle(-10.0 / 360, -340.0 / 360, min, max), 1e-9);
-        // Before the limit it keeps going the short way: at +330, the direction 340 stays +340.
-        assertEquals(340.0 / 360, TurretMath.chooseAngle(-20.0 / 360, 330.0 / 360, min, max), 1e-9);
+        assertEquals(80.0 / 360, TurretMath.chooseAngle(-280.0 / 360, -250.0 / 360, min, max), 1e-9);
+        // Before the limit it keeps going the short way: at +240, the direction 250 stays +250.
+        assertEquals(250.0 / 360, TurretMath.chooseAngle(-110.0 / 360, 240.0 / 360, min, max), 1e-9);
         // In the middle of the range it takes the nearer way, never past a limit.
         double a = TurretMath.chooseAngle(0.9, 0.0, min, max);
         assertEquals(-0.1, a, 1e-9);

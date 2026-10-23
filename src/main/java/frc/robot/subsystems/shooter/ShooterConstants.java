@@ -17,16 +17,16 @@ public final class ShooterConstants {
     public static final double kTurretRatio = 67.86;
     /** In the jig at power-on, the shooter points to the robot's left: turret 0 = robot +90 degrees. */
     public static final double kTurretZeroOnRobotDeg = 90;
-    /** Wiring limits (user, 2026-10-22): one full turn each way from the jig, 720 degrees in all. */
-    public static final double kTurretWiringRot = 1.0;
+    /** Mechanical limits (user, 2026-10-23): 270 degrees each way from the jig, 540 degrees in all. */
+    public static final double kTurretTravelRot = 0.75;
     /**
-     * The Talon's soft limits: 10 degrees inside the wiring limits, room for an overshoot or a
+     * The Talon's soft limits: 10 degrees inside the mechanical limits, room for an overshoot or a
      * small zero error (a jig zero that is off, or a position restored after a reboot).
      */
-    public static final double kTurretMinRot = -kTurretWiringRot + 10.0 / 360;
-    public static final double kTurretMaxRot = kTurretWiringRot - 10.0 / 360;
+    public static final double kTurretMinRot = -kTurretTravelRot + 10.0 / 360;
+    public static final double kTurretMaxRot = kTurretTravelRot - 10.0 / 360;
     /**
-     * The aim uses 5 degrees less each way, so the turret never presses the wiring at its end. At
+     * The aim uses 5 degrees less each way, so the turret never presses its mechanical stop. At
      * the edge of this range, a target that keeps moving makes the turret unwind the other way
      * round (TurretMath picks the nearest angle that is inside the range).
      */

@@ -763,7 +763,7 @@ From the review of the intake roller, feed path, turret, hood and flywheel.
   (were 25/90/90/30/30). Acceleration 600 rps/s. Per-stage speed and current are logged.
 - **Flywheel**: `getSpeed()` is 0 and `isReady()` false while Talon 42 does not answer (a silent
   Talon keeps its last reading; CAEL Q40).
-- **Turret**: soft limits 10 degrees inside the wiring limit (+-350, aim +-345). After a Talon 44
+- **Turret**: soft limits 10 degrees inside the mechanical limit of +-270 (user, 2026-10-23; was +-360 wiring): +-260, aim +-255. After a Talon 44
   reboot the last good reading (connected, no jump over 15 degrees a loop) is written back
   (retried until the Talon takes it), the turret is neutral and not "on target" until the reading
   shows it, and a MEDIUM alert asks for a jig zero after the match. With no good reading the old

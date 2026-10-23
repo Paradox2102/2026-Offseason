@@ -34,8 +34,8 @@ import frc.robot.lib.util.AlertPublisher;
 
 /**
  * The turret (Talon 44). Angles are turret rotations; 0 = the jig position (shooter to the
- * robot's left). Positive = counterclockwise seen from above. The wiring allows one full turn
- * each way (+-360 degrees); the Talon's soft limits hold the turret inside that.
+ * robot's left). Positive = counterclockwise seen from above. The mechanical limits allow 270
+ * degrees each way (+-270 degrees); the Talon's soft limits hold the turret inside that.
  *
  * <p>The turret has no absolute sensor and no limit switch: only the motor's own encoder, which
  * counts from where the motor was at power-on. So the turret must be in its jig when the robot is
@@ -92,7 +92,7 @@ public class Turret extends SubsystemBase {
         // No setPosition(0) here. A Talon reads 0 when it powers on, and the turret is in its jig
         // at power-on, so 0 = jig. A robot code restart (a redeploy, a crash) does not restart
         // the Talon: it still knows the true angle, and zeroing here would make wherever the
-        // turret points the new 0 (and move the cable limits with it).
+        // turret points the new 0 (and move the travel limits with it).
         m_talon.hasResetOccurred(); // clear the flag of this boot
         HealthMonitor.register(m_talon);
         double trimDeg = Calibration.get().turretTrimDeg;
