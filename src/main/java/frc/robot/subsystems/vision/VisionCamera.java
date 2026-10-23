@@ -109,6 +109,11 @@ public class VisionCamera {
                 m_lastRejectReason = ageReason;
                 continue;
             }
+            String syncReason = VisionClock.syncRejectReason(result.metadata.timeSinceLastPong);
+            if (!syncReason.isEmpty()) {
+                m_lastRejectReason = syncReason;
+                continue;
+            }
 
             // Multi-tag (solved on the coprocessor with every tag in view) is far better; with one
             // tag in view, fall back to that tag's solution that agrees with the gyro.

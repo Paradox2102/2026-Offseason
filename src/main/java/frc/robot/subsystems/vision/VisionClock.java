@@ -41,6 +41,18 @@ public final class VisionClock {
         return NetworkTablesJNI.now() * 1e-9;
     }
 
+    /**
+     * A coprocessor that last heard a time-sync pong longer ago than this, seconds, may have a
+     * wrong clock offset: its frame times cannot be trusted. PhotonLib only warns at 5 s; the sim
+     * reports 1 ms. Assumed: a coprocessor gets a pong at least once a second.
+     */
+    public static final double kMaxTimeSinceSync = 2.0;
+
+    /** Why a frame is not used, from its coprocessor's time since the last pong, or "" if it can be. */
+    public static String syncRejectReason(long timeSinceLastPongNanos) {
+        return timeSinceLastPongNanos * 1e-9 > kMaxTimeSinceSync ? "time sync" : "";
+    }
+
     /** Why a frame of this age is not used, or "" if it can be used. */
     public static String ageRejectReason(double ageSeconds) {
         if (ageSeconds > kMaxAge) {

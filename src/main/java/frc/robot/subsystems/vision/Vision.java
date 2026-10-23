@@ -78,24 +78,27 @@ public class Vision extends SubsystemBase {
         }
 
         // Frame times are on the NetworkTables clock (PhotonLib time sync); the Phoenix estimator
-        // wants its own clock. Read both now and shift each frame by the difference.
-        double visionNow = VisionClock.networkTablesNowSeconds();
-        double driveNow = Utils.getCurrentTimeSeconds();
-        Telemetry.log("Vision/Clock Offset ms", (driveNow - visionNow) * 1000);
-        Telemetry.log("Vision/Timer Offset ms", (driveNow - Timer.getTimestamp()) * 1000);
+        // wants its own clock. Each frame is shifted by the difference (read per camera, below).
+        double offsetDriveNow = Utils.getCurrentTimeSeconds();
+        Telemetry.log("Vision/Clock Offset ms", (offsetDriveNow - VisionClock.networkTablesNowSeconds()) * 1000);
+        Telemetry.log("Vision/Timer Offset ms", (offsetDriveNow - Timer.getTimestamp()) * 1000);
 
-        // The estimator's heading when a frame was captured (now, if the buffer has no sample),
-        // corrected by recent multi-tag frames when it is far off (see HeadingReference).
         Rotation2d headingNow = m_drive.getHeading();
-        DoubleFunction<Rotation2d> estimatorAt = capture -> m_drive
-            .samplePoseAt(VisionClock.toDriveTime(capture, driveNow, visionNow))
-            .map(Pose2d::getRotation).orElse(headingNow);
-        DoubleFunction<Rotation2d> headingAt = capture -> m_headingReference.correct(capture, estimatorAt.apply(capture));
         List<Pose2d> accepted = new ArrayList<>();
         List<Pose2d> rejected = new ArrayList<>();
         List<Pose3d> tags = new ArrayList<>();
         for (var camera : m_cameras) {
             var frames = camera.readNewFrames();
+            // Read the clocks after the frames: a frame that arrived after an earlier read would
+            // look like it came from the future.
+            double visionNow = VisionClock.networkTablesNowSeconds();
+            double driveNow = Utils.getCurrentTimeSeconds();
+            // The estimator's heading when a frame was captured (now, if the buffer has no
+            // sample), corrected by recent multi-tag frames when it is far off (HeadingReference).
+            DoubleFunction<Rotation2d> estimatorAt = capture -> m_drive
+                .samplePoseAt(VisionClock.toDriveTime(capture, driveNow, visionNow))
+                .map(Pose2d::getRotation).orElse(headingNow);
+            DoubleFunction<Rotation2d> headingAt = capture -> m_headingReference.correct(capture, estimatorAt.apply(capture));
             var measurements = camera.process(frames, visionNow, headingAt);
             for (var m : measurements) {
                 if (m.multiTag()) {

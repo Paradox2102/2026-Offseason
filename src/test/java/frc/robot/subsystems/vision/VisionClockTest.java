@@ -37,6 +37,16 @@ class VisionClockTest {
     }
 
     @Test
+    void acceptsARecentPong() {
+        assertEquals("", VisionClock.syncRejectReason(1_000_000L));
+    }
+
+    @Test
+    void rejectsAnOldPong() {
+        assertEquals("time sync", VisionClock.syncRejectReason(3_000_000_000L));
+    }
+
+    @Test
     void networkTablesClockIsInSeconds() {
         // Same epoch off the robot: a wrong unit is off by a factor of 1000 or more.
         assertEquals(Timer.getMonotonicTimestamp(), VisionClock.networkTablesNowSeconds(), 0.5);

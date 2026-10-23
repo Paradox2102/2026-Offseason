@@ -81,8 +81,13 @@ class VisionCameraTest {
     }
 
     private static PhotonPipelineMetadata metadataAt(double seconds) {
+        return metadataAt(seconds, 0);
+    }
+
+    private static PhotonPipelineMetadata metadataAt(double seconds, long timeSinceLastPongNanos) {
         long nanos = (long) (seconds * 1e9);
-        return new PhotonPipelineMetadata(nanos, nanos, 1, 0); // capture time, publish time, sequence id, time since pong
+        // capture time, publish time, sequence id, time since pong
+        return new PhotonPipelineMetadata(nanos, nanos, 1, timeSinceLastPongNanos);
     }
 
     /** A result that sees tag 10 from {@link #robotPose()}, captured at {@code seconds}. */
@@ -165,6 +170,13 @@ class VisionCameraTest {
     void untrustedHeadingIsNotScaled() {
         var m = camera(2.0, false).process(List.of(resultAt(10.0, 0.05)), 10.03, t -> heading());
         assertEquals(VisionFilter.kUntrusted, m.get(0).stdDevs().get(2, 0), 0);
+    }
+
+    @Test
+    void frameWithoutTimeSyncIsRejected() {
+        var result = new PhotonPipelineResult(metadataAt(10.0, 3_000_000_000L), List.of(target(kTag, 0.05)), Optional.empty());
+        assertTrue(m_camera.process(List.of(result), 10.03, t -> heading()).isEmpty());
+        assertEquals("time sync", m_camera.lastRejectReason());
     }
 
     @Test
