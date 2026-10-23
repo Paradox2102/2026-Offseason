@@ -27,6 +27,7 @@ import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.shooter.Turret;
 import frc.robot.sim.field.FuelField;
+import frc.robot.sim.field.ShotModel;
 
 /**
  * Simulator only: the fuel, connected to our robot. It reads the true robot pose, the intake and
@@ -39,18 +40,6 @@ public class FuelSim {
     private static final int kPreload = 8;
     /** Balls per second out of the hopper while the feeder feeds (an assumption). */
     private static final double kShotsPerSecond = 8;
-    private static final double kWheelDiameter = Units.inchesToMeters(4); // CAD: G4001 Fly Wheel Print
-    /**
-     * Exit speed = this x the wheel surface speed, and launch angle = kLaunchAtHoodZeroDeg - hood
-     * angle. Both are fitted to the old shot tables (the user's default of 0.7 sent every ball
-     * almost straight up): they are not measured. Replace them with a measured exit speed.
-     */
-    private static final double kExitSpeedFactor = 0.24;
-    private static final double kLaunchAtHoodZeroDeg = 78;
-    /** The hood axis from the turret axis: along the shot 0.0837 m, up 0.4552 m (CAD). */
-    private static final double kExitForward = 0.2742 - 0.1905;
-    private static final double kExitHeight = 0.4552;
-
     private final Drive m_drive;
     private final IntakeRack m_rack;
     private final IntakeRoller m_roller;
@@ -108,7 +97,7 @@ public class FuelSim {
             m_shotTimer += 0.020 * kShotsPerSecond;
             while (m_shotTimer >= 1) {
                 m_shotTimer -= 1;
-                shootOne(velocity.vx, velocity.vy);
+                shootOne(velocity.vx, velocity.vy, omega);
             }
         } else {
             m_shotTimer = 0;
@@ -125,21 +114,27 @@ public class FuelSim {
         Telemetry.log("Sim/Fuel/Scored Red", m_field.scored(true));
     }
 
-    /** One ball out of the shooter: from the hood axis, along the turret, at the hood's angle. */
-    private void shootOne(double robotVx, double robotVy) {
+    /**
+     * One ball out of the shooter: from the hood axis, along the turret, at the hood's angle. It
+     * keeps the velocity of the point it leaves from: the robot's velocity plus its turn (the exit
+     * is off the robot center, so a turning robot moves it sideways).
+     */
+    private void shootOne(double robotVx, double robotVy, double omega) {
         var robot = m_drive.getSim().truthPose3d();
         double turretYaw = m_turret.getPosition() * 2 * Math.PI;
         double shotYawOnRobot = turretYaw + Math.toRadians(ShooterConstants.kTurretZeroOnRobotDeg);
         Translation3d exit = robot.transformBy(new Transform3d(
-            new Translation3d(ShooterConstants.kTurretOffset.getX() + kExitForward * Math.cos(shotYawOnRobot),
-                ShooterConstants.kTurretOffset.getY() + kExitForward * Math.sin(shotYawOnRobot), kExitHeight),
+            new Translation3d(ShooterConstants.kTurretOffset.getX() + ShotModel.kExitForward * Math.cos(shotYawOnRobot),
+                ShooterConstants.kTurretOffset.getY() + ShotModel.kExitForward * Math.sin(shotYawOnRobot), ShotModel.kExitHeight),
             Rotation3d.ZERO)).getTranslation();
         double fieldYaw = robot.getRotation().getZ() + shotYawOnRobot;
-        double elevation = Math.toRadians(kLaunchAtHoodZeroDeg - m_hood.getAngleDeg());
-        double speed = kExitSpeedFactor * Math.PI * kWheelDiameter * m_flywheel.getSpeed();
+        double elevation = ShotModel.elevation(m_hood.getAngleDeg());
+        double speed = ShotModel.exitSpeed(m_flywheel.getSpeed());
+        double rx = exit.getX() - robot.getX();
+        double ry = exit.getY() - robot.getY();
         m_field.launch(exit,
-            speed * Math.cos(elevation) * Math.cos(fieldYaw) + robotVx,
-            speed * Math.cos(elevation) * Math.sin(fieldYaw) + robotVy,
+            speed * Math.cos(elevation) * Math.cos(fieldYaw) + robotVx - omega * ry,
+            speed * Math.cos(elevation) * Math.sin(fieldYaw) + robotVy + omega * rx,
             speed * Math.sin(elevation));
     }
 

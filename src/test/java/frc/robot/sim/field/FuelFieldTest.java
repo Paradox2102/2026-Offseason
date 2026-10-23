@@ -1,6 +1,7 @@
 package frc.robot.sim.field;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -145,6 +146,51 @@ class FuelFieldTest {
         assertEquals(0, field.airCount());
         var p = field.positions()[0];
         assertTrue(p.getX() > 0 && p.getX() < kLength && p.getY() > 0 && p.getY() < kWidth);
+    }
+
+    @Test
+    void aBallThatFallsThroughTheOpeningIsRecordedAsAHit() {
+        var field = empty(1);
+        field.launch(new Translation3d(FuelField.kHubBlueX + 0.1, FuelField.kHubY - 0.2, 2.5), 0, 0, 0);
+        run(field, 2, null);
+        var c = field.crossings();
+        assertEquals(1, c.size());
+        assertTrue(c.get(0).scored());
+        assertFalse(c.get(0).red());
+        assertEquals(0.1, c.get(0).dx(), 0.01);
+        assertEquals(-0.2, c.get(0).dy(), 0.01);
+        // Falling 0.67 m from rest: about 0.37 s.
+        assertEquals(Math.sqrt(2 * 0.67 / 9.81), c.get(0).flightTime(), 0.03);
+    }
+
+    @Test
+    void aBallThatFallsBesideTheOpeningIsRecordedAsAMiss() {
+        var field = empty(1);
+        field.launch(new Translation3d(FuelField.kHubBlueX - 0.8, FuelField.kHubY, 2.5), 0, 0, 0);
+        run(field, 2, null);
+        var c = field.crossings();
+        assertEquals(1, c.size());
+        assertFalse(c.get(0).scored());
+        assertEquals(-0.8, c.get(0).dx(), 0.01);
+        field.clearCrossings();
+        assertTrue(field.crossings().isEmpty());
+    }
+
+    @Test
+    void aBallFarFromEveryHubIsNotRecorded() {
+        var field = empty(1);
+        field.launch(new Translation3d(8, 2, 2.5), 0, 0, 0);
+        run(field, 2, null);
+        assertTrue(field.crossings().isEmpty());
+    }
+
+    @Test
+    void fillHopperSetsTheCount() {
+        var field = empty(0);
+        field.fillHopper(30);
+        assertEquals(30, field.hopper());
+        field.fillHopper(99);
+        assertEquals(FuelField.kHopperCapacity, field.hopper());
     }
 
     @Test

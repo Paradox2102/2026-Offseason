@@ -8,6 +8,8 @@ import org.wpilib.math.filter.Debouncer.DebounceType;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.telemetry.Telemetry;
+import org.wpilib.tunable.Tunables;
+import org.wpilib.tunable.TunableBoolean;
 import org.wpilib.util.Alert;
 import org.wpilib.util.Alert.Level;
 
@@ -18,6 +20,7 @@ import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Feeder;
 import frc.robot.subsystems.shooter.Flywheel;
 import frc.robot.subsystems.shooter.Hood;
+import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.shooter.ShotCalculator;
 import frc.robot.subsystems.shooter.ShotCalculator.Shot;
 import frc.robot.subsystems.shooter.Turret;
@@ -45,7 +48,8 @@ import frc.robot.subsystems.shooter.Turret;
  */
 public class Superstructure extends SubsystemBase {
     private static final double kKeepFeedingSpeedFraction = 0.85;
-    private static final double kKeepFeedingTurretDeg = 3.0;
+    /** Keep feeding while the turret is within this many times its "ready" tolerance. */
+    private static final double kKeepFeedingTurretFactor = 2.0;
     private static final double kKeepFeedingHoodDeg = 2.0;
     /**
      * Until the driver shoots, set the shot up for where the robot will be this far ahead, seconds:
@@ -72,8 +76,15 @@ public class Superstructure extends SubsystemBase {
     /** The turret must be on target for 0.1 s: a single loop passing through the goal is not "on target". */
     private final Debouncer m_turretSteady = new Debouncer(0.1, DebounceType.RISING);
     private boolean m_turretOnTarget = false;
+    /** The flywheel must be at the shot's speed (not its goal, which leads) for 0.1 s. */
+    private final Debouncer m_wheelSteady = new Debouncer(ShooterConstants.kFlywheelReadyTime, DebounceType.RISING);
+    private boolean m_wheelReady = false;
     private boolean m_feeding = false;
     private Shot m_shot;
+    /** Dashboard switch: off = aim as if still, and shoot only when (nearly) still. */
+    private final TunableBoolean m_shootOnTheMove = Tunables.addBoolean("Shooter/Shoot On The Move", true);
+    /** Sim test only: the lead on or off whatever the dashboard says (null = the dashboard). */
+    private Boolean m_leadForTest = null;
 
     public Superstructure(Drive drive, Turret turret, Hood hood, Flywheel flywheel, Feeder feeder, IntakeRoller intakeRoller,
                           IntakeRack intakeRack) {
@@ -92,6 +103,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     private Shot compute() {
+        m_calculator.setShootOnTheMove(m_leadForTest != null ? m_leadForTest : m_shootOnTheMove.getAsBoolean());
         return m_calculator.calculate(m_drive.getPose(), m_drive.getFieldVelocity(),
             m_drive.getRobotVelocity().omega, Drive.isRedAlliance(), m_turret.getPosition(),
             m_shooting ? 0 : kZoneLookahead);
@@ -102,7 +114,9 @@ public class Superstructure extends SubsystemBase {
         m_shot = compute();
         m_nearTrench = TrenchGuard.nearTrench(m_drive.getPose(), m_drive.getFieldVelocity());
         m_trenchAlert.set(m_nearTrench && (!m_intakeRack.isExtended() || m_hood.getAngleDeg() > kHoodDownDeg));
-        m_turretOnTarget = m_turretSteady.calculate(m_turret.isOnTarget(m_shot.turretAimRot()));
+        m_turretOnTarget = m_turretSteady.calculate(
+            m_turret.isOnTarget(m_shot.turretAimRot(), ShotCalculator.turretToleranceDeg(m_shot.distance())));
+        m_wheelReady = m_wheelSteady.calculate(m_flywheel.isNear(m_shot.flywheelRps(), ShooterConstants.kFlywheelTolerance));
         Telemetry.log("Shooter/Scoring", m_shot.scoring());
         Telemetry.log("Shooter/Distance m", m_shot.distance());
         Telemetry.log("Shooter/Shot Flywheel rps", m_shot.flywheelRps());
@@ -114,6 +128,16 @@ public class Superstructure extends SubsystemBase {
         Telemetry.log("Shooter/Near Trench", m_nearTrench);
         Telemetry.log("Shooter/Intake Extended", m_intakeRack.isExtended());
         Telemetry.getTable("Field").log("Shot Target", new Pose2d(m_shot.target(), Rotation2d.ZERO));
+        Telemetry.getTable("Field").log("Shot Aim Point", new Pose2d(m_shot.aimPoint(), Rotation2d.ZERO));
+        Telemetry.log("Shooter/Slow Enough", slowEnough());
+    }
+
+    /**
+     * Sim test only: the shoot-on-the-move lead on or off (the speed gate stays as the dashboard
+     * says), to compare shots with and without it.
+     */
+    public void setShootOnTheMoveForTest(boolean lead) {
+        m_leadForTest = lead;
     }
 
     /** The shot of this loop. */
@@ -128,12 +152,13 @@ public class Superstructure extends SubsystemBase {
 
     /** The hood angle to ask for: the shot's, or down near a trench. */
     private double hoodGoal() {
-        return m_nearTrench ? 0 : m_shot.hoodDeg();
+        return m_nearTrench ? 0 : m_shot.hoodGoalDeg();
     }
 
     /**
      * The shot may go: not near a trench, the intake fully out (we cannot shoot with it in), and a
-     * shot at the hub only from inside our zone (the look ahead aims at it a little early).
+     * shot at the hub only from inside our zone (the look ahead aims at it a little early), and
+     * the robot not faster than the shoot-on-the-move limits.
      *
      * <p>A dead rack Talon: the intake can never count as out, so the shot does not wait for it
      * (user, 2026-10-22: we cannot collect any more, so shoot the balls we have). The shot still
@@ -142,7 +167,19 @@ public class Superstructure extends SubsystemBase {
     private boolean allowed() {
         boolean inZoneForHub = !m_shot.scoring() || ShotCalculator.inOurZone(m_drive.getPose(), Drive.isRedAlliance());
         boolean intakeOk = m_intakeRack.isExtended() || m_intakeRack.hasDeadTalon();
-        return !m_nearTrench && intakeOk && inZoneForHub;
+        boolean inTables = !m_shot.scoring() || (m_shot.distance() >= ShooterConstants.kMinShotDistance
+            && m_shot.distance() <= ShooterConstants.kMaxShotDistance);
+        return !m_nearTrench && intakeOk && inZoneForHub && slowEnough() && inTables;
+    }
+
+    /** Slow enough to shoot: under the shoot-on-the-move limits, or the still ones if that is off. */
+    private boolean slowEnough() {
+        var v = m_drive.getFieldVelocity();
+        double speed = Math.hypot(v.vx, v.vy);
+        double turn = Math.abs(m_drive.getRobotVelocity().omega);
+        return m_shootOnTheMove.getAsBoolean()
+            ? speed <= ShooterConstants.kMaxShootSpeed && turn <= ShooterConstants.kMaxShootTurnRate
+            : speed <= ShooterConstants.kStillShootSpeed && turn <= ShooterConstants.kStillShootTurnRate;
     }
 
     /**
@@ -150,7 +187,7 @@ public class Superstructure extends SubsystemBase {
      * target.
      */
     public boolean isReady() {
-        return allowed() && m_flywheel.isReady() && m_turretOnTarget && m_hood.isOnTarget(m_shot.hoodDeg());
+        return allowed() && m_wheelReady && m_turretOnTarget && m_hood.isOnTarget(m_shot.hoodDeg());
     }
 
     /**
@@ -160,7 +197,7 @@ public class Superstructure extends SubsystemBase {
      */
     private boolean stillGood() {
         return allowed() && m_flywheel.getSpeed() >= kKeepFeedingSpeedFraction * m_shot.flywheelRps()
-            && m_turret.isOnTarget(m_shot.turretAimRot(), kKeepFeedingTurretDeg)
+            && m_turret.isOnTarget(m_shot.turretAimRot(), kKeepFeedingTurretFactor * ShotCalculator.turretToleranceDeg(m_shot.distance()))
             && m_hood.isOnTarget(m_shot.hoodDeg(), kKeepFeedingHoodDeg);
     }
 
@@ -176,7 +213,7 @@ public class Superstructure extends SubsystemBase {
      */
     public Command shoot() {
         return Commands.parallel(
-            m_flywheel.spin(() -> m_shot.flywheelRps()),
+            m_flywheel.spin(() -> m_shot.flywheelGoalRps()),
             m_hood.aim(this::hoodGoal),
             m_feeder.feedWhen(this::feedGate))
             .beforeStarting(() -> m_shooting = true)
@@ -192,7 +229,7 @@ public class Superstructure extends SubsystemBase {
      */
     public Command prepare() {
         return Commands.parallel(
-            m_flywheel.spin(() -> m_shot.flywheelRps()),
+            m_flywheel.spin(() -> m_shot.flywheelGoalRps()),
             m_hood.aim(this::hoodGoal)).withName("Prepare Shot");
     }
 

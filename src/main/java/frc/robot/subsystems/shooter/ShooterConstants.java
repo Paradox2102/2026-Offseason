@@ -35,8 +35,47 @@ public final class ShooterConstants {
     /** Turret axis from the robot center, meters (CAD 2026-10-22: turret gear center (-6.0, +7.5) in). */
     public static final Translation2d kTurretOffset =
         new Translation2d(Units.inchesToMeters(-6.0), Units.inchesToMeters(7.5));
-    /** Aim this far ahead of the robot's turn, seconds (the turret lags behind a turning robot). */
-    public static final double kTurretLeadTime = 0.1;
+    /**
+     * The turret goal leads the aim angle by its rate of change x this, seconds: the turret lags a
+     * goal that keeps moving (a turning robot, or a robot driving past the target). Sim: tuned in
+     * the shoot-on-the-move test. Robot: measure the turret's lag while it tracks.
+     */
+    public static final double kTurretLeadTime = 0.05;
+    /** The hood and flywheel goals are for the distance this far ahead (they lag a shot whose distance keeps changing), seconds. */
+    public static final double kHoodLeadTime = 0.1;
+    public static final double kFlywheelLeadTime = 0.08;
+    /**
+     * From the shot being worked out to the ball leaving, seconds: the shot is aimed from where
+     * the robot will be then. Sim: one loop (the sim shoots in the loop after the feed starts).
+     * Robot: the loop, plus the time a ball takes from the feeder to the wheel; measure it.
+     */
+    public static final double kShotLatency = 0.02;
+    /**
+     * The speed a ball takes from the robot dies away in the air (drag), so it drifts less than
+     * velocity x tof x (1 - this x tof), per second. In theory half the decay rate of the
+     * ball's speed (drag 0.0216 1/m x ~9 m/s = 0.19 per second, so about 0.1). Sim: 0.10 from the
+     * shoot-on-the-move test (0 left the balls behind the robot's motion, 0.19 ahead of it).
+     * Robot: tune with test shots on the move.
+     */
+    public static final double kLeadDecay = 0.10;
+    /**
+     * Shots go only while the robot is slower than this (m/s) and turns slower than this (rad/s).
+     * Sim (tools/sim-sotm.sh): every ball shot scored up to 3 m/s, mean miss 0.06-0.10 m strafing
+     * and 0.23 m on an arc at 3 m/s; spinning at 2 rad/s 0.16 m, 0.36 m with a 2 m/s strafe as
+     * well (the opening is 0.53 m in radius, 0.45 m for the ball's edge). With shoot on the move
+     * off on the dashboard, the still limits apply.
+     */
+    public static final double kMaxShootSpeed = 3.2;
+    public static final double kMaxShootTurnRate = 2.2;
+    public static final double kStillShootSpeed = 0.25;
+    /**
+     * Shots go only while the aim distance (to the aim point, after the lead) is inside the
+     * shot tables: driving fast at the hub moves the aim point to between the robot and the hub,
+     * and driving fast away moves it past the tables' end.
+     */
+    public static final double kMinShotDistance = 1.25;
+    public static final double kMaxShotDistance = 6.0;
+    public static final double kStillShootTurnRate = 0.3;
     /** Torque-current gains (amps). Start values: tune kP until the turret holds without shaking. */
     public static final double kTurretS = 2.0; // A
     public static final double kTurretP = 360; // A per turret rotation (1 A per degree)
@@ -52,6 +91,13 @@ public final class ShooterConstants {
     public static final double kTurretStatorLimit = 40; // A
     /** On target within this angle. */
     public static final double kTurretToleranceDeg = 1.5;
+    /**
+     * For a shot, the turret is on target when its error would move the ball less than this
+     * sideways at the hub, meters (the opening is 0.53 m in radius), but at least
+     * kTurretMinToleranceDeg: 4.3 degrees at 2 m, 1.9 at 4.5 m.
+     */
+    public static final double kTurretToleranceMeters = 0.15;
+    public static final double kTurretMinToleranceDeg = 1.0;
     /**
      * The turret cannot turn more than this in one 20 ms loop, rotations (270 deg/s is 5.4
      * degrees a loop). A bigger jump in its reading is a reboot (it reads 0 again), not a move.
@@ -141,17 +187,34 @@ public final class ShooterConstants {
 
     // ---- Shot tables: {distance m, value} ----
 
-    /** Old code's shot speeds in MOTOR rps; converted to wheel rps below. Tune on the robot. */
-    private static final double[][] kScoreSpeedsMotorRps = {
-        {1.125, 40}, {2.25, 45}, {2.75, 47}, {3.25, 50}, {4, 55}, {4.75, 60}};
-    public static final ShotTable kScoreSpeeds = new ShotTable(kScoreSpeedsMotorRps).scaled(1 / kFlywheelRatio);
+    /**
+     * Flywheel speed, wheel rps, by distance from the turret axis to the hub center. SOLVED IN
+     * THE SIM: the speed at which a still shot (with the hood table below) comes down through the
+     * middle of the hub opening in the sim's ball model (sim/field/ShotModel; ShotTablesTest
+     * checks it). That model's exit speed is fitted, not measured: measure these on the robot.
+     * The old code's speeds, in MOTOR rps (x 1 / 0.55 for wheel rps), for reference:
+     * {1.125, 40}, {2.25, 45}, {2.75, 47}, {3.25, 50}, {4, 55}, {4.75, 60}.
+     */
+    public static final ShotTable kScoreSpeeds = new ShotTable(new double[][] {
+        {1.25, 82.42}, {1.5, 78.73}, {1.75, 78.97}, {2.0, 81.2}, {2.25, 83.54},
+        {2.5, 85.99}, {2.75, 88.38}, {3.0, 90.76}, {3.25, 93.15}, {3.5, 95.48},
+        {3.75, 97.96}, {4.0, 100.35}, {4.25, 102.72}, {4.5, 105.02}, {4.75, 107.28},
+        {5.0, 109.41}, {5.25, 111.79}, {5.5, 114.03}, {5.75, 116.25}, {6.0, 118.28}});
     public static final ShotTable kPassSpeeds = kScoreSpeeds;
-    /** Old code's hood angles, degrees. */
+    /** Hood angles, degrees: the old code's (motor degrees there, not measured as hood degrees), but 6 at 1.5 m (10 hit the rim in the sim). */
     public static final ShotTable kScoreHood = new ShotTable(new double[][] {
-        {1.125, 0}, {1.25, 0}, {1.5, 10}, {1.75, 12.5}, {2, 15}, {2.25, 17.5}, {2.5, 19},
+        {1.125, 0}, {1.25, 0}, {1.5, 6}, {1.75, 12.5}, {2, 15}, {2.25, 17.5}, {2.5, 19},
         {2.75, 21}, {3, 22}, {4, 22}, {4.5, 23}, {5, 25}, {10, 35}});
     public static final ShotTable kPassHood = kScoreHood;
-    /** Time of flight, seconds. 0 = not measured = no shoot-on-the-move lead. */
-    public static final ShotTable kScoreTimeOfFlight = new ShotTable(new double[][] {{0, 0}});
+    /**
+     * Time of flight, seconds: from the shot until the ball comes down through the height of the
+     * hub top. From the same sim model as kScoreSpeeds. Shoot on the move aims ahead by the
+     * robot's velocity x this. Measure on the robot (video at 240 fps from the side).
+     */
+    public static final ShotTable kScoreTimeOfFlight = new ShotTable(new double[][] {
+        {1.25, 0.925}, {1.5, 0.785}, {1.75, 0.69}, {2.0, 0.705}, {2.25, 0.715},
+        {2.5, 0.74}, {2.75, 0.755}, {3.0, 0.785}, {3.25, 0.835}, {3.5, 0.88},
+        {3.75, 0.925}, {4.0, 0.965}, {4.25, 0.995}, {4.5, 1.02}, {4.75, 1.035},
+        {5.0, 1.045}, {5.25, 1.065}, {5.5, 1.09}, {5.75, 1.105}, {6.0, 1.125}});
     public static final ShotTable kPassTimeOfFlight = kScoreTimeOfFlight;
 }

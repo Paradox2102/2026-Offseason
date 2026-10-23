@@ -33,11 +33,13 @@ import frc.robot.health.HealthMonitor;
 import frc.robot.lib.util.AlertPublisher;
 import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.sim.SimSmokeTest;
+import frc.robot.sim.SimSotmTest;
 
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
     private final RobotContainer m_robotContainer;
     private SimSmokeTest m_smokeTest = null;
+    private SimSotmTest m_sotmTest = null;
 
     /*
      * AdvantageScope's robot model "2102 2026 Offseason" reads these two root topics (the names the
@@ -156,6 +158,9 @@ public class Robot extends TimedRobot {
         if ("1".equals(System.getenv("SIM_SMOKE"))) {
             m_smokeTest = new SimSmokeTest(m_robotContainer, Subsystems.m_drive);
         }
+        if ("1".equals(System.getenv("SIM_SOTM"))) {
+            m_sotmTest = new SimSotmTest(m_robotContainer, Subsystems.m_drive);
+        }
     }
 
     @Override
@@ -166,6 +171,9 @@ public class Robot extends TimedRobot {
         }
         if (m_smokeTest != null) {
             m_smokeTest.periodic();
+        }
+        if (m_sotmTest != null) {
+            m_sotmTest.periodic();
         }
     }
 }

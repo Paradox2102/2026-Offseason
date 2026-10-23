@@ -67,7 +67,25 @@ public class FuelField {
         final int id = s_next++;
         double x, y, z, vx, vy, vz;
         boolean inAir;
+        /** Seconds since it was shot (NaN for a ball that was never shot). */
+        double flightTime = Double.NaN;
     }
+
+    /**
+     * A shot ball on its way down through the height of the hub top, near a hub: where it crossed,
+     * from the hub center, and whether that was inside the opening (scored).
+     *
+     * @param flightTime seconds from the shot to the crossing
+     */
+    public record Crossing(boolean red, double dx, double dy, boolean scored, double flightTime) {
+        public double miss() {
+            return Math.hypot(dx, dy);
+        }
+    }
+
+    /** A crossing this far from a hub center (or nearer) is recorded, meters. */
+    private static final double kCrossingRecordRadius = 3.0;
+    private final List<Crossing> m_crossings = new ArrayList<>();
 
     private final double m_fieldLength;
     private final double m_fieldWidth;
@@ -91,6 +109,7 @@ public class FuelField {
 
     /** Back to the start: staged balls on the floor, the preload in the hopper, counts at 0. */
     public void reset() {
+        m_crossings.clear();
         m_balls.clear();
         for (var p : m_start) {
             var b = new Ball();
@@ -121,6 +140,7 @@ public class FuelField {
         b.vy = vy;
         b.vz = vz;
         b.inAir = true;
+        b.flightTime = 0;
         m_balls.add(b);
         return true;
     }
@@ -167,10 +187,17 @@ public class FuelField {
         b.x += b.vx * dt;
         b.y += b.vy * dt;
         b.z += b.vz * dt;
-        // Through the opening on the way down: scored.
+        b.flightTime += dt;
+        // Through the opening on the way down: scored. Near a hub, record where it crossed.
         if (b.vz < 0 && oldZ >= kHubTopZ && b.z < kHubTopZ) {
             for (boolean red : new boolean[] {false, true}) {
-                if (Math.hypot(b.x - hubX(red), b.y - hubY(red)) < kHubOpeningRadius) {
+                double dx = b.x - hubX(red);
+                double dy = b.y - hubY(red);
+                boolean in = Math.hypot(dx, dy) < kHubOpeningRadius;
+                if (!Double.isNaN(b.flightTime) && Math.hypot(dx, dy) < kCrossingRecordRadius) {
+                    m_crossings.add(new Crossing(red, dx, dy, in, b.flightTime));
+                }
+                if (in) {
                     score(b, red);
                     return;
                 }
@@ -445,6 +472,20 @@ public class FuelField {
 
     public int shots() {
         return m_shots;
+    }
+
+    /** The crossings since the last {@link #clearCrossings} (a copy). */
+    public List<Crossing> crossings() {
+        return List.copyOf(m_crossings);
+    }
+
+    public void clearCrossings() {
+        m_crossings.clear();
+    }
+
+    /** Put this many balls in the hopper (up to its capacity): for sim tests. */
+    public void fillHopper(int count) {
+        m_hopper = Math.min(count, kHopperCapacity);
     }
 
     public int scored(boolean red) {

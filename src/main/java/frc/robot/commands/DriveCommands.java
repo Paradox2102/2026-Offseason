@@ -2,16 +2,19 @@ package frc.robot.commands;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.telemetry.Telemetry;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveModule.SteerRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 import com.ctre.phoenix6.swerve.SwerveRequest.TargetDirectionPerspectiveValue;
 
 import frc.robot.constants.FieldConstants;
@@ -117,6 +120,24 @@ public final class DriveCommands {
     /** The multiple of 90 degrees nearest {@code heading} (field frame). */
     public static Rotation2d nearestQuarterTurn(Rotation2d heading) {
         return Rotation2d.fromDegrees(90 * Math.round(heading.getDegrees() / 90));
+    }
+
+    /**
+     * Drive at a field velocity (blue frame, m/s) from the supplier: turning at {@code omega}
+     * rad/s, or (omega 0) holding the field heading {@code heading}. For scripted drives (the
+     * shoot-on-the-move sim test).
+     */
+    public static Command driveAt(Drive drive, Supplier<Translation2d> fieldVelocity, double omega, Rotation2d heading) {
+        var turning = fieldCentric().withForwardPerspective(ForwardPerspectiveValue.BlueAlliance);
+        var holding = facingAngle(TargetDirectionPerspectiveValue.BlueAlliance);
+        return drive.run(() -> {
+            var v = fieldVelocity.get();
+            if (omega != 0) {
+                drive.setControl(turning.withVelocityX(v.getX()).withVelocityY(v.getY()).withRotationalRate(omega));
+            } else {
+                drive.setControl(holding.withVelocityX(v.getX()).withVelocityY(v.getY()).withTargetDirection(heading));
+            }
+        }).withName("Drive At");
     }
 
     /** Drive with the sticks while the robot front points at our hub. */

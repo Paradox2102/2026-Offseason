@@ -89,6 +89,11 @@ public class Flywheel extends SubsystemBase {
         return m_leader.isConnected() ? m_leader.getVelocity().getValueAsDouble() : 0;
     }
 
+    /** Within {@code fraction} of {@code rps} now (and the leader answers). */
+    public boolean isNear(double rps, double fraction) {
+        return m_leader.isConnected() && rps > 0 && Math.abs(getSpeed() - rps) <= fraction * rps;
+    }
+
     /** At the target speed (within 3 %) for 0.1 s. */
     public boolean isReady() {
         return m_isReady;
