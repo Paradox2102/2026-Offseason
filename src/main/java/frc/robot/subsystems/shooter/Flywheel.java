@@ -94,6 +94,11 @@ public class Flywheel extends SubsystemBase {
         return m_leader.isConnected() && rps > 0 && Math.abs(getSpeed() - rps) <= fraction * rps;
     }
 
+    /** The speed asked for, wheel rps (0 = off). */
+    public double getTarget() {
+        return m_target;
+    }
+
     /** At the target speed (within 3 %) for 0.1 s. */
     public boolean isReady() {
         return m_isReady;

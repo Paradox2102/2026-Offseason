@@ -1235,7 +1235,7 @@
         "layouts": [],
         "containers": [
           {
-            "title": "SysId routine (test pad)",
+            "title": "SysId routine (test pad, Calibration tab)",
             "x": 0,
             "y": 0,
             "width": 384,
@@ -1517,6 +1517,266 @@
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Sim/Fuel/Scored Red",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Calibration",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "Procedure",
+            "x": 0,
+            "y": 0,
+            "width": 384,
+            "height": 128,
+            "type": "Dropdown Chooser",
+            "properties": {
+              "topic": "/Tunables/Calibration/Procedure",
+              "period": 0.06,
+              "sort_options": false
+            }
+          },
+          {
+            "title": "Utility mode",
+            "x": 384,
+            "y": 0,
+            "width": 256,
+            "height": 128,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Calibration/Utility Mode",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Step",
+            "x": 640,
+            "y": 0,
+            "width": 896,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Calibration/Step",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Instructions",
+            "x": 0,
+            "y": 128,
+            "width": 1536,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Calibration/Instructions",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Reading 1",
+            "x": 0,
+            "y": 256,
+            "width": 768,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Calibration/Reading 1",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Reading 2",
+            "x": 768,
+            "y": 256,
+            "width": 768,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Calibration/Reading 2",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Reading 3",
+            "x": 0,
+            "y": 384,
+            "width": 768,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Calibration/Reading 3",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Reading 4",
+            "x": 768,
+            "y": 384,
+            "width": 768,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Calibration/Reading 4",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Capture",
+            "x": 0,
+            "y": 512,
+            "width": 256,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Calibration/Capture",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Save",
+            "x": 256,
+            "y": 512,
+            "width": 256,
+            "height": 128,
+            "type": "Command",
+            "properties": {
+              "topic": "/Tunables/Calibration/Save",
+              "period": 0.06,
+              "show_type": false,
+              "maximize_button_space": true
+            }
+          },
+          {
+            "title": "Message",
+            "x": 512,
+            "y": 512,
+            "width": 1024,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Calibration/Message",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Shot: typed distance m (0 = pose)",
+            "x": 0,
+            "y": 640,
+            "width": 384,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tunables/Calibration/Shot/Typed Distance m",
+              "period": 0.06,
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "Shot: typed time of flight s",
+            "x": 384,
+            "y": 640,
+            "width": 384,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tunables/Calibration/Shot/Typed Time of Flight s",
+              "period": 0.06,
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "Hood: upper stop angle deg",
+            "x": 768,
+            "y": 640,
+            "width": 384,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tunables/Calibration/Hood/Upper Stop Angle deg",
+              "period": 0.06,
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "Hood: lower stop above level deg",
+            "x": 1152,
+            "y": 640,
+            "width": 384,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tunables/Calibration/Hood/Lower Stop Above Level deg",
+              "period": 0.06,
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "Pack fraction",
+            "x": 0,
+            "y": 768,
+            "width": 384,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tunables/Intake/Pack/Fraction",
+              "period": 0.06,
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "Pulse amplitude m",
+            "x": 384,
+            "y": 768,
+            "width": 384,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tunables/Intake/Pack/Pulse Amplitude m",
+              "period": 0.06,
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "Pulse rate Hz",
+            "x": 768,
+            "y": 768,
+            "width": 384,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tunables/Intake/Pack/Pulse Rate Hz",
+              "period": 0.06,
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "SysId routine",
+            "x": 1152,
+            "y": 768,
+            "width": 384,
+            "height": 128,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Drive/SysId Routine",
               "period": 0.06,
               "show_submit_button": false
             }

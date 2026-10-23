@@ -44,7 +44,7 @@ public class RackSide {
     public static final double kPushedAway = 0.02;
 
     private final String m_name;
-    private final double m_outStop;
+    private double m_outStop;
     private boolean m_lost = false;
 
     /**
@@ -63,6 +63,11 @@ public class RackSide {
     /** The out stop, meters. */
     public double outStop() {
         return m_outStop;
+    }
+
+    /** A newly measured out stop (Calibration, "Intake zero"), meters. */
+    public void setOutStop(double outStop) {
+        m_outStop = outStop;
     }
 
     /** Where the stop of a move is: 0 or the out stop. */

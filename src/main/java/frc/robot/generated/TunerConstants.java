@@ -15,6 +15,7 @@ import org.wpilib.math.numbers.N1;
 import org.wpilib.math.numbers.N3;
 import org.wpilib.units.measure.*;
 
+import frc.robot.calibration.Calibration;
 import frc.robot.constants.CanIds;
 import frc.robot.subsystems.drive.Drive;
 
@@ -227,11 +228,26 @@ public class TunerConstants {
     /**
      * Creates a CommandSwerveDrivetrain instance.
      * This should only be called once in your robot program,.
+     *
+     * <p>Steer offsets measured on the robot (Calibration, "Steer zero") are used over the ones
+     * above. The swerve is built here, at boot: new offsets need a robot code restart.
      */
     public static Drive createDrivetrain() {
+        double[] measured = Calibration.get().steerOffsets;
+        if (measured != null && measured.length == 4) {
+            FrontLeft.withEncoderOffset(measured[0]);
+            FrontRight.withEncoderOffset(measured[1]);
+            BackLeft.withEncoderOffset(measured[2]);
+            BackRight.withEncoderOffset(measured[3]);
+        }
         return new Drive(
             DrivetrainConstants, FrontLeft, FrontRight, BackLeft, BackRight
         );
+    }
+
+    /** The steer offsets in use, rotations: FL, FR, BL, BR. */
+    public static double[] encoderOffsets() {
+        return new double[] {FrontLeft.EncoderOffset, FrontRight.EncoderOffset, BackLeft.EncoderOffset, BackRight.EncoderOffset};
     }
 
 

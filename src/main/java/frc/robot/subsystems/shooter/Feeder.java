@@ -1,6 +1,7 @@
 package frc.robot.subsystems.shooter;
 
 import java.util.List;
+import java.util.function.IntSupplier;
 
 import org.wpilib.command2.Command;
 import org.wpilib.command2.SubsystemBase;
@@ -22,6 +23,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import frc.robot.calibration.Calibration;
 import frc.robot.constants.CanIds;
 import frc.robot.health.HealthMonitor;
 import frc.robot.lib.phoenix.PhoenixUtil;
@@ -39,18 +41,22 @@ import frc.robot.subsystems.shooter.FeedLogic.Out;
  * is left at the turret entrance. A stage that jams makes them all run back for a moment
  * ({@link FeedLogic}).
  *
- * <p>Speeds are motor rps: the CAEL robot's duty cycles as speeds (ShooterConstants). Inversions
- * are the old code's.
+ * <p>Speeds are motor rps: the CAEL robot's duty cycles as speeds (ShooterConstants), or the ones
+ * tuned on the robot (Calibration, "Feeder tuning"). Inversions are the old code's.
  */
 public class Feeder extends SubsystemBase {
     /** One motor of the path. */
-    private record Stage(String name, TalonFX talon, double feedRps, double statorLimit, RollerSim sim) {}
+    private record Stage(String name, TalonFX talon, double statorLimit, RollerSim sim) {}
 
     private final MotionMagicVelocityVoltage m_request = new MotionMagicVelocityVoltage(0);
     private final StaticBrake m_brake = new StaticBrake();
     private final List<Stage> m_stages;
     private final FeedLogic m_logic;
     private final Alert m_jamAlert = AlertPublisher.create("Health", "shooter/feeder/jams", "", Level.MEDIUM);
+    /** Feed speed of each stage, motor rps. */
+    private final double[] m_speeds;
+    /** Calibration: run one stage alone (-1: none). */
+    private int m_soloStage = -1;
     private Mode m_mode = Mode.STOP;
     private String m_state = "Stopped";
 
@@ -59,21 +65,27 @@ public class Feeder extends SubsystemBase {
         double x44 = ShooterConstants.kFeedStatorLimitX44;
         m_stages = List.of(
             stage("Indexer roller (30)", CanIds.indexerRoller, CanIds.k_canBus1, InvertedValue.Clockwise_Positive,
-                ShooterConstants.kIndexerRollerRps, ShooterConstants.kIndexerRollerKv, 25, x60, true),
+                ShooterConstants.kIndexerRollerKv, 25, x60, true),
             stage("Top belt tunnel (31)", CanIds.indexerConveyorLeader, CanIds.k_canBus1, InvertedValue.CounterClockwise_Positive,
-                ShooterConstants.kTopBeltRps, ShooterConstants.kBeltTunnelKv, 18, x44, false),
+                ShooterConstants.kBeltTunnelKv, 18, x44, false),
             stage("Bottom belt tunnel (32)", CanIds.indexerConveyorFollower, CanIds.k_canBus1, InvertedValue.Clockwise_Positive,
-                ShooterConstants.kBottomBeltRps, ShooterConstants.kBeltTunnelKv, 18, x44, false),
+                ShooterConstants.kBeltTunnelKv, 18, x44, false),
             stage("Scotty rollers (45)", CanIds.goUp, CanIds.k_canBus3, InvertedValue.Clockwise_Positive,
-                ShooterConstants.kScottyRps, ShooterConstants.kScottyKv, 23, x60, true),
+                ShooterConstants.kScottyKv, 23, x60, true),
             stage("Vertical roller (40)", CanIds.kicker, CanIds.k_canBus3, InvertedValue.CounterClockwise_Positive,
-                ShooterConstants.kVerticalRollerRps, ShooterConstants.kVerticalRollerKv, 23, x60, true));
+                ShooterConstants.kVerticalRollerKv, 23, x60, true));
+        m_speeds = new double[] {ShooterConstants.kIndexerRollerRps, ShooterConstants.kTopBeltRps,
+            ShooterConstants.kBottomBeltRps, ShooterConstants.kScottyRps, ShooterConstants.kVerticalRollerRps};
+        double[] tuned = Calibration.get().feedSpeeds;
+        if (tuned != null && tuned.length == m_speeds.length) {
+            System.arraycopy(tuned, 0, m_speeds, 0, m_speeds.length);
+        }
         m_logic = new FeedLogic(m_stages.size(), ShooterConstants.kFeedRunOnTime, ShooterConstants.kFeedClearTime,
             ShooterConstants.kFeedJamTime,
             ShooterConstants.kFeedUnjamTime, ShooterConstants.kFeedJamAlertCount, ShooterConstants.kFeedJamWindow);
     }
 
-    private Stage stage(String name, int id, CANBus bus, InvertedValue inverted, double feedRps,
+    private Stage stage(String name, int id, CANBus bus, InvertedValue inverted,
                         double kV, double supplyLimit, double statorLimit, boolean x60) {
         var talon = new TalonFX(id, bus);
         var config = new TalonFXConfiguration();
@@ -96,7 +108,7 @@ public class Feeder extends SubsystemBase {
             sim = new RollerSim(talon, x60 ? DCMotor.getKrakenX60Foc(1) : DCMotor.getKrakenX44Foc(1), 1.0, 0.0002,
                 orientation, x60 ? TalonFXSimState.MotorType.KrakenX60 : TalonFXSimState.MotorType.KrakenX44);
         }
-        return new Stage(name, talon, feedRps, statorLimit, sim);
+        return new Stage(name, talon, statorLimit, sim);
     }
 
     /** Ask {@link FeedLogic} what each stage does now, and do it. */
@@ -105,15 +117,15 @@ public class Feeder extends SubsystemBase {
         boolean[] stalled = new boolean[m_stages.size()];
         for (int i = 0; i < stalled.length; i++) {
             Stage s = m_stages.get(i);
-            stalled[i] = Math.abs(s.talon().getVelocity().getValueAsDouble()) < ShooterConstants.kFeedJamSpeedFraction * s.feedRps()
+            stalled[i] = Math.abs(s.talon().getVelocity().getValueAsDouble()) < ShooterConstants.kFeedJamSpeedFraction * m_speeds[i]
                 && s.talon().getStatorCurrent().getValueAsDouble() > ShooterConstants.kFeedJamCurrentFraction * s.statorLimit();
         }
         Out[] out = m_logic.update(now, m_mode, stalled);
         for (int i = 0; i < out.length; i++) {
             Stage s = m_stages.get(i);
             switch (out[i]) {
-                case FEED -> s.talon().setControl(m_request.withVelocity(s.feedRps()));
-                case REVERSE -> s.talon().setControl(m_request.withVelocity(s.feedRps() * ShooterConstants.kEjectFraction));
+                case FEED -> s.talon().setControl(m_request.withVelocity(m_speeds[i]));
+                case REVERSE -> s.talon().setControl(m_request.withVelocity(m_speeds[i] * ShooterConstants.kEjectFraction));
                 case BRAKE -> s.talon().setControl(m_brake);
             }
         }
@@ -153,6 +165,57 @@ public class Feeder extends SubsystemBase {
         return runEnd(() -> set(Mode.EJECT, "Ejecting"), () -> set(Mode.STOP, "Stopped")).withName("Feeder Eject");
     }
 
+    /**
+     * Calibration: run one stage alone at its feed speed while held; the others brake. No jam
+     * check: watch its speed and current.
+     */
+    public Command runStage(IntSupplier stage) {
+        return runEnd(() -> {
+            int solo = stage.getAsInt();
+            for (int i = 0; i < m_stages.size(); i++) {
+                var talon = m_stages.get(i).talon();
+                if (i == solo) {
+                    talon.setControl(m_request.withVelocity(m_speeds[i]));
+                } else {
+                    talon.setControl(m_brake);
+                }
+            }
+            m_soloStage = solo;
+            m_state = "One stage";
+        }, () -> {
+            m_soloStage = -1;
+            set(Mode.STOP, "Stopped");
+        }).withName("Feeder One Stage");
+    }
+
+    /** Feed speeds per stage, motor rps (a copy). */
+    public double[] feedSpeeds() {
+        return m_speeds.clone();
+    }
+
+    /** New feed speeds per stage, motor rps (Calibration); used at once. */
+    public void setFeedSpeeds(double[] speeds) {
+        System.arraycopy(speeds, 0, m_speeds, 0, m_speeds.length);
+    }
+
+    public int stageCount() {
+        return m_stages.size();
+    }
+
+    public String stageName(int i) {
+        return m_stages.get(i).name();
+    }
+
+    /** A stage's speed now, motor rps. */
+    public double stageSpeed(int i) {
+        return m_stages.get(i).talon().getVelocity().getValueAsDouble();
+    }
+
+    /** A stage's stator current now, amps. */
+    public double stageCurrent(int i) {
+        return m_stages.get(i).talon().getStatorCurrent().getValueAsDouble();
+    }
+
     /** For test output: jams in the last few seconds. */
     public int recentJams() {
         return m_logic.recentJams(Timer.getTimestamp());
@@ -178,7 +241,7 @@ public class Feeder extends SubsystemBase {
         double now = Timer.getTimestamp();
         // No command runs: finish the vertical roller's run-on and the clear. Disabled, the Talons
         // are neutral anyway: send nothing (at code start they may not be up yet).
-        if ((m_mode == Mode.STOP || m_mode == Mode.END) && RobotState.isEnabled()) {
+        if ((m_mode == Mode.STOP || m_mode == Mode.END) && m_soloStage < 0 && RobotState.isEnabled()) {
             apply();
         }
         int jams = m_logic.recentJams(now);

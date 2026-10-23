@@ -22,6 +22,15 @@ public class ShotTable {
         return m_map.get(distance);
     }
 
+    /** The {distance, value} points (a copy). */
+    public double[][] points() {
+        double[][] out = new double[m_points.length][];
+        for (int i = 0; i < m_points.length; i++) {
+            out[i] = m_points[i].clone();
+        }
+        return out;
+    }
+
     /** The same table with every value multiplied by {@code factor} (for a unit change). */
     public ShotTable scaled(double factor) {
         double[][] scaled = new double[m_points.length][];

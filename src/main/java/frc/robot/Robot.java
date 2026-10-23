@@ -28,10 +28,12 @@ import com.ctre.phoenix6.HootAutoReplay;
 import com.ctre.phoenix6.SignalLogger;
 
 import frc.robot.Constants.Subsystems;
+import frc.robot.calibration.Calibration;
 import frc.robot.constants.CanIds;
 import frc.robot.health.HealthMonitor;
 import frc.robot.lib.util.AlertPublisher;
 import frc.robot.subsystems.intake.IntakeConstants;
+import frc.robot.sim.SimCalibrationTest;
 import frc.robot.sim.SimSmokeTest;
 import frc.robot.sim.SimSotmTest;
 
@@ -40,6 +42,7 @@ public class Robot extends TimedRobot {
     private final RobotContainer m_robotContainer;
     private SimSmokeTest m_smokeTest = null;
     private SimSotmTest m_sotmTest = null;
+    private SimCalibrationTest m_calibrationTest = null;
 
     /*
      * AdvantageScope's robot model "2102 2026 Offseason" reads these two root topics (the names the
@@ -78,6 +81,9 @@ public class Robot extends TimedRobot {
         // Elastic downloads its layout (deploy/elastic-layout.json) from this web server.
         WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 
+        // Values measured on the robot (calibration file) before anything is built, so each
+        // subsystem starts with them.
+        Calibration.get();
         m_robotContainer = new RobotContainer();
 
         /* watch CAN buses, devices, battery and cameras; see health/HealthMonitor.java */
@@ -161,6 +167,9 @@ public class Robot extends TimedRobot {
         if ("1".equals(System.getenv("SIM_SOTM"))) {
             m_sotmTest = new SimSotmTest(m_robotContainer, Subsystems.m_drive);
         }
+        if ("1".equals(System.getenv("SIM_CALIB"))) {
+            m_calibrationTest = new SimCalibrationTest(m_robotContainer, Subsystems.m_drive);
+        }
     }
 
     @Override
@@ -174,6 +183,9 @@ public class Robot extends TimedRobot {
         }
         if (m_sotmTest != null) {
             m_sotmTest.periodic();
+        }
+        if (m_calibrationTest != null) {
+            m_calibrationTest.periodic();
         }
     }
 }

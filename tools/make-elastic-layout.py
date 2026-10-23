@@ -75,7 +75,7 @@ for i, cam in enumerate(["front_right", "front_left", "side_left", "side_right"]
         graph("Robot z m (0 = camera OK)", base + "Robot Z m", x, 4, cw=3, ch=1, color=BLUE),
     ]
 
-tuning = [text("SysId routine (test pad)", "/Telemetry/Drive/SysId Routine", 0, 0, 3, 1)]
+tuning = [text("SysId routine (test pad, Calibration tab)", "/Telemetry/Drive/SysId Routine", 0, 0, 3, 1)]
 for r, name in enumerate(["Translation", "Steer", "Rotation"]):
     for c, test in enumerate(["Quasistatic Forward", "Quasistatic Reverse", "Dynamic Forward", "Dynamic Reverse"]):
         tuning.append(command(f"{name} {test}", f"/Tunables/Tuning/SysId {name}/{test}", c * 3, 1 + r, 3, 1))
@@ -139,8 +139,36 @@ driver.append(boolbox("Intake fully out", "/Telemetry/Shooter/Intake Extended", 
 shooter.append(boolbox("Near trench", "/Telemetry/Shooter/Near Trench", 3, 5, 2, 1))
 shooter.append(boolbox("Intake fully out", "/Telemetry/Shooter/Intake Extended", 5, 5, 2, 1))
 
+# Calibration (Utility mode only; see calibration/Calibration.java). The test pad works only for the
+# procedure picked here.
+def entry(title, topic, x, y, cw=3, ch=1):
+    return w(title, "Text Display", topic, x, y, cw, ch, show_submit_button=True)
+
+calibration = [
+    w("Procedure", "Dropdown Chooser", "/Tunables/Calibration/Procedure", 0, 0, 3, 1, sort_options=False),
+    boolbox("Utility mode", "/Telemetry/Calibration/Utility Mode", 3, 0, 2, 1),
+    text("Step", "/Telemetry/Calibration/Step", 5, 0, 7, 1),
+    text("Instructions", "/Telemetry/Calibration/Instructions", 0, 1, 12, 1),
+    text("Reading 1", "/Telemetry/Calibration/Reading 1", 0, 2, 6, 1),
+    text("Reading 2", "/Telemetry/Calibration/Reading 2", 6, 2, 6, 1),
+    text("Reading 3", "/Telemetry/Calibration/Reading 3", 0, 3, 6, 1),
+    text("Reading 4", "/Telemetry/Calibration/Reading 4", 6, 3, 6, 1),
+    command("Capture", "/Tunables/Calibration/Capture", 0, 4, 2, 1),
+    command("Save", "/Tunables/Calibration/Save", 2, 4, 2, 1),
+    text("Message", "/Telemetry/Calibration/Message", 4, 4, 8, 1),
+    entry("Shot: typed distance m (0 = pose)", "/Tunables/Calibration/Shot/Typed Distance m", 0, 5),
+    entry("Shot: typed time of flight s", "/Tunables/Calibration/Shot/Typed Time of Flight s", 3, 5),
+    entry("Hood: upper stop angle deg", "/Tunables/Calibration/Hood/Upper Stop Angle deg", 6, 5),
+    entry("Hood: lower stop above level deg", "/Tunables/Calibration/Hood/Lower Stop Above Level deg", 9, 5),
+    entry("Pack fraction", "/Tunables/Intake/Pack/Fraction", 0, 6),
+    entry("Pulse amplitude m", "/Tunables/Intake/Pack/Pulse Amplitude m", 3, 6),
+    entry("Pulse rate Hz", "/Tunables/Intake/Pack/Pulse Rate Hz", 6, 6),
+    text("SysId routine", "/Telemetry/Drive/SysId Routine", 9, 6, 3, 1),
+]
+
 layout = {"version": 1.0, "grid_size": G, "tabs": [
     {"name": n, "grid_layout": {"layouts": [], "containers": c}}
-    for n, c in [("Driver", driver), ("Pit", pit), ("Drive", drive), ("Vision", vision), ("Intake", intake), ("Shooter", shooter), ("Tuning", tuning)]]}
+    for n, c in [("Driver", driver), ("Pit", pit), ("Drive", drive), ("Vision", vision), ("Intake", intake), ("Shooter", shooter), ("Tuning", tuning),
+                 ("Calibration", calibration)]]}
 json.dump(layout, open(sys.argv[1], "w"), indent=2)
 print(sum(len(t["grid_layout"]["containers"]) for t in layout["tabs"]), "widgets")

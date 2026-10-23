@@ -10,11 +10,12 @@
 #
 # Needs JAVA_HOME set to the WPILib JDK. Uses the NetworkTables port, so it stops a sim of this
 # project that is still running.
+# The robot code runs with no calibration file (constants only), whatever a GUI sim saved.
 set -u
 cd "$(dirname "$0")/.."
 LIB="$PWD/build/jni/release"
 LOG="$PWD/build/sim-sotm.log"
-rm -f "$LOG"
+rm -f "$LOG" build/no-calibration.json
 OLD=$(pgrep -f "bin/java .*$PWD/build/classes/java/main.* frc.robot.Main" || true)
 if [ -n "$OLD" ]; then
     echo "Stopping a sim of this project left from an earlier run (PID $OLD)"
@@ -22,7 +23,7 @@ if [ -n "$OLD" ]; then
     sleep 2
 fi
 sh ./gradlew build -q -x test || { echo "FAIL: build"; exit 1; }
-SIM_SOTM=1 SIM_SOTM_ONLY="${SIM_SOTM_ONLY:-}" SIM_SOTM_COMPARE="${SIM_SOTM_COMPARE:-0}" SIM_SOTM_TRACE="${SIM_SOTM_TRACE:-0}" DYLD_LIBRARY_PATH="$LIB" LD_LIBRARY_PATH="$LIB" JAVA_TOOL_OPTIONS="-Djava.library.path=$LIB" \
+CALIBRATION_FILE="$PWD/build/no-calibration.json" SIM_SOTM=1 SIM_SOTM_ONLY="${SIM_SOTM_ONLY:-}" SIM_SOTM_COMPARE="${SIM_SOTM_COMPARE:-0}" SIM_SOTM_TRACE="${SIM_SOTM_TRACE:-0}" DYLD_LIBRARY_PATH="$LIB" LD_LIBRARY_PATH="$LIB" JAVA_TOOL_OPTIONS="-Djava.library.path=$LIB" \
     sh ./gradlew run -q > "$LOG" 2>&1
 grep "SOTM" "$LOG"
 if grep -nE "Exception|at frc\.robot\." "$LOG" > /dev/null; then

@@ -49,9 +49,9 @@ public class ShotCalculator {
 
     private boolean m_shootOnTheMove = true;
 
-    private final ShotTable m_scoreSpeeds;
-    private final ShotTable m_scoreHood;
-    private final ShotTable m_scoreTimeOfFlight;
+    private ShotTable m_scoreSpeeds;
+    private ShotTable m_scoreHood;
+    private ShotTable m_scoreTimeOfFlight;
     private final ShotTable m_passSpeeds;
     private final ShotTable m_passHood;
     private final ShotTable m_passTimeOfFlight;
@@ -69,6 +69,18 @@ public class ShotCalculator {
         m_passSpeeds = passSpeeds;
         m_passHood = passHood;
         m_passTimeOfFlight = passTimeOfFlight;
+    }
+
+    /** New score tables (points measured on the robot), used from the next shot on. */
+    public void setScoreTables(ShotTable speeds, ShotTable hood, ShotTable timeOfFlight) {
+        m_scoreSpeeds = speeds;
+        m_scoreHood = hood;
+        m_scoreTimeOfFlight = timeOfFlight;
+    }
+
+    /** A still score shot at this distance: {flywheel wheel rps, hood degrees}. */
+    public double[] scoreAt(double distance) {
+        return new double[] {m_scoreSpeeds.get(distance), Math.min(m_scoreHood.get(distance), ShooterConstants.kHoodMaxDeg)};
     }
 
     /**

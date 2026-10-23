@@ -1,5 +1,8 @@
 package frc.robot.subsystems.superstructure;
 
+import java.util.List;
+import java.util.function.DoubleSupplier;
+
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
@@ -15,6 +18,9 @@ import org.wpilib.tunable.TunableDouble;
 import org.wpilib.util.Alert;
 import org.wpilib.util.Alert.Level;
 
+import frc.robot.calibration.Calibration;
+import frc.robot.calibration.ShotPoints;
+import frc.robot.calibration.ShotPoints.ShotPoint;
 import frc.robot.lib.util.AlertPublisher;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.IntakeRack;
@@ -118,6 +124,9 @@ public class Superstructure extends SubsystemBase {
     private final PackPulse m_packPulse = new PackPulse(kPackDelay, kPackSettleTime);
     /** When the feed first started in this shot (NaN: not yet). */
     private double m_feedStart = Double.NaN;
+    /** A calibration shot: the flywheel speed and hood angle to use (null: the shot's). */
+    private DoubleSupplier m_flywheelOverride = null;
+    private DoubleSupplier m_hoodOverride = null;
     /** Sim test only: the lead on or off whatever the dashboard says (null = the dashboard). */
     private Boolean m_leadForTest = null;
 
@@ -130,6 +139,7 @@ public class Superstructure extends SubsystemBase {
         m_feeder = feeder;
         m_intakeRoller = intakeRoller;
         m_intakeRack = intakeRack;
+        setShotPoints(Calibration.get().shotPoints);
         m_shot = compute();
         m_intakeRack.holdOutWhile("trench", () -> m_nearTrench);
         m_intakeRack.holdOutWhile("shooting", () -> m_shooting);
@@ -155,7 +165,7 @@ public class Superstructure extends SubsystemBase {
         m_trenchAlert.set(m_nearTrench && (!m_intakeRack.isExtended() || m_hood.getAngleDeg() > kHoodDownDeg));
         m_turretOnTarget = m_turretSteady.calculate(
             m_turret.isOnTarget(m_shot.turretAimRot(), ShotCalculator.turretToleranceDeg(m_shot.distance())));
-        m_wheelReady = m_wheelSteady.calculate(m_flywheel.isNear(m_shot.flywheelRps(), ShooterConstants.kFlywheelTolerance));
+        m_wheelReady = m_wheelSteady.calculate(m_flywheel.isNear(flywheelNeed(), ShooterConstants.kFlywheelTolerance));
         Telemetry.log("Shooter/Scoring", m_shot.scoring());
         Telemetry.log("Shooter/Distance m", m_shot.distance());
         Telemetry.log("Shooter/Shot Flywheel rps", m_shot.flywheelRps());
@@ -163,7 +173,7 @@ public class Superstructure extends SubsystemBase {
         Telemetry.log("Shooter/Ready", isReady());
         Telemetry.log("Shooter/Turret Ready", m_turretOnTarget);
         Telemetry.log("Shooter/Feeding", m_feeding);
-        Telemetry.log("Shooter/Hood Ready", m_hood.isOnTarget(m_shot.hoodDeg()));
+        Telemetry.log("Shooter/Hood Ready", m_hood.isOnTarget(hoodNeed()));
         Telemetry.log("Shooter/Near Trench", m_nearTrench);
         Telemetry.log("Shooter/Intake Extended", m_intakeRack.isExtended());
         Telemetry.log("Shooter/Intake Packing", m_intakeRack.isPacking());
@@ -184,6 +194,37 @@ public class Superstructure extends SubsystemBase {
     /** The shot of this loop. */
     public Shot getShot() {
         return m_shot;
+    }
+
+    /**
+     * Shot points measured on the robot ({@link Calibration}): each replaces the score table
+     * points near it, from the next loop on.
+     */
+    public void setShotPoints(List<ShotPoint> points) {
+        m_calculator.setScoreTables(
+            ShotPoints.merge(ShooterConstants.kScoreSpeeds, points, ShotPoint::flywheelRps),
+            ShotPoints.merge(ShooterConstants.kScoreHood, points, ShotPoint::hoodDeg),
+            ShotPoints.merge(ShooterConstants.kScoreTimeOfFlight, points, ShotPoint::timeOfFlight));
+    }
+
+    /** A still score shot at this distance from the tables in use: {flywheel wheel rps, hood degrees}. */
+    public double[] shotAt(double distance) {
+        return m_calculator.scoreAt(distance);
+    }
+
+    /** The flywheel speed the shot needs now (for "ready"). */
+    private double flywheelNeed() {
+        return m_flywheelOverride != null ? m_flywheelOverride.getAsDouble() : m_shot.flywheelRps();
+    }
+
+    /** The flywheel goal (it leads the need on the move). */
+    private double flywheelGoal() {
+        return m_flywheelOverride != null ? m_flywheelOverride.getAsDouble() : m_shot.flywheelGoalRps();
+    }
+
+    /** The hood angle the shot needs now (for "ready"). */
+    private double hoodNeed() {
+        return m_hoodOverride != null ? m_hoodOverride.getAsDouble() : m_shot.hoodDeg();
     }
 
     /** Low enough for a trench: intake fully out and hood down. */
@@ -229,7 +270,16 @@ public class Superstructure extends SubsystemBase {
 
     /** The hood angle to ask for: the shot's, or down near a trench. */
     private double hoodGoal() {
-        return m_nearTrench ? 0 : m_shot.hoodGoalDeg();
+        if (m_nearTrench) {
+            return 0;
+        }
+        return m_hoodOverride != null ? m_hoodOverride.getAsDouble() : m_shot.hoodGoalDeg();
+    }
+
+    /** The aim distance is inside the tables (a pass, or a calibration shot, always is). */
+    private boolean inTables() {
+        return !m_shot.scoring() || m_flywheelOverride != null || (m_shot.distance() >= ShooterConstants.kMinShotDistance
+            && m_shot.distance() <= ShooterConstants.kMaxShotDistance);
     }
 
     /**
@@ -243,10 +293,7 @@ public class Superstructure extends SubsystemBase {
      */
     private boolean allowed() {
         boolean inZoneForHub = !m_shot.scoring() || ShotCalculator.inOurZone(m_drive.getPose(), Drive.isRedAlliance());
-        boolean intakeOk = intakeOk();
-        boolean inTables = !m_shot.scoring() || (m_shot.distance() >= ShooterConstants.kMinShotDistance
-            && m_shot.distance() <= ShooterConstants.kMaxShotDistance);
-        return !m_nearTrench && intakeOk && inZoneForHub && slowEnough() && inTables;
+        return !m_nearTrench && intakeOk() && inZoneForHub && slowEnough() && inTables();
     }
 
     /** Slow enough to shoot: under the shoot-on-the-move limits, or the still ones if that is off. */
@@ -262,8 +309,6 @@ public class Superstructure extends SubsystemBase {
     /** What stops a shot now (the first check that fails), or "" when it is ready. For the dashboard. */
     public String blockedBy() {
         boolean inZoneForHub = !m_shot.scoring() || ShotCalculator.inOurZone(m_drive.getPose(), Drive.isRedAlliance());
-        boolean inTables = !m_shot.scoring() || (m_shot.distance() >= ShooterConstants.kMinShotDistance
-            && m_shot.distance() <= ShooterConstants.kMaxShotDistance);
         if (m_nearTrench) {
             return "near a trench";
         } else if (!intakeOk()) {
@@ -272,13 +317,13 @@ public class Superstructure extends SubsystemBase {
             return "outside our zone";
         } else if (!slowEnough()) {
             return "moving too fast";
-        } else if (!inTables) {
+        } else if (!inTables()) {
             return String.format("aim distance %.1f m", m_shot.distance());
         } else if (!m_wheelReady) {
             return "flywheel";
         } else if (!m_turretOnTarget) {
             return "turret";
-        } else if (!m_hood.isOnTarget(m_shot.hoodDeg())) {
+        } else if (!m_hood.isOnTarget(hoodNeed())) {
             return "hood";
         }
         return "";
@@ -289,7 +334,7 @@ public class Superstructure extends SubsystemBase {
      * target.
      */
     public boolean isReady() {
-        return allowed() && m_wheelReady && m_turretOnTarget && m_hood.isOnTarget(m_shot.hoodDeg());
+        return allowed() && m_wheelReady && m_turretOnTarget && m_hood.isOnTarget(hoodNeed());
     }
 
     /**
@@ -298,9 +343,9 @@ public class Superstructure extends SubsystemBase {
      * feed has started it only stops if the shot is clearly off.
      */
     private boolean stillGood() {
-        return allowed() && m_flywheel.getSpeed() >= kKeepFeedingSpeedFraction * m_shot.flywheelRps()
+        return allowed() && m_flywheel.getSpeed() >= kKeepFeedingSpeedFraction * flywheelNeed()
             && m_turret.isOnTarget(m_shot.turretAimRot(), kKeepFeedingTurretFactor * ShotCalculator.turretToleranceDeg(m_shot.distance()))
-            && m_hood.isOnTarget(m_shot.hoodDeg(), kKeepFeedingHoodDeg);
+            && m_hood.isOnTarget(hoodNeed(), kKeepFeedingHoodDeg);
     }
 
     /** Start on "ready", keep on "still good" (a latch with two limits). */
@@ -318,16 +363,34 @@ public class Superstructure extends SubsystemBase {
      * clears (runs back) and the intake goes fully out.
      */
     public Command shoot() {
+        return shoot(null, null).withName("Shoot");
+    }
+
+    /**
+     * A calibration shot: like {@link #shoot}, with this flywheel speed and hood angle (the turret
+     * aims as usual, and the distance limits of the tables do not apply).
+     */
+    public Command shootWith(DoubleSupplier flywheelRps, DoubleSupplier hoodDeg) {
+        return shoot(flywheelRps, hoodDeg).withName("Shoot With");
+    }
+
+    private Command shoot(DoubleSupplier flywheelRps, DoubleSupplier hoodDeg) {
         return Commands.parallel(
-            m_flywheel.spin(() -> m_shot.flywheelGoalRps()),
+            m_flywheel.spin(this::flywheelGoal),
             m_hood.aim(this::hoodGoal),
             m_feeder.feedWhen(this::feedGate))
-            .beforeStarting(() -> m_shooting = true)
+            .beforeStarting(() -> {
+                m_shooting = true;
+                m_flywheelOverride = flywheelRps;
+                m_hoodOverride = hoodDeg;
+            })
             .finallyDo(() -> {
                 m_feeding = false;
                 m_shooting = false;
                 m_feedStart = Double.NaN;
-            }).withName("Shoot");
+                m_flywheelOverride = null;
+                m_hoodOverride = null;
+            });
     }
 
     /**
@@ -336,7 +399,7 @@ public class Superstructure extends SubsystemBase {
      */
     public Command prepare() {
         return Commands.parallel(
-            m_flywheel.spin(() -> m_shot.flywheelGoalRps()),
+            m_flywheel.spin(this::flywheelGoal),
             m_hood.aim(this::hoodGoal)).withName("Prepare Shot");
     }
 

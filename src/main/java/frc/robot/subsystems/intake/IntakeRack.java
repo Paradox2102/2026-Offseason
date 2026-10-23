@@ -25,6 +25,7 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import frc.robot.calibration.Calibration;
 import frc.robot.constants.CanIds;
 import frc.robot.health.HealthMonitor;
 import frc.robot.lib.phoenix.PhoenixUtil;
@@ -270,11 +271,12 @@ public class IntakeRack extends SubsystemBase {
         }
     }
 
-    // Talon 21 is on the turret (left) side; Talon 22 turns the other way on the right side.
+    // Talon 21 is on the turret (left) side; Talon 22 turns the other way on the right side. The
+    // out stops measured on the robot (Calibration) are used over the constants.
     private final Side m_left = new Side("Talon 21 (left)", CanIds.intakeExtensionLeader, InvertedValue.CounterClockwise_Positive,
-        IntakeConstants.kOutStopLeft);
+        measured(Calibration.get().intakeOutStopLeft, IntakeConstants.kOutStopLeft));
     private final Side m_right = new Side("Talon 22 (right)", CanIds.intakeExtensionFollower, InvertedValue.Clockwise_Positive,
-        IntakeConstants.kOutStopRight);
+        measured(Calibration.get().intakeOutStopRight, IntakeConstants.kOutStopRight));
 
     private final SkewGuard m_skewGuard = new SkewGuard(IntakeConstants.kSkewLimit, IntakeConstants.kSkewTime);
     private final Alert m_skewAlert = AlertPublisher.create("Health", "intake/skew",
@@ -484,6 +486,26 @@ public class IntakeRack extends SubsystemBase {
 
     private boolean atStop() {
         return m_left.atStop() && m_right.atStop();
+    }
+
+    private static double measured(double value, double constant) {
+        return Double.isNaN(value) ? constant : value;
+    }
+
+    /** New out stops (Calibration, "Intake zero"), meters; used at once. */
+    public void setOutStops(double left, double right) {
+        m_left.m_state.setOutStop(left);
+        m_right.m_state.setOutStop(right);
+    }
+
+    /** A side's out stop in use, meters. */
+    public double outStop(boolean left) {
+        return (left ? m_left : m_right).m_state.outStop();
+    }
+
+    /** A side's reading at its last stall, before any fix, meters (NaN: none yet). */
+    public double lastStall(boolean left) {
+        return (left ? m_left : m_right).m_lastStall;
     }
 
     /** Mean of the two sides, meters (0 = in). */

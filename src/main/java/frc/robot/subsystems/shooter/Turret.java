@@ -26,6 +26,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import frc.robot.calibration.Calibration;
 import frc.robot.constants.CanIds;
 import frc.robot.health.HealthMonitor;
 import frc.robot.lib.phoenix.PhoenixUtil;
@@ -41,6 +42,9 @@ import frc.robot.lib.util.AlertPublisher;
  * turned on. If the Talon reboots in a match, it counts from wherever the turret is then, so
  * every angle after that would be wrong: the turret stops and an alert asks for the jig and the
  * "Zero turret (in jig)" button.
+ *
+ * <p>Trim (Calibration, "Turret zero"): if the jig holds the turret a little off its true jig angle,
+ * the Talon's reading there is the trim. Angles in the code are true angles: reading - trim.
  */
 public class Turret extends SubsystemBase {
     private final TalonFX m_talon = new TalonFX(CanIds.shooterAzimuth, CanIds.k_canBus3);
@@ -60,6 +64,8 @@ public class Turret extends SubsystemBase {
     private final double m_startTime = Timer.getTimestamp();
     private boolean m_zeroed = true; // in the jig at power-on
     private double m_goal = 0;
+    /** The Talon's reading at the true jig angle, rotations (0 = the jig is right). */
+    private double m_trim = 0;
     private static final double kSimPeriod = 0.005;
     private DCMotorSim m_sim = null;
     private Notifier m_simNotifier = null;
@@ -89,6 +95,8 @@ public class Turret extends SubsystemBase {
         // turret points the new 0 (and move the cable limits with it).
         m_talon.hasResetOccurred(); // clear the flag of this boot
         HealthMonitor.register(m_talon);
+        double trimDeg = Calibration.get().turretTrimDeg;
+        m_trim = Double.isNaN(trimDeg) ? 0 : trimDeg / 360;
 
         if (RobotBase.isSimulation()) {
             var motor = DCMotor.getKrakenX60Foc(1);
@@ -136,7 +144,7 @@ public class Turret extends SubsystemBase {
         if (!RobotState.isEnabled()) {
             // Disabled: the Talon is neutral anyway; send nothing (at code start it may not be up).
         } else if (m_zeroed && !restoring) {
-            m_talon.setControl(m_request.withPosition(m_goal));
+            m_talon.setControl(m_request.withPosition(m_goal + m_trim));
         } else {
             m_talon.setControl(m_neutral);
         }
@@ -144,6 +152,7 @@ public class Turret extends SubsystemBase {
         Telemetry.log("Shooter/Turret/Position deg", getPosition() * 360);
         Telemetry.log("Shooter/Turret/Error deg", (m_goal - getPosition()) * 360);
         Telemetry.log("Shooter/Turret/Zeroed", m_zeroed);
+        Telemetry.log("Shooter/Turret/Trim deg", m_trim * 360);
     }
 
     /** Keep the last reading that can be trusted: from a connected Talon, with no reboot jump. */
@@ -151,15 +160,30 @@ public class Turret extends SubsystemBase {
         if (!m_talon.isConnected() || !Double.isNaN(m_restore) || now < m_settleUntil || m_jigZeroPending) {
             return;
         }
-        double position = getPosition();
+        double position = rawPosition();
         if (Double.isNaN(m_lastGood) || Math.abs(position - m_lastGood) < ShooterConstants.kTurretMaxStepRot) {
             m_lastGood = position;
         }
     }
 
-    /** Turret angle, rotations from the jig. */
+    /** Turret angle, rotations from the jig (true: the trim taken off). */
     public double getPosition() {
+        return rawPosition() - m_trim;
+    }
+
+    /** The Talon's reading, rotations. */
+    private double rawPosition() {
         return m_talon.getPosition().getValueAsDouble();
+    }
+
+    /** The trim in use, rotations. */
+    public double getTrim() {
+        return m_trim;
+    }
+
+    /** A new trim (the reading at the true jig angle), rotations; used at once. */
+    public void setTrim(double rotations) {
+        m_trim = rotations;
     }
 
     public boolean isZeroed() {

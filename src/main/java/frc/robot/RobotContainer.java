@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import java.util.Set;
-
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.CommandGamepad;
@@ -18,6 +16,7 @@ import org.wpilib.tunable.Tunables;
 
 import frc.robot.Constants.Subsystems;
 import frc.robot.autos.AutoRoutines;
+import frc.robot.calibration.Calibration;
 import frc.robot.commands.DriveCommands;
 import frc.robot.health.SwerveHealth;
 import frc.robot.sim.FuelSim;
@@ -48,8 +47,9 @@ import frc.robot.subsystems.vision.Vision;
  *       the rack stays out. A: retract the intake.
  * </ul>
  *
- * <p>Test gamepad (port 2), for SysId on blocks or on carpet: bumpers pick the routine
- * (Drive/SysId Routine), A/B = quasistatic forward/reverse, X/Y = dynamic forward/reverse.
+ * <p>Test gamepad (port 2): the calibration procedures, in Utility mode (the 2027 name of Test
+ * mode) only, for the procedure picked on the Elastic "Calibration" tab ({@link Calibration}).
+ * Drive SysId is one of them.
  */
 public class RobotContainer {
     private final CommandGamepad m_driver = new CommandGamepad(0);
@@ -67,6 +67,8 @@ public class RobotContainer {
     private final Superstructure m_superstructure =
         new Superstructure(m_drive, m_turret, m_hood, m_flywheel, m_feeder, m_intakeRoller, m_intakeRack);
     private final AutoRoutines m_autos = new AutoRoutines(m_drive, m_intakeRack, m_intakeRoller, m_superstructure);
+    private final Calibration m_calibration = new Calibration(m_test, m_drive, m_turret, m_hood, m_flywheel, m_feeder,
+        m_intakeRack, m_superstructure);
     /** Simulator only: the balls on the field (null on the robot). */
     private final FuelSim m_fuelSim = RobotBase.isSimulation() && m_drive.getSim() != null
         ? new FuelSim(m_drive, m_intakeRack, m_intakeRoller, m_feeder, m_flywheel, m_hood, m_turret)
@@ -74,8 +76,6 @@ public class RobotContainer {
 
     /** Fallback for the first robot test of the closed-loop drive gains. */
     private final TunableBoolean m_openLoopTeleop = Tunables.addBoolean("Drive/Open loop teleop", false);
-
-    private Drive.Routine m_sysIdRoutine = Drive.Routine.TRANSLATION;
 
     public RobotContainer() {
         // One deadband, in JoystickShaping. The Gamepad's own 0.1 deadband would come first and
@@ -86,7 +86,6 @@ public class RobotContainer {
         gamepad.setRightXDeadband(0);
 
         configureDriver();
-        configureTest();
         configureDashboard();
     }
 
@@ -114,23 +113,6 @@ public class RobotContainer {
         // go only when the shot is ready). Hold Y to eject everything.
         m_driver.rightTrigger().whileTrue(m_superstructure.shoot());
         m_driver.faceUp().whileTrue(m_superstructure.eject());
-    }
-
-    private void configureTest() {
-        var routines = Drive.Routine.values();
-        m_test.leftBumper().onTrue(Commands.runOnce(
-            () -> m_sysIdRoutine = routines[(m_sysIdRoutine.ordinal() + routines.length - 1) % routines.length]).ignoringDisable(true));
-        m_test.rightBumper().onTrue(Commands.runOnce(
-            () -> m_sysIdRoutine = routines[(m_sysIdRoutine.ordinal() + 1) % routines.length]).ignoringDisable(true));
-        m_test.faceDown().whileTrue(sysIdSelected(Direction.FORWARD, false));
-        m_test.faceRight().whileTrue(sysIdSelected(Direction.REVERSE, false));
-        m_test.faceLeft().whileTrue(sysIdSelected(Direction.FORWARD, true));
-        m_test.faceUp().whileTrue(sysIdSelected(Direction.REVERSE, true));
-    }
-
-    /** Built when pressed, so it uses the routine picked at that moment. */
-    private Command sysIdSelected(Direction direction, boolean dynamic) {
-        return Commands.defer(() -> m_drive.sysId(m_sysIdRoutine, direction, dynamic), Set.of(m_drive));
     }
 
     private void configureDashboard() {
@@ -165,7 +147,11 @@ public class RobotContainer {
     /** Call every loop. */
     public void periodic() {
         m_autos.periodic();
-        Telemetry.log("Drive/SysId Routine", m_sysIdRoutine.name());
+        m_calibration.periodic();
+    }
+
+    public Calibration getCalibration() {
+        return m_calibration;
     }
 
     public IntakeRack getIntakeRack() {

@@ -22,11 +22,12 @@
 # shoots on the move); a left auto's checks are mirrored onto the right side.
 # SIM_SMOKE_RACK=blocked|short|dead: a rack fault during the auto (left side blocked at 0.10 m, right
 # side held 2.4 cm short, or Talon 22 dead): it must take the fallback path, not the trench.
+# The robot code runs with no calibration file (constants only), whatever a GUI sim saved.
 set -u
 cd "$(dirname "$0")/.."
 LIB="$PWD/build/jni/release"
 LOG="$PWD/build/sim-smoke.log"
-rm -f "$LOG" build/sim-topics.txt
+rm -f "$LOG" build/no-calibration.json build/sim-topics.txt
 # A sim of this project left from an earlier run holds the NetworkTables port (5810): the new sim
 # could not serve AdvantageScope, which would keep showing the old one. Stop it first.
 OLD=$(pgrep -f "bin/java .*$PWD/build/classes/java/main.* frc.robot.Main" || true)
@@ -36,7 +37,7 @@ if [ -n "$OLD" ]; then
     sleep 2
 fi
 sh ./gradlew build -q || { echo "FAIL: build"; exit 1; }
-SIM_SMOKE=1 SIM_SMOKE_STAY="${SIM_SMOKE_STAY:-0}" SIM_SMOKE_ALLIANCE="${SIM_SMOKE_ALLIANCE:-blue}" SIM_SMOKE_AUTO="${SIM_SMOKE_AUTO:-right}" SIM_SMOKE_RACK="${SIM_SMOKE_RACK:-}" SIM_SMOKE_TRACE="${SIM_SMOKE_TRACE:-0}" DYLD_LIBRARY_PATH="$LIB" LD_LIBRARY_PATH="$LIB" JAVA_TOOL_OPTIONS="-Djava.library.path=$LIB" \
+CALIBRATION_FILE="$PWD/build/no-calibration.json" SIM_SMOKE=1 SIM_SMOKE_STAY="${SIM_SMOKE_STAY:-0}" SIM_SMOKE_ALLIANCE="${SIM_SMOKE_ALLIANCE:-blue}" SIM_SMOKE_AUTO="${SIM_SMOKE_AUTO:-right}" SIM_SMOKE_RACK="${SIM_SMOKE_RACK:-}" SIM_SMOKE_TRACE="${SIM_SMOKE_TRACE:-0}" DYLD_LIBRARY_PATH="$LIB" LD_LIBRARY_PATH="$LIB" JAVA_TOOL_OPTIONS="-Djava.library.path=$LIB" \
     sh ./gradlew run -q > "$LOG" 2>&1
 grep "SMOKE" "$LOG"
 if grep -nE "Exception|Error:|at frc\.robot\." "$LOG" | grep -v "JAVA_TOOL_OPTIONS" > /dev/null; then

@@ -207,8 +207,51 @@ Y saves in every procedure (and the dashboard "Save").
 
 ### 2.5 Sim results
 
-(Filled in after the runs.)
+162 unit tests pass. `tools/sim-calibration.sh` PASS:
+
+- Outside Utility mode: Save refused.
+- Shot table at 2.44 m: table 85.2 rps; jogged to 91.2 rps and hood 20.5 deg (+6 rps, +2 deg),
+  8 balls shot (none scored: the jog was on purpose too far). Recorded: the table gives 91.2 rps
+  and 20.5 deg there, the robot's own shot the next loop is 91.1 rps, the 5.5 m shot is unchanged.
+- Steer zero, wheels forward: new offsets within 0.09 deg of those in use (the sim has no offset
+  error to find).
+- Turret: turned to 3 deg, trim 2.7-3.2 deg recorded, the turret then reads 0.00.
+- Intake zero, 3 cycles in 12 s: out stops 0.3240 m (left) and 0.3298 m (right): the sim's stops
+  are 0.324 and 0.330 (the right one 6 mm past the constant on purpose).
+- Hood zero: up to the sim's upper stop (41.9 deg, 9.90 motor turns), typed 42 deg: ratio 84.85
+  (the sim's 85).
+- Feeder: the indexer speed jogged 96 -> 101 rps, used at once. Fire-rate test: 0 dips: the sim
+  flywheel has no ball load, so the dip counter is covered by `DipCounterTest` only.
+- Saved; the file reads back the same. A second boot with that file: every value in use (shot
+  point in the table, steer offsets, turret trim, out stops, hood ratio, feed speeds).
+- The intake zero makes CTRE print "Warning 10002: Do not apply or refresh configs periodically":
+  each stop re-trues the rack with `setPosition` (a config call), 7 times in 10 s. Harmless; the
+  script ignores that warning's stack trace.
+
+Smoke (all PASS, run with no calibration file): right 44 of 44, left 44 of 44, red 43 of 43,
+right/left/red shoot on the move 41-42 of 41-42 (trench brake 11-15 loops, as before), blocked and
+dead as before; the layout check finds every widget topic, the Calibration tab's too.
+`tools/sim-sotm.sh`: every ball shot scored up to 3 m/s (mean miss 0.05-0.13 m, 0.25 m on a 3 m/s
+arc, 0.34 m strafing at 2 m/s while spinning at 2 rad/s), as before.
 
 ### 2.6 To measure on the robot
 
-(Filled in at the end.)
+Calibration tool (Utility mode, Calibration tab):
+
+- Shot table at 1.5-6 m (and the time of flight, from 240 fps video), then the pass tables.
+- Steer zero with a straight edge; restart the code; check with "Pit/Wheels Forward".
+- Turret: check the jig angle against a mark; trim if it is off.
+- Intake zero (out stops), with nothing in the way.
+- Hood zero: the ratio (now a CAD estimate of 85) and the angle above level at the lower stop;
+  then give `kHoodG` a value.
+- Feeder tuning: the stage speeds and the fire rate with a full hopper.
+
+Shooting changes:
+
+- Pack fraction (start 0.85): the most the intake can come in without blocking a shot, and enough
+  to push the last balls. Pulse amplitude and rate (2 cm, 4 Hz): the rack's 6 m/s^2 profile cannot
+  follow 2 cm at 4 Hz; watch "Shooter/Blocked By" for "intake not out" during a pulse.
+- The clear (0.5 s back): no ball left at the turret entrance, none pushed out of the hopper.
+- Rack kA (~0.1 V per m/s^2, from the physics): check with SysId or a step response.
+- The double trench auto waits ~0.25 s at the trench for the hood to come down after its shot
+  (before this change too): ending that shot a little sooner would save it.
