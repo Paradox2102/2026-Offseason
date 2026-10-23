@@ -119,7 +119,7 @@ public class Vision extends SubsystemBase {
             }
             accepted.addAll(camera.acceptedPoses());
             rejected.addAll(camera.rejectedPoses());
-            log(camera, frames.size());
+            log(camera, frames.size(), visionNow);
         }
 
         Telemetry.log("Vision/Accepted Poses", accepted, Pose2d.struct);
@@ -141,17 +141,16 @@ public class Vision extends SubsystemBase {
         return m_multiTagMeasurements;
     }
 
-    private void log(VisionCamera camera, int frameCount) {
+    private void log(VisionCamera camera, int frameCount, double visionNow) {
         String prefix = "Vision/" + camera.getName() + "/";
         Telemetry.log(prefix + "Connected", camera.getCamera().isConnected());
         Telemetry.log(prefix + "Frames", frameCount);
         Telemetry.log(prefix + "Tag Count", camera.lastTagCount());
         Telemetry.log(prefix + "Accepted Poses", camera.acceptedPoses(), Pose2d.struct);
         Telemetry.log(prefix + "Rejected Poses", camera.rejectedPoses(), Pose2d.struct);
-        Telemetry.log(prefix + "Reject Reason", camera.lastRejectReason());
-        if (!Double.isNaN(camera.lastLatencySeconds())) {
-            Telemetry.log(prefix + "Latency ms", camera.lastLatencySeconds() * 1000);
-        }
+        // Held for half a second, so they do not blink; latency is NaN once the camera stops.
+        Telemetry.log(prefix + "Reject Reason", camera.displayRejectReason(visionNow));
+        Telemetry.log(prefix + "Latency ms", camera.displayLatencySeconds(visionNow) * 1000);
         camera.lastEstimate().ifPresent(p -> {
             Telemetry.log(prefix + "Robot Roll deg", Math.toDegrees(p.getRotation().getX()));
             Telemetry.log(prefix + "Robot Pitch deg", Math.toDegrees(p.getRotation().getY()));

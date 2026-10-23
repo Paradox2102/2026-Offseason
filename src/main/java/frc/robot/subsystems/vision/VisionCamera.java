@@ -51,6 +51,16 @@ public class VisionCamera {
     private int m_lastTagCount = 0;
     private double m_lastLatency = Double.NaN;
 
+    /**
+     * The dashboard holds the latency and the reject reason this long, seconds: a 30 fps camera
+     * sends no frame in many 20 ms loops, and the values would blink.
+     */
+    public static final double kDisplayHoldSeconds = 0.5;
+    private double m_heldLatency = Double.NaN;
+    private double m_heldLatencyAt = Double.NEGATIVE_INFINITY;
+    private String m_heldReason = "";
+    private double m_heldReasonAt = Double.NEGATIVE_INFINITY;
+
     /** @param trustHeading may this camera's multi-tag frames set the heading (see VisionFilter)? */
     public VisionCamera(VisionConstants.CameraConfig config, boolean trustHeading) {
         m_config = config;
@@ -147,6 +157,14 @@ public class VisionCamera {
                 m_lastRejectReason = verdict.reason();
             }
         }
+        if (!results.isEmpty()) {
+            m_heldLatency = m_lastLatency;
+            m_heldLatencyAt = visionNowSeconds;
+        }
+        if (!m_lastRejectReason.isEmpty()) {
+            m_heldReason = m_lastRejectReason;
+            m_heldReasonAt = visionNowSeconds;
+        }
         return measurements;
     }
 
@@ -232,5 +250,18 @@ public class VisionCamera {
     /** Age of the newest frame of the last {@link #process} call, seconds; NaN if it had none. */
     public double lastLatencySeconds() {
         return m_lastLatency;
+    }
+
+    /**
+     * For the dashboard: the newest frame's age from the last call that had frames, or NaN once no
+     * frame has come for {@link #kDisplayHoldSeconds} (a camera that stopped shows NaN).
+     */
+    public double displayLatencySeconds(double visionNowSeconds) {
+        return visionNowSeconds - m_heldLatencyAt <= kDisplayHoldSeconds ? m_heldLatency : Double.NaN;
+    }
+
+    /** For the dashboard: the last reject reason, or "" once it is {@link #kDisplayHoldSeconds} old. */
+    public String displayRejectReason(double visionNowSeconds) {
+        return visionNowSeconds - m_heldReasonAt <= kDisplayHoldSeconds ? m_heldReason : "";
     }
 }

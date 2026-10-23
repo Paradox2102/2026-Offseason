@@ -180,6 +180,28 @@ class VisionCameraTest {
     }
 
     @Test
+    void latencyIsHeldBetweenFrames() {
+        m_camera.process(List.of(resultAt(10.0, 0.05)), 10.02, t -> heading());
+        m_camera.process(List.of(), 10.04, t -> heading());
+        assertEquals(0.02, m_camera.displayLatencySeconds(10.04), 1e-6);
+    }
+
+    @Test
+    void latencyGoesNaNWhenFramesStop() {
+        m_camera.process(List.of(resultAt(10.0, 0.05)), 10.02, t -> heading());
+        m_camera.process(List.of(), 10.6, t -> heading());
+        assertTrue(Double.isNaN(m_camera.displayLatencySeconds(10.6)));
+    }
+
+    @Test
+    void rejectReasonIsHeldBetweenFrames() {
+        m_camera.process(List.of(resultAt(10.0, 0.6)), 10.03, t -> heading());
+        m_camera.process(List.of(), 10.05, t -> heading());
+        assertEquals("ambiguity", m_camera.displayRejectReason(10.05));
+        assertEquals("", m_camera.displayRejectReason(10.6));
+    }
+
+    @Test
     void emptyResultsGiveNoMeasurements() {
         assertTrue(m_camera.process(List.of(), 10.03, t -> heading()).isEmpty());
     }
