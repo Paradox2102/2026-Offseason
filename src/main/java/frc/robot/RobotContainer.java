@@ -42,7 +42,7 @@ public class RobotContainer {
 
 
     public RobotContainer() {
-        configureFuelSim();
+        // configureFuelSim();
         configureDefaults();
         configureBindings();
         // m_controller.leftBumper().onTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
@@ -52,27 +52,33 @@ public class RobotContainer {
 
     private void configureBindings() {
 
-        // Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_turretAimSubsystem.m_isOnTarget() && Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed());
+        Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed());
 
         m_controller.leftTrigger().whileTrue(Commands.sequence(
             Subsystems.m_intakeExtension.extendIntake(),
             Subsystems.m_intakeRoller.run(true)
         ));
 
-        m_controller.rightTrigger().whileTrue(Commands.parallel( // Shooter bindings not properly set-up, don't have shooter yet :P
-            Subsystems.m_shooterSubsystem.shoot(() -> SwerveSubsystem.distanceToTarget()),
-            Subsystems.m_hoodSubsystem.pitchHood(() -> SwerveSubsystem.distanceToTarget()),
-            launchSim.repeatedlyLaunchFuel(() -> Subsystems.m_shooterSubsystem.m_shooterLerpTable.get(SwerveSubsystem.distanceToTarget()), () -> Subsystems.m_hoodSubsystem.m_hoodLerpTable.get(SwerveSubsystem.distanceToTarget()))
+        // m_controller.rightTrigger().whileTrue(Commands.parallel( // Shooter bindings not properly set-up, don't have shooter yet :P
+        //     Subsystems.m_shooterSubsystem.shoot(() -> SwerveSubsystem.distanceToTarget()),
+        //     Subsystems.m_hoodSubsystem.pitchHood(() -> SwerveSubsystem.distanceToTarget()),
+        //     launchSim.repeatedlyLaunchFuel(() -> Subsystems.m_shooterSubsystem.m_shooterLerpTable.get(SwerveSubsystem.distanceToTarget()), () -> Subsystems.m_hoodSubsystem.m_hoodLerpTable.get(SwerveSubsystem.distanceToTarget()))
             
-        ));
+        // ));
 
+        isReadyToShoot.whileTrue(Commands.parallel(
+            Subsystems.m_indexerConveyor.run(true),
+            Subsystems.m_indexerRollerSubsystem.run(true),
+            Subsystems.m_kickerSubsystem.run(),
+            Subsystems.m_secondaryKicker.run(true)
+        ));
         m_controller.faceDown().whileTrue(Commands.parallel( // Shooter override
             Subsystems.m_indexerConveyor.run(true),
             Subsystems.m_indexerRollerSubsystem.run(true),
             Subsystems.m_kickerSubsystem.run(),
-            Subsystems.m_secondaryKicker.run(true),
-            Subsystems.m_shooterSubsystem.staticShoot(),
-            Subsystems.m_hoodSubsystem.staticPitch()
+            Subsystems.m_secondaryKicker.run(true)//,
+            // Subsystems.m_shooterSubsystem.staticShoot(),
+            // Subsystems.m_hoodSubsystem.staticPitch()
         ));
 
         m_joystick.getHID().button(0).onTrue(Subsystems.m_intakeExtension.retractIntake());
