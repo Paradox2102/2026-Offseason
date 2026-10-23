@@ -62,6 +62,57 @@ public final class TrenchGuard {
         return false;
     }
 
+    /** Robot footprint, robot frame, meters: rear bumper, front of the intake when out, half width. */
+    private static final double kRobotBack = 0.406;
+    private static final double kRobotFront = 0.73;
+    private static final double kRobotHalfWidth = 0.441;
+    /** The auto counts on stopping at this, m/s^2 (the paths use 6). */
+    public static final double kBrakeDecel = 4.0;
+    /** And stopping this far short of the arm, meters. */
+    public static final double kBrakeMargin = 0.10;
+
+    /**
+     * In a trench lane, heading for its arm, and so close that, braking at {@link #kBrakeDecel},
+     * the robot would only just stop {@link #kBrakeMargin} short of it. An auto that may go under
+     * only with the intake out and the hood down stops here until they are: it can start fast and
+     * slow down only if the intake is late. False once any part is under the arm (stopping there
+     * does not help).
+     */
+    public static boolean mustBrake(Pose2d pose, ChassisVelocities fieldVelocity) {
+        // The footprint's extent in field x, from the robot center.
+        double cos = pose.getRotation().getCos();
+        double sin = pose.getRotation().getSin();
+        double minDx = Double.POSITIVE_INFINITY;
+        double maxDx = Double.NEGATIVE_INFINITY;
+        for (double lx : new double[] {-kRobotBack, kRobotFront}) {
+            for (double ly : new double[] {-kRobotHalfWidth, kRobotHalfWidth}) {
+                double dx = lx * cos - ly * sin;
+                minDx = Math.min(minDx, dx);
+                maxDx = Math.max(maxDx, dx);
+            }
+        }
+        double x = pose.getX();
+        double vx = fieldVelocity.vx;
+        double stopping = vx * vx / (2 * kBrakeDecel) + kBrakeMargin;
+        for (double[] arm : kArms) {
+            if (pose.getY() < arm[2] || pose.getY() > arm[3]) {
+                continue;
+            }
+            double gap;
+            if (x < arm[0] && vx >= 0) {
+                gap = arm[0] - (x + maxDx); // west of the arm, not driving away
+            } else if (x > arm[1] && vx <= 0) {
+                gap = (x + minDx) - arm[1]; // east of it
+            } else {
+                continue;
+            }
+            if (gap >= 0 && gap < stopping) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static boolean near(double x, double y) {
         for (double[] arm : kArms) {
             if (y < arm[2] || y > arm[3]) {

@@ -778,3 +778,45 @@ From the review of the intake roller, feed path, turret, hood and flywheel.
   homes; red left 44 of 44; dead rack Talon 8 of 8 preload; short side no shot. The sim's feed
   rollers have no ball load, so a jam never happens in the sim: the jam logic is covered by
   `FeedLogicTest` only, and the turret restore by reading only (the sim cannot reboot a Talon).
+
+### Shoot on the move (user, 2026-10-22)
+
+Tuned in the sim (the robot must measure the time of flight, the latency and the lead again).
+
+- **Tables from the sim's ball model** (`sim/field/ShotModel`, checked by `ShotTablesTest`): the
+  flywheel speed (wheel rps) at which a still shot lands on the hub center at each distance
+  1.25-6.0 m, with the old hood table (1.5 m: 6 degrees; 10 hit the rim); the time of flight from
+  the same model. The old speeds are kept in a comment.
+- **`ShotCalculator`**: the ball takes the turret axis velocity (robot + omega x offset); the shot
+  is aimed from where the robot will be when the ball leaves (`kShotLatency` 0.02 s); aim point =
+  target - v x tof x (1 - 0.10 tof) (drag slows the drift; 0 left balls behind, 0.19 ahead),
+  solved until it settles. Turret goal = aim + (bearing rate - omega) x 0.05 s; hood and flywheel
+  goals for the distance 0.1 s / 0.08 s ahead; "ready" checks the values needed now.
+- **Gate**: turret within 0.15 m sideways at the hub (min 1 degree), robot under 3.2 m/s and
+  2.2 rad/s, aim distance inside the tables (1.25-6.0 m). Dashboard "Shooter/Shoot On The Move"
+  off: no lead, shots only when still. "Shooter/Blocked By" names the check that stops a shot.
+- **Sim test** `tools/sim-sotm.sh` (still, strafe, toward, away, arc at 1-4 m/s, spin): every ball
+  shot scored up to 3 m/s; mean miss 0.06-0.10 m strafing, 0.23 m on a 3 m/s arc, 0.36 m strafing
+  at 2 m/s while spinning at 2 rad/s. With the lead off: 0 % at 1 m/s.
+
+### Double trench auto, shooting on the move (user, 2026-10-22)
+
+"Right/Left trench x2, shoot on the move" (paths `right-trench-sotm-1/2`, left mirrored).
+
+- Start on the line 0.18 m farther from the trench (x 3.62, the robot spans the line tape) and go
+  at once: the intake goes out while the robot drives. The **trench brake** (`TrenchGuard.mustBrake`,
+  in the auto's drive output) stops the robot if it could not stop (4 m/s^2, 0.1 m short) before a
+  trench arm while the intake is not out or the hood not down. So the trench passes run at 3.5 m/s
+  and the robot is under the arm at t 0.5 s (was 1.0 s). If the intake is still not out after 2 s
+  while the brake holds, the trench is given up (`right-trench-sotm-fallback`) and it shoots.
+- Sweep the x 7.55 column, back over the bump fast (3 m/s from its top to past its edge: slow, the
+  robot can get stuck on top), slow hard, then straight on and straight to the trench entrance at
+  0.8 m/s, shooting on the move (the "shoot" event waits for our zone, ends near the trench).
+  West of x 3.6 before y 2.0, so the bumper clears the trench wall. While shooting the robot turns
+  180 -> 90 -> 0, so it goes through the trench intake first and reaches the fuel facing it (it
+  cannot be diagonal in the 1.28 m lane). Through the trench at 3.5 m/s, turning into the x 7.40
+  column without stopping, back home the same way, shooting; stop at the entrance and shoot the
+  rest.
+- Sim, both sides, both alliances: 41-42 of 41-42 scored, 2.5-3.2 s of feeding on the move, no
+  contacts, farthest part x 8.04-8.06, highest y 3.67-3.73. The first sweep fills the hopper (40):
+  the second finds almost no fuel left in our quadrant.

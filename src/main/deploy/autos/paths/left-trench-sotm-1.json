@@ -1,0 +1,182 @@
+{
+  "path_elements": [
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 3.62,
+        "y_meters": 7.393,
+        "intermediate_handoff_radius_meters": 0.3
+      },
+      "rotation_target": {
+        "rotation_radians": 3.141592,
+        "profiled_rotation": true
+      }
+    },
+    {
+      "type": "event_trigger",
+      "lib_key": "intake",
+      "t_ratio": 0.0
+    },
+    {
+      "type": "translation",
+      "x_meters": 5.3,
+      "y_meters": 7.393,
+      "intermediate_handoff_radius_meters": 0.3
+    },
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 5.7,
+        "y_meters": 7.343,
+        "intermediate_handoff_radius_meters": 0.4
+      },
+      "rotation_target": {
+        "rotation_radians": 3.141592,
+        "profiled_rotation": true
+      }
+    },
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 6.7,
+        "y_meters": 6.943,
+        "intermediate_handoff_radius_meters": 0.4
+      },
+      "rotation_target": {
+        "rotation_radians": -1.570796,
+        "profiled_rotation": true
+      }
+    },
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 7.55,
+        "y_meters": 6.643,
+        "intermediate_handoff_radius_meters": 0.4
+      },
+      "rotation_target": {
+        "rotation_radians": -1.570796,
+        "profiled_rotation": true
+      }
+    },
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 7.55,
+        "y_meters": 4.993,
+        "intermediate_handoff_radius_meters": 0.4
+      },
+      "rotation_target": {
+        "rotation_radians": -1.570796,
+        "profiled_rotation": true
+      }
+    },
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 5.7,
+        "y_meters": 5.593,
+        "intermediate_handoff_radius_meters": 0.4
+      },
+      "rotation_target": {
+        "rotation_radians": 3.141592,
+        "profiled_rotation": true
+      }
+    },
+    {
+      "type": "event_trigger",
+      "lib_key": "prepare",
+      "t_ratio": 0.0
+    },
+    {
+      "type": "event_trigger",
+      "lib_key": "shoot",
+      "t_ratio": 0.0
+    },
+    {
+      "type": "translation",
+      "x_meters": 3.9,
+      "y_meters": 5.693,
+      "intermediate_handoff_radius_meters": 0.3
+    },
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 3.4,
+        "y_meters": 5.743,
+        "intermediate_handoff_radius_meters": 0.3
+      },
+      "rotation_target": {
+        "rotation_radians": 3.141592,
+        "profiled_rotation": true
+      }
+    },
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 3.25,
+        "y_meters": 6.543,
+        "intermediate_handoff_radius_meters": 0.3
+      },
+      "rotation_target": {
+        "rotation_radians": -1.570796,
+        "profiled_rotation": true
+      }
+    },
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 3.1,
+        "y_meters": 7.343,
+        "intermediate_handoff_radius_meters": 0.3
+      },
+      "rotation_target": {
+        "rotation_radians": -0.0,
+        "profiled_rotation": true
+      }
+    }
+  ],
+  "constraints": {
+    "max_velocity_meters_per_sec": [
+      {
+        "value": 3.5,
+        "start_ordinal": 1,
+        "end_ordinal": 1
+      },
+      {
+        "value": 2.0,
+        "start_ordinal": 2,
+        "end_ordinal": 4
+      },
+      {
+        "value": 1.5,
+        "start_ordinal": 5,
+        "end_ordinal": 5
+      },
+      {
+        "value": 3.0,
+        "start_ordinal": 6,
+        "end_ordinal": 7
+      },
+      {
+        "value": 0.8,
+        "start_ordinal": 8,
+        "end_ordinal": 10
+      },
+      {
+        "value": 4.0,
+        "start_ordinal": 0,
+        "end_ordinal": 10
+      }
+    ],
+    "max_acceleration_meters_per_sec2": [
+      {
+        "value": 6.0,
+        "start_ordinal": 0,
+        "end_ordinal": 10
+      }
+    ],
+    "end_translation_tolerance_meters": 0.05,
+    "end_rotation_tolerance_deg": 3.0
+  }
+}

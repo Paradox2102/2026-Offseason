@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.math.controller.PIDController;
+import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.system.Timer;
 import org.wpilib.tunable.Selectable;
@@ -23,7 +24,9 @@ import frc.robot.lib.util.AlertPublisher;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.IntakeRack;
 import frc.robot.subsystems.intake.IntakeRoller;
+import frc.robot.subsystems.shooter.ShotCalculator;
 import frc.robot.subsystems.superstructure.Superstructure;
+import frc.robot.subsystems.superstructure.TrenchGuard;
 
 /**
  * The autonomous routines and the dashboard chooser ("Auto Selection").
@@ -51,12 +54,16 @@ public class AutoRoutines {
     private final TunableDouble m_shootTime = Tunables.addDouble("Auto/Shoot Time s", 2.5);
     private final Command m_intakeEvent;
     private final Command m_prepareEvent;
+    private final Command m_shootEvent;
     private final Superstructure m_superstructure;
     private int m_intakeEvents = 0;
     private int m_shootEvents = 0;
     private double m_routineStart = Double.NaN;
     private final IntakeRack m_rack;
     private double m_routineTime = Double.NaN;
+    /** Loops the trench brake held the robot, this routine. */
+    private int m_trenchBrakes = 0;
+    private boolean m_brakeHolding = false;
     private double m_lastShotStart = Double.NaN;
     /** Longest wait for the intake at the start: it takes ~0.45 s; this leaves room for a slow push. */
     private static final double kIntakeWait = 2.0;
@@ -80,6 +87,12 @@ public class AutoRoutines {
         m_superstructure = superstructure;
         FollowPathV2.registerEventTrigger("intake", m_intakeEvent);
         FollowPathV2.registerEventTrigger("prepare", m_prepareEvent);
+        // Shoot on the move: from where the path says, once the robot is in our zone (outside it a
+        // shot is a pass), until it is near a trench (there the trench rule stops the feed and
+        // puts the hood down anyway).
+        m_shootEvent = countShot(Commands.waitUntil(() -> ShotCalculator.inOurZone(drive.getPose(), Drive.isRedAlliance()))
+            .andThen(superstructure.shoot().until(superstructure::isNearTrench))).withName("Auto Shoot");
+        FollowPathV2.registerEventTrigger("shoot", m_shootEvent);
 
         // BLine flips a red path by turning it 180 degrees about the field center. Use the size
         // of the field we play on (its default is the welded field, 2-3 cm bigger than AndyMark).
@@ -92,7 +105,7 @@ public class AutoRoutines {
             drive::getPose, // live: BLine reads the pose right after its reset
             drive::resetPose,
             drive::getRobotVelocity, // measured, robot-relative
-            drive::driveRobotRelative,
+            this::driveWithTrenchBrake,
             new PIDController(kTranslationP, 0, 0),
             new PIDController(kRotationP, 0, 0),
             new PIDController(kCrossTrackP, 0, 0))
@@ -123,6 +136,15 @@ public class AutoRoutines {
          * edit the right ones and run it).
          */
         add("Left trench + bump x2", () -> trenchAndBump("left"));
+        /*
+         * Trench twice, shooting on the move (user, 2026-10-22). Out through the trench and sweep
+         * our quadrant as above, back over the bump, and shoot while driving a slow loop in our
+         * zone toward the trench (the "shoot" event; the feed stops by itself near the trench).
+         * Out through the trench again, intake leading, a second sweep, back over the bump, and
+         * shoot on the same loop again; stop short of the trench and shoot what is left.
+         */
+        add("Right trench x2, shoot on the move", () -> trenchShootOnTheMove("right"));
+        add("Left trench x2, shoot on the move", () -> trenchShootOnTheMove("left"));
 
         Tunables.publish("Auto Selection", m_chooser);
     }
@@ -143,6 +165,7 @@ public class AutoRoutines {
         m_chooser.add(name, Commands.defer(routine, Set.of(m_drive))
             .beforeStarting(() -> {
                 m_noTrenchAlert.set(false);
+                m_trenchBrakes = 0;
                 m_routineStart = Timer.getTimestamp();
                 m_routineTime = Double.NaN;
                 m_intakeEvents = 0;
@@ -157,6 +180,24 @@ public class AutoRoutines {
     public void cancelEvents() {
         m_intakeEvent.cancel();
         m_prepareEvent.cancel();
+        m_shootEvent.cancel();
+    }
+
+    /**
+     * The path follower's output, with the trench brake: if the robot could not stop before a
+     * trench arm and is not yet low enough (intake out, hood down), it stops (and turns only)
+     * until it is. So a path can start fast while the intake goes out, and slows only if the
+     * intake is late. Checked on both the measured and the asked-for velocity.
+     */
+    private void driveWithTrenchBrake(ChassisVelocities robotVelocity) {
+        var heading = m_drive.getPose().getRotation();
+        boolean brake = !m_superstructure.isTrenchSafe()
+            && (TrenchGuard.mustBrake(m_drive.getPose(), m_drive.getFieldVelocity())
+                || TrenchGuard.mustBrake(m_drive.getPose(), robotVelocity.toFieldRelative(heading)));
+        m_trenchBrakes += brake ? 1 : 0;
+        m_brakeHolding = brake;
+        Telemetry.log("Auto/Trench Brake", brake);
+        m_drive.driveRobotRelative(brake ? new ChassisVelocities(0, 0, robotVelocity.omega) : robotVelocity);
     }
 
     /** Call every loop. */
@@ -169,8 +210,8 @@ public class AutoRoutines {
 
     /** For the sim test: how long the last routine took (NaN while one runs), and the event counts. */
     public String status() {
-        return String.format("routine %.1f s, %d intake events, %d shots, last shot started at %.1f s",
-            m_routineTime, m_intakeEvents, m_shootEvents, m_lastShotStart);
+        return String.format("routine %.1f s, %d intake events, %d shots, last shot started at %.1f s, trench brake %d loops",
+            m_routineTime, m_intakeEvents, m_shootEvents, m_lastShotStart, m_trenchBrakes);
     }
 
     /** Shoot (as a proxy: see {@link #add}) until auto ends. */
@@ -204,20 +245,54 @@ public class AutoRoutines {
     private Command trenchAndBump(String side) {
         return Commands.sequence(
             startAt(side + "-trench-1"),
-            m_rack.extend().asProxy()
-                .andThen(Commands.waitUntil(m_rack::isExtended))
-                .withTimeout(kIntakeWait),
+            waitForIntake(),
             Commands.either(
                 Commands.sequence(
                     follow(side + "-trench-1", false),
                     shootFor(),
                     follow(side + "-trench-2", false),
                     shoot()), // until auto ends
-                Commands.sequence(
-                    Commands.runOnce(() -> m_noTrenchAlert.set(true)),
-                    follow(side + "-trench-fallback", false),
-                    shoot()), // until auto ends
+                noTrenchFallback(side),
                 m_rack::isExtended));
+    }
+
+    /**
+     * The double trench route, shooting on the move ("right" or "left"): pose on the starting
+     * line, then at once path 1 (out, sweep, back, shoot on the move, out again) while the intake
+     * goes out, path 2 (sweep, back, shoot on the move), then shoot what is left until auto ends.
+     * The trench brake ({@link #driveWithTrenchBrake}) keeps the robot out from under the arm
+     * until the intake is out, so the start need not wait for it. If the intake is still not
+     * out after {@link #kIntakeWait} while the brake holds the robot, the trench is given up: back
+     * off along the lane and shoot.
+     */
+    private Command trenchShootOnTheMove(String side) {
+        Command route = Commands.sequence(
+            Commands.parallel(m_rack.extend().asProxy(), follow(side + "-trench-sotm-1", false)),
+            follow(side + "-trench-sotm-2", false),
+            shoot()); // until auto ends
+        Command stuck = Commands.waitSeconds(kIntakeWait)
+            .andThen(Commands.waitUntil(() -> m_brakeHolding && !m_rack.isExtended()));
+        return Commands.sequence(
+            startAt(side + "-trench-sotm-1"),
+            Commands.race(route, stuck),
+            Commands.runOnce(() -> m_noTrenchAlert.set(true)),
+            follow(side + "-trench-sotm-fallback", false),
+            shoot()); // until auto ends
+    }
+
+    /** Intake out, and wait until it is fully out (or {@link #kIntakeWait}). */
+    private Command waitForIntake() {
+        return m_rack.extend().asProxy()
+            .andThen(Commands.waitUntil(m_rack::isExtended))
+            .withTimeout(kIntakeWait);
+    }
+
+    /** The intake did not get out: back away from the trench along the lane and shoot. */
+    private Command noTrenchFallback(String side) {
+        return Commands.sequence(
+            Commands.runOnce(() -> m_noTrenchAlert.set(true)),
+            follow(side + "-trench-fallback", false),
+            shoot()); // until auto ends
     }
 
     /** Set the pose to a path's first point (flipped for red), without moving. */

@@ -27,8 +27,15 @@ import frc.robot.subsystems.drive.Drive;
 public class SimSmokeTest {
     /** SIM_SMOKE_ALLIANCE=red: run the auto as red (teleop and the shooting step stay blue). */
     private static final boolean kRedAuto = "red".equalsIgnoreCase(System.getenv("SIM_SMOKE_ALLIANCE"));
-    /** SIM_SMOKE_AUTO=left runs the left trench auto; its checks are mirrored onto the right side. */
-    private static final boolean kLeftAuto = "left".equalsIgnoreCase(System.getenv("SIM_SMOKE_AUTO"));
+    /**
+     * SIM_SMOKE_AUTO=right|left|right-sotm|left-sotm: the trench auto to run (sotm = the double
+     * trench run that shoots on the move). A left auto's checks are mirrored onto the right side.
+     */
+    private static final String kAuto = System.getenv().getOrDefault("SIM_SMOKE_AUTO", "right").toLowerCase();
+    private static final boolean kLeftAuto = kAuto.startsWith("left");
+    private static final boolean kSotmAuto = kAuto.endsWith("sotm");
+    private static final String kAutoName = (kLeftAuto ? "Left" : "Right")
+        + (kSotmAuto ? " trench x2, shoot on the move" : " trench + bump x2");
     /**
      * SIM_SMOKE_RACK: a rack fault for the whole auto.
      * <ul>
@@ -71,6 +78,11 @@ public class SimSmokeTest {
     private double m_autoMinYX = Double.NaN;
     private double m_autoMinYT = Double.NaN;
     private double m_autoFeedTime = 0;
+    /** Feed time while the robot moved faster than 0.5 m/s, and the speed then (shoot on the move). */
+    private double m_autoFeedMovingTime = 0;
+    private double m_autoFeedMovingSpeedSum = 0;
+    private int m_autoCrossingsSeen = 0;
+    private int m_autoShotsSeen = 0;
     private double m_leadSum = 0;
     private double m_leadTime = 0;
     private double m_leadMax = 0;
@@ -111,7 +123,7 @@ public class SimSmokeTest {
     public SimSmokeTest(RobotContainer container, Drive drive) {
         m_container = container;
         m_drive = drive;
-        m_container.selectAuto(kLeftAuto ? "Left trench + bump x2" : "Right trench + bump x2");
+        m_container.selectAuto(kAutoName);
         // Start in the blue zone, where the cameras can see tags.
         m_drive.resetPose(new Pose2d(3.0, 2.0, Rotation2d.ZERO));
         DriverStationSim.setAllianceStationId(AllianceStationID.BLUE_1);
@@ -157,7 +169,7 @@ public class SimSmokeTest {
                 DriverStationSim.setAllianceStationId(AllianceStationID.RED_1);
             }
         } else if (t < 41) {
-            step(5, "auto: " + (kLeftAuto ? "Left" : "Right") + " trench + bump x2 (20 s)", RobotMode.AUTONOMOUS, true);
+            step(5, "auto: " + kAutoName + " (20 s)", RobotMode.AUTONOMOUS, true);
         } else if (t < 42) {
             step(6, "disabled, kick pose", RobotMode.AUTONOMOUS, false);
         } else if (t < 49) {
@@ -225,8 +237,44 @@ public class SimSmokeTest {
         var pose = toBlueFrame(m_drive.getPose());
         // From the start pose on (the first loop of the auto still has the teleop pose).
         if (m_step == 5 && m_autoStartReported) {
+            var crossings = m_container.getFuelSim().getField().crossings();
+            for (int i = m_autoCrossingsSeen; i < crossings.size(); i++) {
+                var c = crossings.get(i);
+                if (!c.scored() || "1".equals(System.getenv("SIM_SMOKE_TRACE"))) {
+                    System.out.printf("SMOKE auto " + (c.scored() ? "hit" : "miss") + " at t %.1f: %.2f m from the hub center (shot %.1f s before, robot now at %s)%n",
+                        t - 21, c.miss(), c.flightTime(), toBlueFrame(m_drive.getPose()).getTranslation());
+                }
+            }
+            m_autoCrossingsSeen = crossings.size();
+            int shots = m_container.getFuelSim().getField().shots();
+            if ("1".equals(System.getenv("SIM_SMOKE_TRACE")) && shots > m_autoShotsSeen) {
+                var sup = m_container.getSuperstructure();
+                var shot = sup.getShot();
+                var fv = m_drive.getFieldVelocity();
+                System.out.printf("SMOKE shot %d at t %.2f: %s %.1f m/s %.1f rad/s, d %.2f, turret %.1f deg off, hood %.1f off,"
+                        + " wheel %.1f %% off%n", shots, t - 21, toBlueFrame(m_drive.getPose()).getTranslation(), Math.hypot(fv.vx, fv.vy),
+                    m_drive.getRobotVelocity().omega, shot.distance(),
+                    (m_container.getTurret().getPosition() - shot.turretAimRot()) * 360,
+                    m_container.getHood().getAngleDeg() - shot.hoodDeg(),
+                    (m_container.getFlywheel().getSpeed() / shot.flywheelRps() - 1) * 100);
+            }
+            m_autoShotsSeen = shots;
+            if ("1".equals(System.getenv("SIM_SMOKE_TRACE")) && Math.round((t - 21) * 50) % 5 == 0) {
+                var fv = m_drive.getFieldVelocity();
+                var sup = m_container.getSuperstructure();
+                System.out.printf("SMOKE trace t %.1f: %s %.1f m/s, hopper %d, feeding %b, blocked by '%s', aim d %.2f%n", t - 21,
+                    toBlueFrame(m_drive.getPose()).getTranslation(), Math.hypot(fv.vx, fv.vy),
+                    m_container.getFuelSim().getField().hopper(), m_container.getFeeder().isFeeding(), sup.blockedBy(),
+                    sup.getShot().distance());
+            }
             if (m_container.getFeeder().isFeeding()) {
                 m_autoFeedTime += 0.020;
+                var fv = m_drive.getFieldVelocity();
+                double speed = Math.hypot(fv.vx, fv.vy);
+                if (speed > 0.5) {
+                    m_autoFeedMovingTime += 0.020;
+                    m_autoFeedMovingSpeedSum += speed * 0.020;
+                }
             }
             // After the trench: how soon the robot faces the center line (90 degrees, intake leading
             // up the sweep). Only on the way out (before the first return).
@@ -472,7 +520,8 @@ public class SimSmokeTest {
                     + " (red hub " + FieldConstants.hub(true) + ")" : ""));
             System.out.printf("SMOKE auto bounds: lowest y %.2f m (wall 0) at x %.2f, t %.1f s; highest x %.2f m (center line 8.27)%n",
                 m_autoMinY, m_autoMinYX, m_autoMinYT, m_autoMaxX);
-            System.out.printf("SMOKE auto feed time %.1f s%n", m_autoFeedTime);
+            System.out.printf("SMOKE auto feed time %.1f s, %.1f s of it moving (mean %.1f m/s)%n", m_autoFeedTime,
+                m_autoFeedMovingTime, m_autoFeedMovingTime == 0 ? 0 : m_autoFeedMovingSpeedSum / m_autoFeedMovingTime);
             System.out.printf("SMOKE auto intake leading while collecting: mean %.0f deg, max %.0f deg off the travel direction (%.1f s)%n",
                 m_leadSum / m_leadTime, m_leadMax, m_leadTime);
             System.out.println("SMOKE auto intake leading worst at " + m_leadMaxAt);

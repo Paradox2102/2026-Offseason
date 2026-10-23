@@ -130,6 +130,7 @@ public class Superstructure extends SubsystemBase {
         Telemetry.getTable("Field").log("Shot Target", new Pose2d(m_shot.target(), Rotation2d.ZERO));
         Telemetry.getTable("Field").log("Shot Aim Point", new Pose2d(m_shot.aimPoint(), Rotation2d.ZERO));
         Telemetry.log("Shooter/Slow Enough", slowEnough());
+        Telemetry.log("Shooter/Blocked By", blockedBy());
     }
 
     /**
@@ -143,6 +144,11 @@ public class Superstructure extends SubsystemBase {
     /** The shot of this loop. */
     public Shot getShot() {
         return m_shot;
+    }
+
+    /** Low enough for a trench: intake fully out and hood down. */
+    public boolean isTrenchSafe() {
+        return m_intakeRack.isExtended() && m_hood.getAngleDeg() <= kHoodDownDeg;
     }
 
     /** Near a trench: intake out, hood down, no feed. */
@@ -180,6 +186,31 @@ public class Superstructure extends SubsystemBase {
         return m_shootOnTheMove.getAsBoolean()
             ? speed <= ShooterConstants.kMaxShootSpeed && turn <= ShooterConstants.kMaxShootTurnRate
             : speed <= ShooterConstants.kStillShootSpeed && turn <= ShooterConstants.kStillShootTurnRate;
+    }
+
+    /** What stops a shot now (the first check that fails), or "" when it is ready. For the dashboard. */
+    public String blockedBy() {
+        boolean inZoneForHub = !m_shot.scoring() || ShotCalculator.inOurZone(m_drive.getPose(), Drive.isRedAlliance());
+        boolean inTables = !m_shot.scoring() || (m_shot.distance() >= ShooterConstants.kMinShotDistance
+            && m_shot.distance() <= ShooterConstants.kMaxShotDistance);
+        if (m_nearTrench) {
+            return "near a trench";
+        } else if (!(m_intakeRack.isExtended() || m_intakeRack.hasDeadTalon())) {
+            return "intake not out";
+        } else if (!inZoneForHub) {
+            return "outside our zone";
+        } else if (!slowEnough()) {
+            return "moving too fast";
+        } else if (!inTables) {
+            return String.format("aim distance %.1f m", m_shot.distance());
+        } else if (!m_wheelReady) {
+            return "flywheel";
+        } else if (!m_turretOnTarget) {
+            return "turret";
+        } else if (!m_hood.isOnTarget(m_shot.hoodDeg())) {
+            return "hood";
+        }
+        return "";
     }
 
     /**

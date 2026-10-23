@@ -75,6 +75,36 @@
       "path_id": "path-49364967-a75d-4b96-b8ed-a5bff9774ec0",
       "display_name": "left-trench-fallback (generated: edit right-trench, run tools/mirror-paths.py)",
       "file_name": "left-trench-fallback.json"
+    },
+    {
+      "path_id": "path-f62ea7f0-9636-4ae3-a12b-1c8d4b217282",
+      "display_name": "right-trench-sotm-1 (out, sweep, home, shoot on the move)",
+      "file_name": "right-trench-sotm-1.json"
+    },
+    {
+      "path_id": "path-52bad59f-657a-4fc0-bee3-04285a92ed6d",
+      "display_name": "right-trench-sotm-2 (sweep 2, home, shoot on the move)",
+      "file_name": "right-trench-sotm-2.json"
+    },
+    {
+      "path_id": "path-6d944b1a-8dbf-4319-b742-3f86e52def81",
+      "display_name": "right-trench-sotm-fallback (intake not out: back off and shoot)",
+      "file_name": "right-trench-sotm-fallback.json"
+    },
+    {
+      "path_id": "path-09a2d27d-baa2-4187-8a6f-6f4cfc3d0132",
+      "display_name": "left-trench-sotm-1 (generated: edit right-trench, run tools/mirror-paths.py)",
+      "file_name": "left-trench-sotm-1.json"
+    },
+    {
+      "path_id": "path-1da9c81e-3780-42cb-a8ab-3031d7c063cb",
+      "display_name": "left-trench-sotm-2 (generated: edit right-trench, run tools/mirror-paths.py)",
+      "file_name": "left-trench-sotm-2.json"
+    },
+    {
+      "path_id": "path-0c31ec13-33f3-4080-b49f-f04bbd968a99",
+      "display_name": "left-trench-sotm-fallback (generated: edit right-trench, run tools/mirror-paths.py)",
+      "file_name": "left-trench-sotm-fallback.json"
     }
   ],
   "path_groups": [
@@ -92,6 +122,22 @@
       "path_ids": [
         "path-7006ea35-ff32-416a-839a-1a840f565cd4",
         "path-fb42a319-4e04-48bf-abc2-54e7ff3bc796"
+      ]
+    },
+    {
+      "group_id": "group-3d06fbc1-86be-4dd6-b9d2-35c6b045583f",
+      "display_name": "Right trench x2, shoot on the move",
+      "path_ids": [
+        "path-f62ea7f0-9636-4ae3-a12b-1c8d4b217282",
+        "path-52bad59f-657a-4fc0-bee3-04285a92ed6d"
+      ]
+    },
+    {
+      "group_id": "group-053d9a82-919e-463a-8422-b8927e6622d9",
+      "display_name": "Left trench x2, shoot on the move",
+      "path_ids": [
+        "path-09a2d27d-baa2-4187-8a6f-6f4cfc3d0132",
+        "path-1da9c81e-3780-42cb-a8ab-3031d7c063cb"
       ]
     }
   ],

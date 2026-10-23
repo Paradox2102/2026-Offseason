@@ -18,7 +18,8 @@
 # The "Trench guard" tab graphs the intake position (left axis), the hood angle (right axis) and
 # "Near Trench" (stripes): watch the teleop trench run at the end of the script.
 # SIM_SMOKE_ALLIANCE=red runs the auto as red (the auto checks are then given in the blue frame).
-# SIM_SMOKE_AUTO=left runs the left trench auto (its checks are mirrored onto the right side).
+# SIM_SMOKE_AUTO=right|left|right-sotm|left-sotm picks the trench auto (sotm: the double trench run that
+# shoots on the move); a left auto's checks are mirrored onto the right side.
 # SIM_SMOKE_RACK=blocked|short|dead: a rack fault during the auto (left side blocked at 0.10 m, right
 # side held 2.4 cm short, or Talon 22 dead): it must take the fallback path, not the trench.
 set -u
@@ -35,7 +36,7 @@ if [ -n "$OLD" ]; then
     sleep 2
 fi
 sh ./gradlew build -q || { echo "FAIL: build"; exit 1; }
-SIM_SMOKE=1 SIM_SMOKE_STAY="${SIM_SMOKE_STAY:-0}" SIM_SMOKE_ALLIANCE="${SIM_SMOKE_ALLIANCE:-blue}" SIM_SMOKE_AUTO="${SIM_SMOKE_AUTO:-right}" SIM_SMOKE_RACK="${SIM_SMOKE_RACK:-}" DYLD_LIBRARY_PATH="$LIB" LD_LIBRARY_PATH="$LIB" JAVA_TOOL_OPTIONS="-Djava.library.path=$LIB" \
+SIM_SMOKE=1 SIM_SMOKE_STAY="${SIM_SMOKE_STAY:-0}" SIM_SMOKE_ALLIANCE="${SIM_SMOKE_ALLIANCE:-blue}" SIM_SMOKE_AUTO="${SIM_SMOKE_AUTO:-right}" SIM_SMOKE_RACK="${SIM_SMOKE_RACK:-}" SIM_SMOKE_TRACE="${SIM_SMOKE_TRACE:-0}" DYLD_LIBRARY_PATH="$LIB" LD_LIBRARY_PATH="$LIB" JAVA_TOOL_OPTIONS="-Djava.library.path=$LIB" \
     sh ./gradlew run -q > "$LOG" 2>&1
 grep "SMOKE" "$LOG"
 if grep -nE "Exception|Error:|at frc\.robot\." "$LOG" | grep -v "JAVA_TOOL_OPTIONS" > /dev/null; then
