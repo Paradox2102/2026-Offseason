@@ -14,6 +14,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.Sales_because_if_6328_does_if_it_must_be_good.SalesAssociate;
 import frc.robot.utils.ParadoxTalon;
 
 import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
@@ -67,6 +68,7 @@ public class ShooterSubsystem extends SubsystemBase{
     public Command shoot(DoubleSupplier distanceToTarget) {
         return Commands.runEnd(() -> {               
             m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(m_shooterLerpTable.get(distanceToTarget.getAsDouble())));
+            SalesAssociate.sayByeToFuel();
         }, () -> {
             m_shooterLeader.setParadoxControl(m_coastRequest);
         }, this);

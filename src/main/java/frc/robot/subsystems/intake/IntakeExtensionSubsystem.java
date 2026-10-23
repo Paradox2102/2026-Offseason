@@ -12,6 +12,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.Sales_because_if_6328_does_if_it_must_be_good.SalesAssociate;
 import frc.robot.utils.ParadoxTalon;
 
 import org.wpilib.math.system.DCMotor;
@@ -92,6 +93,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     public Command retractIntake() {
         return Commands.runOnce(() -> {
             m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(-10));
+            SalesAssociate.persuasion();
         }
         ).until(() -> isIntakeAtTarget(TargetPosition.IN)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }

@@ -17,6 +17,7 @@ import org.wpilib.tunable.Tunables;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
 import frc.robot.PathPlanningThing.SelectAuto;
+import frc.robot.Sales_because_if_6328_does_if_it_must_be_good.SalesAssociate;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.subsystems.shooter.FuelLaunchSim;
 import frc.robot.utils.Autos;
@@ -83,6 +84,8 @@ public class RobotContainer {
         m_joystick.getHID().button(6).whileTrue(Commands.run(
             () -> {Subsystems.m_turretAimSubsystem.setShutoff(true);}
         ));
+
+        m_joystick.getHID().button(10).onTrue(Commands.run(() -> SalesAssociate.careAboutCustomerService(!SalesAssociate.getCareAboutCustomerService())));
 
         // isReadyToShoot.whileTrue(Commands.parallel(
         //     Subsystems.m_indexerRollerSubsystem.run(true),

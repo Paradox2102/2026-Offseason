@@ -83,7 +83,7 @@ public class Constants {
         public static final IntakeRollerSubsystem m_intakeRoller = new IntakeRollerSubsystem();
         public static final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
         public static final HoodSubsystem m_hoodSubsystem = new HoodSubsystem();
-        // public static final TurretAimSubsystem m_turretAimSubsystem = new TurretAimSubsystem();
+        public static final TurretAimSubsystem m_turretAimSubsystem = new TurretAimSubsystem();
         public static final KickerSubsystem m_kickerSubsystem = new KickerSubsystem();
         public static final SecondaryKicker m_secondaryKicker = new SecondaryKicker();
         public static final IndexerConveyorSubsystem m_indexerConveyor = new IndexerConveyorSubsystem();

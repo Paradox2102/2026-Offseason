@@ -11,6 +11,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.Sales_because_if_6328_does_if_it_must_be_good.SalesAssociate;
 import frc.robot.utils.ParadoxTalon;
 
 import org.wpilib.math.system.Models;
@@ -57,6 +58,10 @@ public class IntakeRollerSubsystem extends SubsystemBase {
         
         //  m_intakeRollerMotor.setThrottle((in ? 1 : -1) * k_bangBang.calculate(m_intakeRollerMotor.getVelocity(true).getValueAsDouble(), in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS));
             m_intakeRollerMotor.setParadoxControl(m_velocityRequest.withVelocity(in ? IntakeConstants.k_inRPS : IntakeConstants.k_outRPS));
+            if (in)
+                SalesAssociate.greetFuel();
+            else
+                SalesAssociate.sayByeToFuel();
         }, () -> {
             m_intakeRollerMotor.configNeutralMode(NeutralModeValue.Brake);
             m_intakeRollerMotor.setParadoxControl(m_brakeRequest);

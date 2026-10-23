@@ -37,7 +37,7 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
     private final double k_gearRatio = 1;
 
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
-        Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), IndexerConstants.k_indexerConveyorMOI, k_gearRatio), DCMotor.getKrakenX60(1));
+        Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX44(1), IndexerConstants.k_indexerConveyorMOI, k_gearRatio), DCMotor.getKrakenX44(1));
 
     public IndexerConveyorSubsystem() {
         m_indexerConveyorTop.getConfigurator().apply(IndexerConstants.m_indexerConveyorConfigs);

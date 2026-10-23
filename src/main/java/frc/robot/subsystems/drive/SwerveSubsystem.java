@@ -48,6 +48,7 @@ import frc.robot.Constants.DrivebaseConstants;
 // import frc.robot.RobotContainer;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.Sales_because_if_6328_does_if_it_must_be_good.SalesAssociate;
 // import frc.robot.Constants.Subsystems;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
@@ -329,6 +330,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         cachedPose = getState().Pose;
         // alignToTrench();
 
+        SalesAssociate.driving(getChassisVelocities());
     
         m_sotmPose = sotmLookAhead(5, isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
     }
