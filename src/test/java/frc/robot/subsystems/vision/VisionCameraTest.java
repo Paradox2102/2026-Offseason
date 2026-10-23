@@ -25,10 +25,10 @@ class VisionCameraTest {
     private static final Transform3d kRobotToCamera =
         new Transform3d(new Translation3d(-0.3, 0.2, 0.4), new Rotation3d(0, Math.toRadians(-25), Math.PI));
 
-    private final VisionCamera m_camera = camera(1.0);
+    private final VisionCamera m_camera = camera(1.0, false);
 
-    private static VisionCamera camera(double stdDevFactor) {
-        return new VisionCamera(new VisionConstants.CameraConfig("test_cam", kRobotToCamera, stdDevFactor));
+    private static VisionCamera camera(double stdDevFactor, boolean trustHeading) {
+        return new VisionCamera(new VisionConstants.CameraConfig("test_cam", kRobotToCamera, stdDevFactor), trustHeading);
     }
 
     /** A robot 2 m in front of tag 10 (along the tag's facing direction), on the floor. */
@@ -108,15 +108,21 @@ class VisionCameraTest {
         assertEquals(2, m_camera.lastTagCount(), "tag 9 was seen but not used in the solve");
         double distance = (distanceTo(10) + distanceTo(11)) / 2;
         var expected = VisionFilter.evaluate(new VisionFilter.Observation(robotPose(), 2, distance, 0),
-            FieldConstants.kFieldLength, FieldConstants.kFieldWidth);
+            FieldConstants.kFieldLength, FieldConstants.kFieldWidth, false);
         assertEquals(expected.xyStdDev(), measurements.get(0).stdDevs().get(0, 0), 1e-9);
     }
 
     @Test
     void stdDevFactorScalesTheTrust() {
-        double one = camera(1.0).process(List.of(resultAt(10.0, 0.05)), 10.03).get(0).stdDevs().get(0, 0);
-        double two = camera(2.0).process(List.of(resultAt(10.0, 0.05)), 10.03).get(0).stdDevs().get(0, 0);
+        double one = camera(1.0, false).process(List.of(resultAt(10.0, 0.05)), 10.03).get(0).stdDevs().get(0, 0);
+        double two = camera(2.0, false).process(List.of(resultAt(10.0, 0.05)), 10.03).get(0).stdDevs().get(0, 0);
         assertEquals(2 * one, two, 1e-9);
+    }
+
+    @Test
+    void trustedMultiTagGivesAHeading() {
+        var measurements = camera(1.0, true).process(List.of(multiTagAt(10.0, List.of((short) 10, (short) 11))), 10.03);
+        assertTrue(measurements.get(0).stdDevs().get(2, 0) < 1);
     }
 
     @Test

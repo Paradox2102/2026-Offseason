@@ -32,6 +32,7 @@ public class VisionCamera {
     public record Measurement(Pose2d pose, double timestamp, Matrix<N3, N1> stdDevs) {}
 
     private final VisionConstants.CameraConfig m_config;
+    private final boolean m_trustHeading;
     private final PhotonCamera m_camera;
     private final PhotonPoseEstimator m_estimator;
 
@@ -43,8 +44,10 @@ public class VisionCamera {
     private int m_lastTagCount = 0;
     private double m_lastLatency = Double.NaN;
 
-    public VisionCamera(VisionConstants.CameraConfig config) {
+    /** @param trustHeading may this camera's multi-tag frames set the heading (see VisionFilter)? */
+    public VisionCamera(VisionConstants.CameraConfig config, boolean trustHeading) {
         m_config = config;
+        m_trustHeading = trustHeading;
         m_camera = new PhotonCamera(config.name());
         m_estimator = new PhotonPoseEstimator(FieldConstants.kField, config.robotToCamera());
     }
@@ -116,7 +119,7 @@ public class VisionCamera {
             m_lastTagCount = tagCount;
             var verdict = VisionFilter.evaluate(
                 new VisionFilter.Observation(est.estimatedPose, tagCount, distance, ambiguity),
-                FieldConstants.kFieldLength, FieldConstants.kFieldWidth);
+                FieldConstants.kFieldLength, FieldConstants.kFieldWidth, m_trustHeading);
             Pose2d pose = est.estimatedPose.toPose2d();
             if (verdict.accepted()) {
                 m_accepted.add(pose);

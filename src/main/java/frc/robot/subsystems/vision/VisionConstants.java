@@ -54,6 +54,16 @@ public final class VisionConstants {
         camera("side_left", -11.05, -13.54, 16.60, -11.1, -25.0, -65.0),  // CAD cambrea 3 (right side, looks right)
         camera("side_right", -0.44, +13.78, 9.62, -8.9, -30.0, +65.0));   // CAD cambrea 4; PhotonVision name not confirmed
 
+    /**
+     * Have the camera angles above been checked on the robot? Until then vision does not set the
+     * heading on the robot (the sim always lets it: its cameras are exact). A camera angle a few
+     * degrees off would pull the robot's heading away from the gyro, and turn field-centric
+     * driving and the turret aim with it. Set to true when the Vision tab shows robot roll, pitch
+     * and z near 0 for every camera while the robot sits flat. While false, the heading comes from
+     * the gyro, the auto start pose and the Reset Heading button.
+     */
+    public static final boolean kCamerasChecked = false;
+
     /** Simulated camera (the values the old code used; set them from a real calibration). */
     public static final int kSimWidth = 960;
     public static final int kSimHeight = 720;

@@ -39,6 +39,7 @@ public class Vision extends SubsystemBase {
     private final List<VisionCamera> m_cameras = new ArrayList<>();
     private VisionSystemSim m_sim = null;
     private int m_simResetCount = 0;
+    private int m_headingMeasurements = 0;
     /*
      * A camera at 30 fps sends no frame in many 20 ms loops, so "accepted this loop" blinks.
      * Stay true for 0.2 s after the last accepted pose.
@@ -47,8 +48,9 @@ public class Vision extends SubsystemBase {
 
     public Vision(Drive drive) {
         m_drive = drive;
+        boolean trustHeading = RobotBase.isSimulation() || VisionConstants.kCamerasChecked;
         for (var config : VisionConstants.kCameras) {
-            var camera = new VisionCamera(config);
+            var camera = new VisionCamera(config, trustHeading);
             m_cameras.add(camera);
             HealthMonitor.registerCamera(camera.getCamera());
         }
@@ -88,6 +90,9 @@ public class Vision extends SubsystemBase {
             for (var m : measurements) {
                 m_drive.addVisionMeasurement(m.pose(), VisionClock.toDriveTime(m.timestamp(), driveNow, visionNow),
                     m.stdDevs());
+                if (m.stdDevs().get(2, 0) < 1) { // radians: the untrusted value is 1e6
+                    m_headingMeasurements++;
+                }
             }
             for (var frame : frames) {
                 for (var target : frame.getTargets()) {
@@ -106,6 +111,11 @@ public class Vision extends SubsystemBase {
         var field = Telemetry.getTable("Field");
         field.log("Vision Accepted", accepted, Pose2d.struct);
         field.log("Vision Rejected", rejected, Pose2d.struct);
+    }
+
+    /** Measurements sent with a usable heading since boot (the sim smoke test reads it). */
+    public int headingMeasurements() {
+        return m_headingMeasurements;
     }
 
     private void log(VisionCamera camera, int frameCount) {

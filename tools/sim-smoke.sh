@@ -1,6 +1,7 @@
 #!/bin/sh
 # Headless simulator check: builds, runs the scripted SimSmokeTest (teleop, BLine auto, vision
-# pose kick) with no driver station, and fails if the robot code printed an exception.
+# pose kick) with no driver station, and fails if the robot code printed an exception or vision did
+# not correct the kick (pose and heading).
 #
 #   JAVA_HOME=~/wpilib/2027_alpha7/jdk sh tools/sim-smoke.sh
 #
@@ -47,4 +48,5 @@ if grep -nE "Exception|Error:|at frc\.robot\." "$LOG" | grep -v "JAVA_TOOL_OPTIO
 fi
 grep -q "SMOKE end:" "$LOG" || { echo "FAIL: the run did not finish (see $LOG)"; exit 1; }
 python3 tools/check-elastic-layout.py src/main/deploy/elastic-layout.json build/sim-topics.txt || { echo "FAIL: layout"; exit 1; }
+if grep -q "SMOKE FAIL" "$LOG"; then grep "SMOKE FAIL" "$LOG"; exit 1; fi
 echo "PASS"

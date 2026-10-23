@@ -462,6 +462,9 @@ public class SimSmokeTest {
         if (m_step >= 0) {
             report("end of step " + m_step);
         }
+        if (m_step == 7) {
+            checkVisionCorrected();
+        }
         m_step = step;
         System.out.println("SMOKE step " + step + ": " + name);
         DriverStationSim.setRobotMode(mode);
@@ -651,6 +654,23 @@ public class SimSmokeTest {
             java.nio.file.Files.write(java.nio.file.Path.of("build", "sim-topics.txt"), names);
         } catch (java.io.IOException e) {
             System.out.println("SMOKE could not write the topic list: " + e);
+        }
+    }
+
+    /**
+     * End of step 7: vision must have pulled the kicked pose (0.5 m and 10 degrees off) back to the
+     * truth, the heading too. tools/sim-smoke.sh fails on the "SMOKE FAIL" line.
+     */
+    private void checkVisionCorrected() {
+        var pose = m_drive.getPose();
+        var truth = m_drive.getSim().truthPose();
+        double error = pose.getTranslation().getDistance(truth.getTranslation());
+        double headingError = Math.abs(truth.getRotation().minus(pose.getRotation()).getDegrees());
+        System.out.printf("SMOKE vision heading: %d measurements with a heading%n",
+            m_container.getVision().headingMeasurements());
+        if (error > 0.05 || headingError > 1.0) {
+            System.out.printf("SMOKE FAIL: vision did not correct the kick: error %.3f m, heading %.1f deg%n",
+                error, headingError);
         }
     }
 

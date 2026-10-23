@@ -182,6 +182,10 @@ public class RobotContainer {
         return m_intakeRoller;
     }
 
+    public Vision getVision() {
+        return m_vision;
+    }
+
     /** Simulator only: the fuel (null on the robot). */
     public FuelSim getFuelSim() {
         return m_fuelSim;

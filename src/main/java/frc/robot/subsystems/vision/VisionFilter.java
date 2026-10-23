@@ -34,17 +34,14 @@ public final class VisionFilter {
     public static final double kMinXyStdDev = 0.02;
     public static final double kMinThetaStdDev = 0.02;
     /**
-     * Let vision set the heading? Off until the cameras are checked: a camera angle a few
-     * degrees off in VisionConstants would pull the robot's heading away from the gyro, and turn
-     * field-centric driving with it. Turn on when the Vision tab shows robot roll and pitch near
-     * 0 for every camera while the robot sits flat. While off, the heading comes from the gyro,
-     * the auto start pose and the Reset Heading button.
+     * Multi-tag heading only from tags nearer than this, meters: far away, a pixel of corner
+     * error turns the solved heading by too much.
      *
      * <p>How to tune the coefficients: park the robot, log "Vision/Accepted Poses" for 30 s at
      * 1, 3 and 5 m from the tags, and set kXyCoefficient so that the standard deviation it gives
      * matches the spread of the logged poses.
      */
-    public static final boolean kTrustVisionHeading = false;
+    public static final double kMaxHeadingDistance = 4.0;
     /** "Do not use the heading": a single tag cannot measure it well, the gyro is far better. */
     public static final double kUntrusted = 1e6;
 
@@ -65,7 +62,12 @@ public final class VisionFilter {
         }
     }
 
-    public static Result evaluate(Observation obs, double fieldLength, double fieldWidth) {
+    /**
+     * @param trustHeading may vision set the heading at all? Off until the cameras are checked
+     *     ({@link VisionConstants#kCamerasChecked}); even then only for 2 or more tags within
+     *     {@link #kMaxHeadingDistance}.
+     */
+    public static Result evaluate(Observation obs, double fieldLength, double fieldWidth, boolean trustHeading) {
         if (obs.tagCount() < 1) {
             return Result.reject("no tags");
         }
@@ -89,9 +91,10 @@ public final class VisionFilter {
         double distanceSquared = obs.averageDistance() * obs.averageDistance();
         double tagsSquared = obs.tagCount() * obs.tagCount();
         double xy = Math.max(kMinXyStdDev, kXyCoefficient * distanceSquared / tagsSquared);
-        double theta = obs.tagCount() == 1 || !kTrustVisionHeading
-            ? kUntrusted
-            : Math.max(kMinThetaStdDev, kThetaCoefficient * distanceSquared / tagsSquared);
+        boolean useHeading = trustHeading && obs.tagCount() >= 2 && obs.averageDistance() <= kMaxHeadingDistance;
+        double theta = useHeading
+            ? Math.max(kMinThetaStdDev, kThetaCoefficient * distanceSquared / tagsSquared)
+            : kUntrusted;
         return new Result(true, "ok", xy, theta);
     }
 }

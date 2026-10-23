@@ -12,9 +12,16 @@ class VisionFilterTest {
     private static final double kFieldLength = 16.518;
     private static final double kFieldWidth = 8.043;
 
+    /** Heading not trusted (cameras not checked). */
     private static VisionFilter.Result evaluate(Pose3d pose, int tags, double distance, double ambiguity) {
         return VisionFilter.evaluate(
-            new VisionFilter.Observation(pose, tags, distance, ambiguity), kFieldLength, kFieldWidth);
+            new VisionFilter.Observation(pose, tags, distance, ambiguity), kFieldLength, kFieldWidth, false);
+    }
+
+    /** Heading trusted (cameras checked, or the sim). */
+    private static VisionFilter.Result evaluateTrusted(Pose3d pose, int tags, double distance, double ambiguity) {
+        return VisionFilter.evaluate(
+            new VisionFilter.Observation(pose, tags, distance, ambiguity), kFieldLength, kFieldWidth, true);
     }
 
     private static Pose3d pose(double x, double y, double z) {
@@ -45,19 +52,28 @@ class VisionFilterTest {
 
     @Test
     void singleTagHeadingIsNotTrusted() {
-        var single = evaluate(pose(3, 4, 0), 1, 2.0, 0.05);
+        var single = evaluateTrusted(pose(3, 4, 0), 1, 2.0, 0.05);
         assertTrue(single.accepted());
         assertTrue(single.thetaStdDev() >= 1e5, "one tag cannot give a good heading");
     }
 
     @Test
-    void multiTagHeadingFollowsTheTrustSwitch() {
+    void multiTagHeadingIsUsedWhenTrusted() {
+        var result = evaluateTrusted(pose(3, 4, 0), 3, 2.0, 0);
+        assertEquals(Math.max(0.02, 0.03 * 4 / 9), result.thetaStdDev(), 1e-9);
+    }
+
+    @Test
+    void headingIsNotUsedUntilTheCamerasAreChecked() {
         var result = evaluate(pose(3, 4, 0), 3, 2.0, 0);
-        if (VisionFilter.kTrustVisionHeading) {
-            assertTrue(result.thetaStdDev() < 1);
-        } else {
-            assertTrue(result.thetaStdDev() >= 1e5, "heading must not be used until the cameras are checked");
-        }
+        assertTrue(result.thetaStdDev() >= 1e5, "heading must not be used until the cameras are checked");
+    }
+
+    @Test
+    void farMultiTagHeadingIsNotUsed() {
+        var result = evaluateTrusted(pose(3, 4, 0), 2, 4.5, 0);
+        assertTrue(result.accepted(), "x and y are still used");
+        assertTrue(result.thetaStdDev() >= 1e5);
     }
 
     @Test
