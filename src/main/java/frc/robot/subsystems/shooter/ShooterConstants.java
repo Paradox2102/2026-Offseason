@@ -5,7 +5,7 @@ import org.wpilib.math.util.Units;
 
 /**
  * Shooter values. Turret angles are turret rotations (0 = the jig position, pointing to the
- * robot's left); hood angles are degrees above its lower stop; flywheel speeds are wheel rps;
+ * robot's right); hood angles are degrees above its lower stop; flywheel speeds are wheel rps;
  * feed speeds are motor rps.
  */
 public final class ShooterConstants {
@@ -15,8 +15,13 @@ public final class ShooterConstants {
 
     /** Motor rotations per turret rotation: 12:60, 14:28, 14:95 (CAD; same as the old code). */
     public static final double kTurretRatio = 67.86;
-    /** In the jig at power-on, the shooter points to the robot's left: turret 0 = robot +90 degrees. */
-    public static final double kTurretZeroOnRobotDeg = 90;
+    /**
+     * In the jig at power-on, the shooter points to the robot's right: turret 0 = robot -90
+     * degrees (user, 2026-10-23: 180 degrees from the CAD direction).
+     */
+    public static final double kTurretZeroOnRobotDeg = -90;
+    /** In the CAD (and the AdvantageScope model built from it), the shooter points to the robot's left. */
+    public static final double kTurretCadOnRobotDeg = 90;
     /** Mechanical limits (user, 2026-10-23): 270 degrees each way from the jig, 540 degrees in all. */
     public static final double kTurretTravelRot = 0.75;
     /**

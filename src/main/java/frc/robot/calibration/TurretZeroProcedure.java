@@ -9,7 +9,7 @@ import frc.robot.subsystems.shooter.Turret;
 
 /**
  * Turret zero: the jig zero, and an optional trim. For the trim, jog the turret until the shooter
- * lines up with a mark at the jig angle (straight to the robot's left), and record: from then on
+ * lines up with a mark at the jig angle (straight to the robot's right), and record: from then on
  * the turret aims as if that reading were 0. Used at once.
  *
  * <p>Test pad: A jig zero (turret in its jig), D-pad left/right jog (bumper held: bigger steps), X

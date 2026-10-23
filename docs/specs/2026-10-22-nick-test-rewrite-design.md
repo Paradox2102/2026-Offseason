@@ -403,7 +403,8 @@ code: +-250 degrees from the jig), shot speeds and hood angles per distance, tim
 ### Turret
 
 - **Zero:** the turret is in its jig at power-on (user); the jig points the shooter to the
-  robot's left (+y). So turret 0 = robot-relative +90 degrees. A Pit button "Zero turret (in jig)"
+  robot's right (-y; user 2026-10-23: 180 degrees from the CAD, where it points left). So turret
+  0 = robot-relative -90 degrees. A Pit button "Zero turret (in jig)"
   sets 0 again.
 - **Reboot:** a Talon 44 reboot loses the zero (relative encoder, no limit switch): alert HIGH,
   the turret goes neutral, aiming stops until the Pit button is pressed with the turret in the jig.

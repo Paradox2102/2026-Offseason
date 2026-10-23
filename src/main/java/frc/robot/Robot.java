@@ -33,6 +33,7 @@ import frc.robot.constants.CanIds;
 import frc.robot.health.HealthMonitor;
 import frc.robot.lib.util.AlertPublisher;
 import frc.robot.subsystems.intake.IntakeConstants;
+import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.sim.SimCalibrationTest;
 import frc.robot.sim.SimSmokeTest;
 import frc.robot.sim.SimSotmTest;
@@ -113,11 +114,12 @@ public class Robot extends TimedRobot {
      * the students' poses from the old Robot.java, which match that AdvantageScope model.
      */
     private Pose3d[] componentPoses() {
-        // Built from the CAD of 2026-10-22, where the turret points left (its jig angle), the hood
-        // is down and the intake is OUT. Each pose turns or slides its part from there.
+        // Built from the CAD of 2026-10-22, where the turret points left (180 degrees from its jig
+        // angle), the hood is down and the intake is OUT. Each pose turns or slides its part from there.
 
         // Turret: turns about its axis at (-152.4, +190.5) mm.
-        double turretYaw = m_robotContainer.getTurret().getPosition() * 2 * Math.PI;
+        double turretYaw = m_robotContainer.getTurret().getPosition() * 2 * Math.PI
+            + Math.toRadians(ShooterConstants.kTurretZeroOnRobotDeg - ShooterConstants.kTurretCadOnRobotDeg);
         Pose3d turret = new Pose3d(-0.1524, 0.1905, 0, new Rotation3d(0, 0, turretYaw));
         // Hood: rides on the turret and tilts about the flywheel axis (y 274, z 455 mm). Up = its
         // top rises (user: a raised hood hits the trench arm), which is a negative roll here.

@@ -34,7 +34,7 @@ import frc.robot.lib.util.AlertPublisher;
 
 /**
  * The turret (Talon 44). Angles are turret rotations; 0 = the jig position (shooter to the
- * robot's left). Positive = counterclockwise seen from above. The mechanical limits allow 270
+ * robot's right). Positive = counterclockwise seen from above. The mechanical limits allow 270
  * degrees each way (+-270 degrees); the Talon's soft limits hold the turret inside that.
  *
  * <p>The turret has no absolute sensor and no limit switch: only the motor's own encoder, which

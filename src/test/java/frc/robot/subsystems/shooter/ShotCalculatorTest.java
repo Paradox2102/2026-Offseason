@@ -29,18 +29,18 @@ class ShotCalculatorTest {
     }
 
     @Test
-    void targetStraightLeftIsTheJigAngle() {
+    void targetStraightRightIsTheJigAngle() {
         var target = new Translation2d(5, 5);
-        var aim = ShotCalculator.aim(robotWithPivotAt(target.minus(new Translation2d(0, 2))), target, kStill, 0, kNoFlight, 0);
+        var aim = ShotCalculator.aim(robotWithPivotAt(target.minus(new Translation2d(0, -2))), target, kStill, 0, kNoFlight, 0);
         assertEquals(0.0, aim.turretRot(), 1e-9);
         assertEquals(2.0, aim.distance(), 1e-9);
     }
 
     @Test
-    void targetStraightAheadIsAQuarterTurnRight() {
+    void targetStraightAheadIsAQuarterTurnLeft() {
         var target = new Translation2d(5, 5);
         var aim = ShotCalculator.aim(robotWithPivotAt(target.minus(new Translation2d(2, 0))), target, kStill, 0, kNoFlight, 0);
-        assertEquals(-0.25, aim.turretRot(), 1e-9);
+        assertEquals(0.25, aim.turretRot(), 1e-9);
     }
 
     @Test
@@ -87,9 +87,9 @@ class ShotCalculatorTest {
         // lead time, clockwise relative to the robot; the angle for "ready" is the true one. The
         // turret axis is off the robot center, so the turn also moves it (a small bearing rate).
         var target = new Translation2d(5, 5);
-        var aim = ShotCalculator.aim(robotWithPivotAt(target.minus(new Translation2d(0, 2))), target, kStill, 1.0, kNoFlight, 0, 0);
+        var aim = ShotCalculator.aim(robotWithPivotAt(target.minus(new Translation2d(0, -2))), target, kStill, 1.0, kNoFlight, 0, 0);
         double pivotVx = -1.0 * ShooterConstants.kTurretOffset.getY();
-        double bearingRate = 2 * pivotVx / 4; // (r_y v_x - r_x v_y) / r^2, r = (0, 2)
+        double bearingRate = -2 * pivotVx / 4; // (r_y v_x - r_x v_y) / r^2, r = (0, -2)
         assertEquals(0.0, aim.turretAimRot(), 1e-9);
         assertEquals((bearingRate - 1.0) * ShooterConstants.kTurretLeadTime / (2 * Math.PI), aim.turretRot(), 1e-9);
     }
@@ -131,12 +131,12 @@ class ShotCalculatorTest {
 
     @Test
     void strafingPastTheTargetLeadsTheTurretByTheBearingRate() {
-        // Target 3 m to the robot's left, robot moving +x at 2 m/s: the target's bearing turns at
-        // 2/3 rad/s, so the goal leads the aim by that x the lead time.
+        // Target 3 m to the robot's right, robot moving +x at 2 m/s: the target's bearing turns at
+        // -2/3 rad/s, so the goal leads the aim by that x the lead time.
         var target = new Translation2d(5, 5);
-        var aim = ShotCalculator.aim(robotWithPivotAt(target.minus(new Translation2d(0, 3))), target,
+        var aim = ShotCalculator.aim(robotWithPivotAt(target.minus(new Translation2d(0, -3))), target,
             new ChassisVelocities(2, 0, 0), 0, kNoFlight, 0, 0);
-        assertEquals(2.0 / 3 * ShooterConstants.kTurretLeadTime / (2 * Math.PI), aim.turretRot() - aim.turretAimRot(), 1e-9);
+        assertEquals(-2.0 / 3 * ShooterConstants.kTurretLeadTime / (2 * Math.PI), aim.turretRot() - aim.turretAimRot(), 1e-9);
     }
 
     @Test
@@ -182,10 +182,11 @@ class ShotCalculatorTest {
         // 1 s time of flight, robot moving +x at 1 m/s: aim at a point drift(1 s) behind the target in x.
         var oneSecond = new ShotTable(new double[][] {{0, 1.0}});
         var target = new Translation2d(5, 5);
-        var aim = ShotCalculator.aim(robotWithPivotAt(target.minus(new Translation2d(0, 3))), target,
+        var aim = ShotCalculator.aim(robotWithPivotAt(target.minus(new Translation2d(0, -3))), target,
             new ChassisVelocities(1, 0, 0), 0, oneSecond, 0, 0);
-        // The aim point is at smaller x, so the turret turns a little left of the jig angle.
-        assertTrue(aim.turretRot() > 0, "lead should turn the turret toward smaller x");
+        // The target is to the right (the jig angle) and the aim point is at smaller x, so the
+        // turret turns a little clockwise from the jig angle.
+        assertTrue(aim.turretRot() < 0, "lead should turn the turret toward smaller x");
         assertEquals(Math.hypot(drift(1.0), 3), aim.distance(), 1e-6);
     }
 }
