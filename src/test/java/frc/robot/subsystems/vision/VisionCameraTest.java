@@ -47,12 +47,12 @@ class VisionCameraTest {
 
     @Test
     void emptyResultsGiveNoMeasurements() {
-        assertTrue(m_camera.process(List.of()).isEmpty());
+        assertTrue(m_camera.process(List.of(), 10.03).isEmpty());
     }
 
     @Test
     void eachResultGivesItsOwnMeasurement() {
-        var measurements = m_camera.process(List.of(resultAt(10.0, 0.05), resultAt(10.03, 0.05)));
+        var measurements = m_camera.process(List.of(resultAt(10.0, 0.05), resultAt(10.03, 0.05)), 10.06);
         assertEquals(2, measurements.size());
         assertEquals(10.0, measurements.get(0).timestamp(), 1e-6);
         assertEquals(10.03, measurements.get(1).timestamp(), 1e-6);
@@ -64,7 +64,19 @@ class VisionCameraTest {
 
     @Test
     void rejectedPoseIsNotReturned() {
-        assertTrue(m_camera.process(List.of(resultAt(10.0, 0.6))).isEmpty());
+        assertTrue(m_camera.process(List.of(resultAt(10.0, 0.6)), 10.03).isEmpty());
         assertEquals("ambiguity", m_camera.lastRejectReason());
+    }
+
+    @Test
+    void oldFrameIsRejected() {
+        assertTrue(m_camera.process(List.of(resultAt(10.0, 0.05)), 11.0).isEmpty());
+        assertEquals("old", m_camera.lastRejectReason());
+    }
+
+    @Test
+    void latencyIsTheAgeOfTheNewestFrame() {
+        m_camera.process(List.of(resultAt(10.0, 0.05), resultAt(10.03, 0.05)), 10.05);
+        assertEquals(0.02, m_camera.lastLatencySeconds(), 1e-6);
     }
 }

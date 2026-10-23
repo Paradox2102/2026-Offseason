@@ -41,6 +41,7 @@ public class VisionCamera {
     private String m_lastRejectReason = "";
     private Pose3d m_lastEstimate = null;
     private int m_lastTagCount = 0;
+    private double m_lastLatency = Double.NaN;
 
     public VisionCamera(VisionConstants.CameraConfig config) {
         m_config = config;
@@ -65,15 +66,29 @@ public class VisionCamera {
         return m_camera.getAllUnreadResults();
     }
 
-    /** Turn frames into measurements, oldest first. Rejected frames are left out. */
-    public List<Measurement> process(List<PhotonPipelineResult> results) {
+    /**
+     * Turn frames into measurements, oldest first. Rejected frames are left out.
+     *
+     * @param visionNowSeconds now, on the clock of the frame timestamps (see {@link VisionClock})
+     */
+    public List<Measurement> process(List<PhotonPipelineResult> results, double visionNowSeconds) {
         m_accepted.clear();
         m_rejected.clear();
+        m_lastRejectReason = "";
+        m_lastLatency = Double.NaN;
         List<Measurement> measurements = new ArrayList<>();
 
         var sorted = new ArrayList<>(results);
         sorted.sort(Comparator.comparingDouble(PhotonPipelineResult::getTimestampSeconds));
         for (var result : sorted) {
+            double age = visionNowSeconds - result.getTimestampSeconds();
+            m_lastLatency = age; // sorted, so the last one is the newest frame
+            String ageReason = VisionClock.ageRejectReason(age);
+            if (!ageReason.isEmpty()) {
+                m_lastRejectReason = ageReason;
+                continue;
+            }
+
             // Multi-tag (solved on the coprocessor with every tag in view) is far better; with one
             // tag in view, fall back to that tag's least ambiguous solution.
             Optional<EstimatedRobotPose> estimate = m_estimator.estimateCoprocMultiTagPose(result);
@@ -128,5 +143,10 @@ public class VisionCamera {
 
     public int lastTagCount() {
         return m_lastTagCount;
+    }
+
+    /** Age of the newest frame of the last {@link #process} call, seconds; NaN if it had none. */
+    public double lastLatencySeconds() {
+        return m_lastLatency;
     }
 }

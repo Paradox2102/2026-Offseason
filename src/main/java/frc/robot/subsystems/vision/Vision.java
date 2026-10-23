@@ -13,7 +13,10 @@ import org.wpilib.math.filter.Debouncer.DebounceType;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.system.Timer;
 import org.wpilib.telemetry.Telemetry;
+
+import com.ctre.phoenix6.Utils;
 
 import frc.robot.constants.FieldConstants;
 import frc.robot.health.HealthMonitor;
@@ -69,15 +72,22 @@ public class Vision extends SubsystemBase {
             m_sim.update(driveSim.truthPose3d());
         }
 
+        // Frame times are on the NetworkTables clock (PhotonLib time sync); the Phoenix estimator
+        // wants its own clock. Read both now and shift each frame by the difference.
+        double visionNow = VisionClock.networkTablesNowSeconds();
+        double driveNow = Utils.getCurrentTimeSeconds();
+        Telemetry.log("Vision/Clock Offset ms", (driveNow - visionNow) * 1000);
+        Telemetry.log("Vision/Timer Offset ms", (driveNow - Timer.getTimestamp()) * 1000);
+
         List<Pose2d> accepted = new ArrayList<>();
         List<Pose2d> rejected = new ArrayList<>();
         List<Pose3d> tags = new ArrayList<>();
         for (var camera : m_cameras) {
             var frames = camera.readNewFrames();
-            var measurements = camera.process(frames);
+            var measurements = camera.process(frames, visionNow);
             for (var m : measurements) {
-                // Same clock on the SystemCore: the capture time goes in unchanged.
-                m_drive.addVisionMeasurement(m.pose(), m.timestamp(), m.stdDevs());
+                m_drive.addVisionMeasurement(m.pose(), VisionClock.toDriveTime(m.timestamp(), driveNow, visionNow),
+                    m.stdDevs());
             }
             for (var frame : frames) {
                 for (var target : frame.getTargets()) {
@@ -106,6 +116,9 @@ public class Vision extends SubsystemBase {
         Telemetry.log(prefix + "Accepted Poses", camera.acceptedPoses(), Pose2d.struct);
         Telemetry.log(prefix + "Rejected Poses", camera.rejectedPoses(), Pose2d.struct);
         Telemetry.log(prefix + "Reject Reason", camera.lastRejectReason());
+        if (!Double.isNaN(camera.lastLatencySeconds())) {
+            Telemetry.log(prefix + "Latency ms", camera.lastLatencySeconds() * 1000);
+        }
         camera.lastEstimate().ifPresent(p -> {
             Telemetry.log(prefix + "Robot Roll deg", Math.toDegrees(p.getRotation().getX()));
             Telemetry.log(prefix + "Robot Pitch deg", Math.toDegrees(p.getRotation().getY()));

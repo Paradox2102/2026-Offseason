@@ -73,7 +73,13 @@ for i, cam in enumerate(["front_right", "front_left", "side_left", "side_right"]
         graph("Robot roll deg (0 = camera OK)", base + "Robot Roll deg", x, 2, cw=3, ch=1, color=ORANGE),
         graph("Robot pitch deg (0 = camera OK)", base + "Robot Pitch deg", x, 3, cw=3, ch=1, color=ORANGE),
         graph("Robot z m (0 = camera OK)", base + "Robot Z m", x, 4, cw=3, ch=1, color=BLUE),
+        text("Latency ms", base + "Latency ms", x, 5, 3, 1),
     ]
+# Phoenix clock minus the vision (NetworkTables) clock and minus the WPILib clock: steady = OK.
+vision += [
+    text("Clock offset ms (vision)", "/Telemetry/Vision/Clock Offset ms", 0, 6, 3, 1),
+    text("Clock offset ms (timer)", "/Telemetry/Vision/Timer Offset ms", 3, 6, 3, 1),
+]
 
 tuning = [text("SysId routine (test pad, Calibration tab)", "/Telemetry/Drive/SysId Routine", 0, 0, 3, 1)]
 for r, name in enumerate(["Translation", "Steer", "Rotation"]):
