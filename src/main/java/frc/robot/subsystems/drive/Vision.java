@@ -336,19 +336,24 @@ public static final Field aprilTagField = fieldLayout.loadField();
   enum Cameras
   {
 
-    FRONT_RIGHT("front_right",
-             VisionConstants.frontRightRotation,
-             VisionConstants.frontRightPosition,
+    BACK_LEFT("back_left",
+             VisionConstants.backLeftRotation,
+             VisionConstants.backLeftPositon,
              VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
+
+    BACK_RIGHT("back_right",
+              VisionConstants.backRightRotation,
+              VisionConstants.backRightPosition,
+              VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
 
     SIDE_LEFT("side_left",
               VisionConstants.sideLeftRotation,
               VisionConstants.sideLeftPosition,
               VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
-
-    FRONT_LEFT("front_left",
-              VisionConstants.frontLeftRot,
-              VisionConstants.frontLeftPos,
+    
+    SIDE_RIGHT("side_right",
+              VisionConstants.sideRightRotation,
+              VisionConstants.sideRightPosition,
               VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1));
 
     /**
