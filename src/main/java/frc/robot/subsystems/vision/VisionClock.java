@@ -42,11 +42,14 @@ public final class VisionClock {
     }
 
     /**
-     * A coprocessor that last heard a time-sync pong longer ago than this, seconds, may have a
-     * wrong clock offset: its frame times cannot be trusted. PhotonLib only warns at 5 s; the sim
-     * reports 1 ms. Assumed: a coprocessor gets a pong at least once a second.
+     * A coprocessor that last heard a time-sync pong longer ago than this, seconds, has lost time
+     * sync: its frame times cannot be trusted. The same limit as PhotonLib's "not connected to the
+     * TimeSyncServer" warning. A shorter limit would drop good frames when a few pongs are lost:
+     * an offset from a sync seconds ago is still good (clock drift is parts per million). The
+     * coprocessor's ping period is not known yet: "Vision/<camera>/Time Since Sync ms" and its max
+     * show it on the robot. The sim reports 1 ms.
      */
-    public static final double kMaxTimeSinceSync = 2.0;
+    public static final double kMaxTimeSinceSync = 5.0;
 
     /** Why a frame is not used, from its coprocessor's time since the last pong, or "" if it can be. */
     public static String syncRejectReason(long timeSinceLastPongNanos) {

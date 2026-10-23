@@ -151,6 +151,9 @@ public class Vision extends SubsystemBase {
         // Held for half a second, so they do not blink; latency is NaN once the camera stops.
         Telemetry.log(prefix + "Reject Reason", camera.displayRejectReason(visionNow));
         Telemetry.log(prefix + "Latency ms", camera.displayLatencySeconds(visionNow) * 1000);
+        // To check the time-sync limit (VisionClock.kMaxTimeSinceSync) against the real ping period.
+        Telemetry.log(prefix + "Time Since Sync ms", camera.lastTimeSinceSyncSeconds() * 1000);
+        Telemetry.log(prefix + "Max Time Since Sync ms", camera.maxTimeSinceSyncSeconds() * 1000);
         camera.lastEstimate().ifPresent(p -> {
             Telemetry.log(prefix + "Robot Roll deg", Math.toDegrees(p.getRotation().getX()));
             Telemetry.log(prefix + "Robot Pitch deg", Math.toDegrees(p.getRotation().getY()));

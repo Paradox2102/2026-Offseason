@@ -43,7 +43,13 @@ class VisionClockTest {
 
     @Test
     void rejectsAnOldPong() {
-        assertEquals("time sync", VisionClock.syncRejectReason(3_000_000_000L));
+        assertEquals("time sync", VisionClock.syncRejectReason(6_000_000_000L));
+    }
+
+    @Test
+    void acceptsAFewMissedPongs() {
+        // A healthy coprocessor can miss a couple of pongs; its offset is still good (crystal drift is ppm).
+        assertEquals("", VisionClock.syncRejectReason(4_000_000_000L));
     }
 
     @Test

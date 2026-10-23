@@ -50,6 +50,8 @@ public class VisionCamera {
     private Pose3d m_lastEstimate = null;
     private int m_lastTagCount = 0;
     private double m_lastLatency = Double.NaN;
+    private double m_lastTimeSinceSync = Double.NaN;
+    private double m_maxTimeSinceSync = 0;
 
     /**
      * The dashboard holds the latency and the reject reason this long, seconds: a 30 fps camera
@@ -119,6 +121,9 @@ public class VisionCamera {
                 m_lastRejectReason = ageReason;
                 continue;
             }
+            // Logged to check the time-sync limit on the robot (see VisionClock.kMaxTimeSinceSync).
+            m_lastTimeSinceSync = result.metadata.timeSinceLastPong * 1e-9; // sorted: the last is the newest
+            m_maxTimeSinceSync = Math.max(m_maxTimeSinceSync, m_lastTimeSinceSync);
             String syncReason = VisionClock.syncRejectReason(result.metadata.timeSinceLastPong);
             if (!syncReason.isEmpty()) {
                 m_lastRejectReason = syncReason;
@@ -250,6 +255,16 @@ public class VisionCamera {
     /** Age of the newest frame of the last {@link #process} call, seconds; NaN if it had none. */
     public double lastLatencySeconds() {
         return m_lastLatency;
+    }
+
+    /** The newest frame's time since its coprocessor's last time-sync pong, seconds; NaN before any frame. */
+    public double lastTimeSinceSyncSeconds() {
+        return m_lastTimeSinceSync;
+    }
+
+    /** The largest time since a time-sync pong seen on any frame since boot, seconds. */
+    public double maxTimeSinceSyncSeconds() {
+        return m_maxTimeSinceSync;
     }
 
     /**

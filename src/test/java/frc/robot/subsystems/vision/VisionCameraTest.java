@@ -174,9 +174,18 @@ class VisionCameraTest {
 
     @Test
     void frameWithoutTimeSyncIsRejected() {
-        var result = new PhotonPipelineResult(metadataAt(10.0, 3_000_000_000L), List.of(target(kTag, 0.05)), Optional.empty());
+        var result = new PhotonPipelineResult(metadataAt(10.0, 6_000_000_000L), List.of(target(kTag, 0.05)), Optional.empty());
         assertTrue(m_camera.process(List.of(result), 10.03, t -> heading()).isEmpty());
         assertEquals("time sync", m_camera.lastRejectReason());
+    }
+
+    @Test
+    void timeSinceSyncIsLoggedFromTheNewestFrameWithItsMaximum() {
+        var older = new PhotonPipelineResult(metadataAt(10.0, 1_500_000_000L), List.of(target(kTag, 0.05)), Optional.empty());
+        var newer = new PhotonPipelineResult(metadataAt(10.02, 200_000_000L), List.of(target(kTag, 0.05)), Optional.empty());
+        m_camera.process(List.of(newer, older), 10.03, t -> heading());
+        assertEquals(0.2, m_camera.lastTimeSinceSyncSeconds(), 1e-9);
+        assertEquals(1.5, m_camera.maxTimeSinceSyncSeconds(), 1e-9);
     }
 
     @Test
