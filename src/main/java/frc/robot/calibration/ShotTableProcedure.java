@@ -19,12 +19,18 @@ import frc.robot.subsystems.superstructure.Superstructure;
  * <p>Test pad: D-pad up/down flywheel (bumper held: bigger steps), left/right hood, RT shoot, A
  * record, B delete the nearest recorded point, X start again from the table at this distance, Y
  * save.
+ *
+ * <p>When the distance moves more than {@link #kReloadDistance} from where the values were loaded
+ * (the robot moved, or a new distance was typed), the jogged values are dropped and the table's
+ * values for the new distance are loaded: each spot starts from the table.
  */
 public class ShotTableProcedure extends Procedure {
     private static final double kFlywheelStep = 1.0; // wheel rps
     private static final double kFlywheelBigStep = 5.0;
     private static final double kHoodStep = 0.5; // degrees
     private static final double kHoodBigStep = 2.0;
+    /** A move this far from where the values were loaded loads the table again, meters. */
+    static final double kReloadDistance = 0.1;
 
     private final Calibration m_calibration;
     private final Superstructure m_superstructure;
@@ -34,6 +40,8 @@ public class ShotTableProcedure extends Procedure {
     private final TunableDouble m_typedTimeOfFlight = Tunables.addDouble("Calibration/Shot/Typed Time of Flight s", 0);
     private double m_flywheelRps = Double.NaN;
     private double m_hoodDeg = Double.NaN;
+    /** The distance at which the values were last loaded from the table. */
+    private double m_loadedAt = Double.NaN;
     private String m_last = "";
 
     ShotTableProcedure(Calibration calibration, Superstructure superstructure, Flywheel flywheel, Hood hood) {
@@ -43,7 +51,8 @@ public class ShotTableProcedure extends Procedure {
         m_flywheel = flywheel;
         m_hood = hood;
         m_instructions = "Stand at a spot (vision on, or type the distance). D-pad up/down: flywheel; left/right: hood"
-            + " (bumper: bigger steps). RT: shoot. A: record. B: delete the nearest point. X: back to the table. Y: save";
+            + " (bumper: bigger steps). RT: shoot. A: record. B: delete the nearest point. X: back to the table. Y: save."
+            + " A move of 0.1 m loads the table again";
     }
 
     @Override
@@ -70,17 +79,34 @@ public class ShotTableProcedure extends Procedure {
     }
 
     public double flywheelRps() {
-        if (Double.isNaN(m_flywheelRps)) {
-            fromTable();
-        }
+        followDistance();
         return m_flywheelRps;
     }
 
     public double hoodDeg() {
-        if (Double.isNaN(m_hoodDeg)) {
-            fromTable();
-        }
+        followDistance();
         return m_hoodDeg;
+    }
+
+    /** Sim test: the typed distance, meters (0 = the pose). */
+    public void setTypedDistance(double meters) {
+        m_typedDistance.set(meters);
+    }
+
+    /** Load the table's values the first time, and again once the distance has moved. */
+    private void followDistance() {
+        double distance = distance();
+        if (Double.isNaN(m_flywheelRps) || Double.isNaN(m_hoodDeg) || Double.isNaN(m_loadedAt)) {
+            fromTable();
+        } else if (movedFrom(m_loadedAt, distance)) {
+            fromTable();
+            m_last = String.format("moved to %.2f m: table values loaded", distance);
+        }
+    }
+
+    /** True when the distance now is more than {@link #kReloadDistance} from {@code loadedAt}. */
+    static boolean movedFrom(double loadedAt, double distance) {
+        return Math.abs(distance - loadedAt) > kReloadDistance;
     }
 
     public void jogFlywheel(double rps) {
@@ -93,7 +119,8 @@ public class ShotTableProcedure extends Procedure {
 
     /** Start again from the table's values at this distance. */
     public void fromTable() {
-        var shot = m_superstructure.shotAt(distance());
+        m_loadedAt = distance();
+        var shot = m_superstructure.shotAt(m_loadedAt);
         m_flywheelRps = shot[0];
         m_hoodDeg = shot[1];
     }

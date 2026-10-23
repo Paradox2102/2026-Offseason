@@ -147,6 +147,9 @@ driver.append(boolbox("Near trench", "/Telemetry/Shooter/Near Trench", 7, 4, 2, 
 driver.append(boolbox("Intake fully out", "/Telemetry/Shooter/Intake Extended", 9, 4, 2, 1))
 shooter.append(boolbox("Near trench", "/Telemetry/Shooter/Near Trench", 3, 5, 2, 1))
 shooter.append(boolbox("Intake fully out", "/Telemetry/Shooter/Intake Extended", 5, 5, 2, 1))
+# Shoot on the move: off = no lead, shots only when still. Blocked By names the check that stops a shot.
+shooter.append(text("Blocked by", "/Telemetry/Shooter/Blocked By", 7, 5, 3, 1))
+shooter.append(w("Shoot on the move", "Toggle Switch", "/Tunables/Shooter/Shoot On The Move", 10, 5, 2, 1))
 
 # Calibration (Utility mode only; see calibration/Calibration.java). The test pad works only for the
 # procedure picked here.

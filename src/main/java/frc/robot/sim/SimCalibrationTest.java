@@ -265,7 +265,25 @@ public class SimCalibrationTest {
                 m_liveCheck = true;
                 check(Math.abs(sup.shotAt(5.5)[0] - m_farBefore) < 1e-6, "the shot at 5.5 m is unchanged");
             }
-            case 3 -> {}
+            case 3 -> {
+                // The jogs stay for a small move and go for a move past 0.1 m.
+                var shot = m_calibration.procedure(ShotTableProcedure.class);
+                shot.jogFlywheel(3);
+                double jogged = shot.flywheelRps();
+                shot.setTypedDistance(m_distance + 0.05);
+                check(Math.abs(shot.flywheelRps() - jogged) < 1e-9,
+                    String.format("moved 0.05 m: jogged %.1f rps kept", jogged));
+                double far = m_distance + 1.0;
+                shot.setTypedDistance(far);
+                double[] table = sup.shotAt(far);
+                check(Math.abs(shot.flywheelRps() - table[0]) < 1e-9 && Math.abs(shot.hoodDeg() - table[1]) < 1e-9,
+                    String.format("moved 1 m: table values loaded at %.2f m (%.1f rps, %.1f deg)", far, table[0], table[1]));
+                shot.setTypedDistance(0);
+                var point = m_calibration.data().shotPoints.get(0);
+                check(Math.abs(shot.flywheelRps() - point.flywheelRps()) < 0.5,
+                    String.format("back at the pose (%.2f m): %.1f rps, the recorded point's %.1f", shot.distance(),
+                        shot.flywheelRps(), point.flywheelRps()));
+            }
             case 4 -> {
                 CommandScheduler.getInstance().cancelAll();
                 var steer = m_calibration.procedure(SteerZeroProcedure.class);
