@@ -60,7 +60,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     public IntakeExtensionSubsystem() {
         m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
-        m_intakeExtensionFollower.setControl(m_followRequest);
+        m_intakeExtensionFollower.setParadoxControl(m_followRequest);
 
         // m_intakeExtensionLeader.setPosition(0);
         // m_intakeExtensionFollower.setPosition(0);
@@ -81,8 +81,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     // public Command moveIntake(TargetPosition position){
     //     return Commands.run(() -> {
-    //         m_intakeExtensionLeader.setControl(m_positionRequest.withPosition(position.position));
-    //     }, this).until(() -> isIntakeAtTarget(position)).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest));
+    //         m_intakeExtensionLeader.setParadoxControl(m_positionRequest.withPosition(position.position));
+    //     }, this).until(() -> isIntakeAtTarget(position)).finallyDo(() -> m_intakeExtensionLeader.setParadoxControl(m_brakeRequest));
     // }
 
     public Command crush(){
@@ -91,14 +91,14 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     public Command retractIntake() {
         return Commands.runOnce(() -> {
-            m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(-10));
+            m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(-10));
         }
         ).until(() -> isIntakeAtTarget(TargetPosition.IN)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
     public Command extendIntake() {
         return Commands.runOnce(() -> {
-            m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(10));
+            m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(10));
         }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
     

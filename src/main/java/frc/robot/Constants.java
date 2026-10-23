@@ -84,10 +84,10 @@ public class Constants {
         public static final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
         public static final HoodSubsystem m_hoodSubsystem = new HoodSubsystem();
         // public static final TurretAimSubsystem m_turretAimSubsystem = new TurretAimSubsystem();
-        // public static final KickerSubsystem m_kickerSubsystem = new KickerSubsystem();
-        // public static final SecondaryKicker m_secondaryKicker = new SecondaryKicker();
-        // public static final IndexerConveyorSubsystem m_indexerConveyor = new IndexerConveyorSubsystem();
-        // public static final IndexerRollerSubsystem m_indexerRollerSubsystem = new IndexerRollerSubsystem();
+        public static final KickerSubsystem m_kickerSubsystem = new KickerSubsystem();
+        public static final SecondaryKicker m_secondaryKicker = new SecondaryKicker();
+        public static final IndexerConveyorSubsystem m_indexerConveyor = new IndexerConveyorSubsystem();
+        public static final IndexerRollerSubsystem m_indexerRollerSubsystem = new IndexerRollerSubsystem();
         public static final LightSubsystem m_lightSubsystem = new LightSubsystem();
         static {
             m_swerveSubsystem = TunerConstants.createDrivetrain();
@@ -121,10 +121,10 @@ public class Constants {
   public static class ShooterConstants {
     public static final double k_shooterGearReduction = (67.86);
     
-    public static final double k_kickInRPS = 30;
-    public static final double k_kickOutRPS = 20;
+    public static final double k_kickOutRPS = -20;
 
-    public static final double k_secondaryKickerRPS = 30;
+    public static final double k_secondaryKickerInRPS = 30;
+    public static final double k_secondaryKickerOutRPS = -20;
 
     public static final double k_upKickerMOI = 0.00000494 * 2;
     public static final double k_kickerMOI = 0.0000356;
@@ -379,7 +379,8 @@ public class Constants {
         public static final double k_rollerInRPS = 25;
         public static final double k_rollerOutRPS = -10;
 
-        public static final double k_conveyorRPS = 20;
+        public static final double k_conveyorInRPS = 20;
+        public static final double k_conveyorOutRPS = -15;
 
         public static final int k_jamThreshold = 6; // should be tuned to not happen too much
 

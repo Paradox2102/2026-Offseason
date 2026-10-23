@@ -64,25 +64,25 @@ public class HoodSubsystem extends SubsystemBase{
 
     public Command pitchHood(DoubleSupplier distanceToTarget) {
         return Commands.run(() -> {
-            m_hoodMotor.setControl(m_positionRequest.withPosition(Units.degreesToRotations(m_hoodLerpTable.get(distanceToTarget.getAsDouble()))));
+            m_hoodMotor.setParadoxControl(m_positionRequest.withPosition(Units.degreesToRotations(m_hoodLerpTable.get(distanceToTarget.getAsDouble()))));
         }, this);
     }
 
     public Command returnHood(){
         return Commands.runEnd(
             () -> {
-                m_hoodMotor.setControl(m_positionRequest.withPosition(0));
+                m_hoodMotor.setParadoxControl(m_positionRequest.withPosition(0));
             }, () -> {
-                m_hoodMotor.setControl(m_brakeRequest);
+                m_hoodMotor.setParadoxControl(m_brakeRequest);
             }, this);
     }
 
     public Command staticPitch(){
         return Commands.runEnd(
             () -> {
-                m_hoodMotor.setControl(m_positionRequest.withPosition(Units.degreesToRotations(ShooterConstants.k_staticShotAngle)));
+                m_hoodMotor.setParadoxControl(m_positionRequest.withPosition(Units.degreesToRotations(ShooterConstants.k_staticShotAngle)));
             }, () -> {
-                m_hoodMotor.setControl(m_brakeRequest);
+                m_hoodMotor.setParadoxControl(m_brakeRequest);
             }, this);
     }
 

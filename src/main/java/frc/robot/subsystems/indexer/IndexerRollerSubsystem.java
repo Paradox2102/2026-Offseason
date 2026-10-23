@@ -45,7 +45,7 @@ public class IndexerRollerSubsystem extends SubsystemBase {
     //         return false;
         
     //     return (Math.abs(m_indexerRollerMotor.getVelocity().getValueAsDouble() - (m_runningDirection == targetDirection.IN ? IndexerConstants.k_conveyorInRPS : IndexerConstants.k_conveyorOutRPS)) < IndexerConstants.k_jamThreshold);
-    // }).onTrue(Commands.run(() -> {m_indexerRollerMotor.setControl(m_request.withVelocity(m_runningDirection == targetDirection.IN ? IndexerConstants.k_rollerOutRPS : IndexerConstants.k_rollerInRPS));}, this));
+    // }).onTrue(Commands.run(() -> {m_indexerRollerMotor.setParadoxControl(m_request.withVelocity(m_runningDirection == targetDirection.IN ? IndexerConstants.k_rollerOutRPS : IndexerConstants.k_rollerInRPS));}, this));
 
 
     public IndexerRollerSubsystem() {
@@ -60,9 +60,9 @@ public class IndexerRollerSubsystem extends SubsystemBase {
     public Command run(boolean in) {
         return Commands.runEnd(() -> {   
             // m_runningDirection = in ? targetDirection.IN : targetDirection.OUT;
-            m_indexerRollerMotor.setControl(m_velocityRequest.withVelocity(in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerOutRPS));
+            m_indexerRollerMotor.setParadoxControl(m_velocityRequest.withVelocity(in ? IndexerConstants.k_rollerInRPS : IndexerConstants.k_rollerOutRPS));
         }, () -> {
-            m_indexerRollerMotor.setControl(m_coastRequest);
+            m_indexerRollerMotor.setParadoxControl(m_coastRequest);
             // m_runningDirection = targetDirection.STILL;
         }, this); }
     
@@ -71,7 +71,7 @@ public class IndexerRollerSubsystem extends SubsystemBase {
             
             m_indexerRollerMotor.setThrottle(1 * (in ? 1 : -1));
         }, () -> {
-            m_indexerRollerMotor.setControl(m_coastRequest);
+            m_indexerRollerMotor.setParadoxControl(m_coastRequest);
         }, this);
     }
 

@@ -50,10 +50,10 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
             talonFXSim.setMotorType(TalonFXSimState.MotorType.KrakenX60);
         }
     }
-    public Command run() {
+    public Command run(boolean in) {
         return Commands.runEnd(() -> {
             // TODO: Different Speeds
-            setSpeed(asList(m_indexerConveyorTop, m_indexerConveyorBottom), asList(IndexerConstants.k_conveyorRPS, IndexerConstants.k_conveyorRPS));
+            setSpeed(asList(m_indexerConveyorTop, m_indexerConveyorBottom), in ? asList(IndexerConstants.k_conveyorInRPS, IndexerConstants.k_conveyorInRPS) : asList(IndexerConstants.k_conveyorOutRPS, IndexerConstants.k_conveyorOutRPS));
             }, () -> {
                 stop(m_indexerConveyorTop, m_indexerConveyorBottom);
             }, this); 
@@ -65,21 +65,21 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
             m_indexerConveyorBottom.setThrottle(0.9);
             m_indexerConveyorTop.setThrottle(1.0);
         }, () -> {
-            m_indexerConveyorTop.setControl(m_brakeRequest);
-            m_indexerConveyorBottom.setControl(m_brakeRequest);
+            m_indexerConveyorTop.setParadoxControl(m_brakeRequest);
+            m_indexerConveyorBottom.setParadoxControl(m_brakeRequest);
         }, this);
     }
     
     public void setSpeed(List<ParadoxTalon> motors, List<Double> speeds){
         for (int i = 0; i < motors.size(); i++) {
-            // motors.get(i).setControl(m_velocityRequest.withVelocity(speeds.get(i)));
-            motors.get(i).setControl(m_velocityRequest.withVelocity(speeds.get(i)));
+            // motors.get(i).setParadoxControl(m_velocityRequest.withVelocity(speeds.get(i)));
+            motors.get(i).setParadoxControl(m_velocityRequest.withVelocity(speeds.get(i)));
         }
     }
 
         public void stop(ParadoxTalon... motors){
         for (ParadoxTalon motor : motors) {
-            motor.setControl(m_brakeRequest);
+            motor.setParadoxControl(m_brakeRequest);
         }
     }
     

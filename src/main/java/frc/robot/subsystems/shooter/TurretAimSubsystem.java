@@ -48,13 +48,13 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     public Command rotateToTarget() {
         return Commands.run(() -> {
-            m_shooterAzimuth.setControl(m_positionRequest.withPosition(getTargetRotation()));
+            m_shooterAzimuth.setParadoxControl(m_positionRequest.withPosition(getTargetRotation()));
         }, this);
     }
 
     public Command staticAim() {
         return Commands.run(() -> {
-            m_shooterAzimuth.setControl(m_positionRequest.withPosition(0.1 * ShooterConstants.k_shooterGearReduction)); 
+            m_shooterAzimuth.setParadoxControl(m_positionRequest.withPosition(0.1 * ShooterConstants.k_shooterGearReduction)); 
         }, this);
     }
 
@@ -113,6 +113,15 @@ public class TurretAimSubsystem extends SubsystemBase{
         return m_shooterAzimuth;
 
     }
+
+    public void setShutoff(boolean shutoff) {
+        m_shooterAzimuth.setShutoff(shutoff);
+    }
+
+    public boolean getShutoff() {
+        return m_shooterAzimuth.getShutoff();
+    }
+
     @Override
     public void simulationPeriodic() {
     var talonFXSim = m_shooterAzimuth.getSimState();

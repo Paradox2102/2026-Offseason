@@ -6,6 +6,7 @@ package frc.robot;
 
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
+import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
 import org.wpilib.command2.button.Trigger;
@@ -57,14 +58,31 @@ public class RobotContainer {
             Subsystems.m_intakeRoller.run(true)
         ));
 
-        m_controller.rightTrigger().whileTrue(Commands.run( // Shooter bindings not properly set-up, don't have shooter yet :P
-            // Subsystems.m_shooterSubsystem.shoot(() -> SwerveSubsystem.distanceToTarget()),
-            // Subsystems.m_hoodSubsystem.pitchHood(() -> SwerveSubsystem.distanceToTarget())
-            () -> launchSim.repeatedlyLaunchFuel(() -> Subsystems.m_shooterSubsystem.m_shooterLerpTable.get(SwerveSubsystem.distanceToTarget()), () -> Subsystems.m_hoodSubsystem.m_hoodLerpTable.get(SwerveSubsystem.distanceToTarget()))
+        m_controller.rightTrigger().whileTrue(Commands.parallel( // Shooter bindings not properly set-up, don't have shooter yet :P
+            Subsystems.m_shooterSubsystem.shoot(() -> SwerveSubsystem.distanceToTarget()),
+            Subsystems.m_hoodSubsystem.pitchHood(() -> SwerveSubsystem.distanceToTarget()),
+            launchSim.repeatedlyLaunchFuel(() -> Subsystems.m_shooterSubsystem.m_shooterLerpTable.get(SwerveSubsystem.distanceToTarget()), () -> Subsystems.m_hoodSubsystem.m_hoodLerpTable.get(SwerveSubsystem.distanceToTarget()))
             
         ));
 
-        m_controller.faceDown().whileTrue(Subsystems.m_intakeExtension.retractIntake());
+        m_controller.faceDown().whileTrue(Commands.parallel( // Shooter override
+            Subsystems.m_indexerConveyor.run(true),
+            Subsystems.m_indexerRollerSubsystem.run(true),
+            Subsystems.m_kickerSubsystem.run(),
+            Subsystems.m_secondaryKicker.run(true),
+            Subsystems.m_shooterSubsystem.staticShoot(),
+            Subsystems.m_hoodSubsystem.staticPitch()
+        ));
+
+        m_joystick.getHID().button(0).onTrue(Subsystems.m_intakeExtension.retractIntake());
+        m_joystick.getHID().button(7).onTrue(Subsystems.m_intakeExtension.extendIntake());
+        m_joystick.getHID().button(1).whileTrue(Commands.parallel(
+                Subsystems.m_secondaryKicker.run(false),
+                Subsystems.m_indexerConveyor.run(false)
+        ));
+        m_joystick.getHID().button(6).whileTrue(Commands.run(
+            () -> {Subsystems.m_turretAimSubsystem.setShutoff(true);}
+        ));
 
         // isReadyToShoot.whileTrue(Commands.parallel(
         //     Subsystems.m_indexerRollerSubsystem.run(true),

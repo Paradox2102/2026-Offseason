@@ -44,18 +44,18 @@ public class SecondaryKicker extends SubsystemBase {
             talonFXSim.setMotorType(TalonFXSimState.MotorType.KrakenX60);
         }
     }
-    public Command run() {
+    public Command run(boolean in) {
         return Commands.runEnd(() -> {
                    
-            m_secondaryKickerMotor.setControl(m_velocityRequest.withVelocity(ShooterConstants.k_secondaryKickerRPS));
+            m_secondaryKickerMotor.setParadoxControl(m_velocityRequest.withVelocity(in ? ShooterConstants.k_secondaryKickerInRPS : ShooterConstants.k_secondaryKickerOutRPS));
         }, () -> {
-            m_secondaryKickerMotor.setControl(m_coastRequest);
+            m_secondaryKickerMotor.setParadoxControl(m_coastRequest);
         }, this); }
     
     public Command runPower(){
         return Commands.runEnd(() -> {
             m_secondaryKickerMotor.setThrottle(1.0);
-        }, () -> m_secondaryKickerMotor.setControl(m_brakeRequest), this);
+        }, () -> m_secondaryKickerMotor.setParadoxControl(m_brakeRequest), this);
     }
 
        public Command runFull(){

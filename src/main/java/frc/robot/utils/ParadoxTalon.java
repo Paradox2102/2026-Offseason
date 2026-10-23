@@ -1,12 +1,15 @@
 package frc.robot.utils;
 
 import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.controls.ControlRequest;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 public class ParadoxTalon extends TalonFX {
     private ControlRequest m_request;
     private final double k_stallShutDownTime;
+    private boolean m_shutoff = false;
 
     /**
      * Constructs a TalonFX with a few extra utility things
@@ -25,6 +28,18 @@ public class ParadoxTalon extends TalonFX {
         // Alert on the dashboard if this motor drops off CAN or reboots
         HealthMonitor.register(this);
     }
+
+    public void setShutoff(boolean shutoff) {
+        m_shutoff = shutoff;
+    }
+
+    public boolean getShutoff() {
+        return m_shutoff;
+    }
  
-    
+    public void setParadoxControl(ControlRequest request) {
+        if (!m_shutoff) {
+            setControl(request);
+        }
+    }
 }
