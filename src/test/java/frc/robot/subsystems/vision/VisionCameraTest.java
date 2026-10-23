@@ -1,10 +1,12 @@
 package frc.robot.subsystems.vision;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.DoubleFunction;
 
 import org.junit.jupiter.api.Test;
 import org.photonvision.targeting.MultiTargetPNPResult;
@@ -50,7 +52,11 @@ class VisionCameraTest {
 
     /** The other single-tag solution: {@link #robotPose()} 0.3 m to the side and turned 50 degrees. */
     private static Pose3d flipped() {
-        return robotPose().transformBy(new Transform3d(new Translation3d(0, 0.3, 0), new Rotation3d(0, 0, Math.toRadians(50))));
+        return flippedBy(50);
+    }
+
+    private static Pose3d flippedBy(double yawDeg) {
+        return robotPose().transformBy(new Transform3d(new Translation3d(0, 0.3, 0), new Rotation3d(0, 0, Math.toRadians(yawDeg))));
     }
 
     private static Transform3d cameraToTagFrom(Pose3d robot) {
@@ -97,12 +103,12 @@ class VisionCameraTest {
 
     @Test
     void emptyResultsGiveNoMeasurements() {
-        assertTrue(m_camera.process(List.of(), 10.03, heading()).isEmpty());
+        assertTrue(m_camera.process(List.of(), 10.03, t -> heading()).isEmpty());
     }
 
     @Test
     void eachResultGivesItsOwnMeasurement() {
-        var measurements = m_camera.process(List.of(resultAt(10.0, 0.05), resultAt(10.03, 0.05)), 10.06, heading());
+        var measurements = m_camera.process(List.of(resultAt(10.0, 0.05), resultAt(10.03, 0.05)), 10.06, t -> heading());
         assertEquals(2, measurements.size());
         assertEquals(10.0, measurements.get(0).timestamp(), 1e-6);
         assertEquals(10.03, measurements.get(1).timestamp(), 1e-6);
@@ -114,20 +120,21 @@ class VisionCameraTest {
 
     @Test
     void rejectedPoseIsNotReturned() {
-        assertTrue(m_camera.process(List.of(resultAt(10.0, 0.6)), 10.03, heading()).isEmpty());
+        assertTrue(m_camera.process(List.of(resultAt(10.0, 0.6)), 10.03, t -> heading()).isEmpty());
         assertEquals("ambiguity", m_camera.lastRejectReason());
     }
 
     @Test
     void oldFrameIsRejected() {
-        assertTrue(m_camera.process(List.of(resultAt(10.0, 0.05)), 11.0, heading()).isEmpty());
+        assertTrue(m_camera.process(List.of(resultAt(10.0, 0.05)), 11.0, t -> heading()).isEmpty());
         assertEquals("old", m_camera.lastRejectReason());
     }
 
     @Test
     void multiTagCountsOnlyTheTagsInTheSolve() {
-        var measurements = m_camera.process(List.of(multiTagAt(10.0, List.of((short) 10, (short) 11))), 10.03, heading());
+        var measurements = m_camera.process(List.of(multiTagAt(10.0, List.of((short) 10, (short) 11))), 10.03, t -> heading());
         assertEquals(1, measurements.size());
+        assertTrue(measurements.get(0).multiTag());
         assertEquals(2, m_camera.lastTagCount(), "tag 9 was seen but not used in the solve");
         double distance = (distanceTo(10) + distanceTo(11)) / 2;
         var expected = VisionFilter.evaluate(new VisionFilter.Observation(robotPose(), 2, distance, 0, 0),
@@ -137,22 +144,23 @@ class VisionCameraTest {
 
     @Test
     void stdDevFactorScalesTheTrust() {
-        double one = camera(1.0, false).process(List.of(resultAt(10.0, 0.05)), 10.03, heading()).get(0).stdDevs().get(0, 0);
-        double two = camera(2.0, false).process(List.of(resultAt(10.0, 0.05)), 10.03, heading()).get(0).stdDevs().get(0, 0);
+        double one = camera(1.0, false).process(List.of(resultAt(10.0, 0.05)), 10.03, t -> heading()).get(0).stdDevs().get(0, 0);
+        double two = camera(2.0, false).process(List.of(resultAt(10.0, 0.05)), 10.03, t -> heading()).get(0).stdDevs().get(0, 0);
         assertEquals(2 * one, two, 1e-9);
     }
 
     @Test
     void trustedMultiTagGivesAHeading() {
-        var measurements = camera(1.0, true).process(List.of(multiTagAt(10.0, List.of((short) 10, (short) 11))), 10.03, heading());
+        var measurements = camera(1.0, true).process(List.of(multiTagAt(10.0, List.of((short) 10, (short) 11))), 10.03, t -> heading());
         assertTrue(measurements.get(0).stdDevs().get(2, 0) < 1);
     }
 
     @Test
     void singleTagUsesTheSolutionThatMatchesTheGyro() {
         // The lower-error ("best") solution is the wrong one here.
-        var measurements = m_camera.process(List.of(resultWith(flipped(), robotPose(), 0.1)), 10.03, heading());
+        var measurements = m_camera.process(List.of(resultWith(flipped(), robotPose(), 0.1)), 10.03, t -> heading());
         assertEquals(1, measurements.size());
+        assertFalse(measurements.get(0).multiTag());
         var expected = robotPose().toPose2d();
         assertEquals(expected.getX(), measurements.get(0).pose().getX(), 1e-6);
         assertEquals(expected.getY(), measurements.get(0).pose().getY(), 1e-6);
@@ -160,15 +168,27 @@ class VisionCameraTest {
     }
 
     @Test
+    void singleTagUsesTheHeadingAtCaptureTime() {
+        // Turning fast: at capture (t 10.0) the gyro agreed with the robot; 50 ms later it reads 17
+        // degrees more, nearer the flipped solution (30 degrees) than the true one.
+        DoubleFunction<Rotation2d> headingAt = t -> Math.abs(t - 10.0) < 1e-9
+            ? heading() : heading().plus(Rotation2d.fromDegrees(17));
+        var measurements = m_camera.process(List.of(resultWith(flippedBy(30), robotPose(), 0.1)), 10.05, headingAt);
+        assertEquals(1, measurements.size());
+        assertEquals(robotPose().toPose2d().getY(), measurements.get(0).pose().getY(), 1e-6);
+        assertEquals(heading().getDegrees(), measurements.get(0).pose().getRotation().getDegrees(), 1e-6);
+    }
+
+    @Test
     void singleTagFarFromBothSolutionsIsRejected() {
         var gyro = heading().plus(Rotation2d.fromDegrees(90));
-        assertTrue(m_camera.process(List.of(resultWith(flipped(), robotPose(), 0.1)), 10.03, gyro).isEmpty());
+        assertTrue(m_camera.process(List.of(resultWith(flipped(), robotPose(), 0.1)), 10.03, t -> gyro).isEmpty());
         assertEquals("heading", m_camera.lastRejectReason());
     }
 
     @Test
     void latencyIsTheAgeOfTheNewestFrame() {
-        m_camera.process(List.of(resultAt(10.0, 0.05), resultAt(10.03, 0.05)), 10.05, heading());
+        m_camera.process(List.of(resultAt(10.0, 0.05), resultAt(10.03, 0.05)), 10.05, t -> heading());
         assertEquals(0.02, m_camera.lastLatencySeconds(), 1e-6);
     }
 }

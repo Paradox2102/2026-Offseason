@@ -2,6 +2,7 @@ package frc.robot.subsystems.vision;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.DoubleFunction;
 
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
@@ -40,6 +41,8 @@ public class Vision extends SubsystemBase {
     private VisionSystemSim m_sim = null;
     private int m_simResetCount = 0;
     private int m_headingMeasurements = 0;
+    private int m_multiTagMeasurements = 0;
+    private final HeadingReference m_headingReference = new HeadingReference();
     /*
      * A camera at 30 fps sends no frame in many 20 ms loops, so "accepted this loop" blinks.
      * Stay true for 0.2 s after the last accepted pose.
@@ -81,14 +84,25 @@ public class Vision extends SubsystemBase {
         Telemetry.log("Vision/Clock Offset ms", (driveNow - visionNow) * 1000);
         Telemetry.log("Vision/Timer Offset ms", (driveNow - Timer.getTimestamp()) * 1000);
 
-        Rotation2d heading = m_drive.getHeading();
+        // The estimator's heading when a frame was captured (now, if the buffer has no sample),
+        // corrected by recent multi-tag frames when it is far off (see HeadingReference).
+        Rotation2d headingNow = m_drive.getHeading();
+        DoubleFunction<Rotation2d> estimatorAt = capture -> m_drive
+            .samplePoseAt(VisionClock.toDriveTime(capture, driveNow, visionNow))
+            .map(Pose2d::getRotation).orElse(headingNow);
+        DoubleFunction<Rotation2d> headingAt = capture -> m_headingReference.correct(capture, estimatorAt.apply(capture));
         List<Pose2d> accepted = new ArrayList<>();
         List<Pose2d> rejected = new ArrayList<>();
         List<Pose3d> tags = new ArrayList<>();
         for (var camera : m_cameras) {
             var frames = camera.readNewFrames();
-            var measurements = camera.process(frames, visionNow, heading);
+            var measurements = camera.process(frames, visionNow, headingAt);
             for (var m : measurements) {
+                if (m.multiTag()) {
+                    // Before the estimator takes this frame in, so the offset is the one it corrects.
+                    m_headingReference.observe(m.timestamp(), m.pose().getRotation(), estimatorAt.apply(m.timestamp()));
+                    m_multiTagMeasurements++;
+                }
                 m_drive.addVisionMeasurement(m.pose(), VisionClock.toDriveTime(m.timestamp(), driveNow, visionNow),
                     m.stdDevs());
                 if (m.stdDevs().get(2, 0) < 1) { // radians: the untrusted value is 1e6
@@ -117,6 +131,11 @@ public class Vision extends SubsystemBase {
     /** Measurements sent with a usable heading since boot (the sim smoke test reads it). */
     public int headingMeasurements() {
         return m_headingMeasurements;
+    }
+
+    /** Multi-tag measurements sent since boot (the sim smoke test reads it). */
+    public int multiTagMeasurements() {
+        return m_multiTagMeasurements;
     }
 
     private void log(VisionCamera camera, int frameCount) {

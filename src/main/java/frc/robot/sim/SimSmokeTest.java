@@ -60,6 +60,8 @@ public class SimSmokeTest {
     private double m_rightX = 0;
     private final Timer m_timer = new Timer();
     private int m_step = -1;
+    private int m_headingAtKick = 0;
+    private int m_multiTagAtKick = 0;
     private double m_maxTeleopSpeed = 0;
     private double m_headingAtRelease = 0;
     private boolean m_teleopScheduled = false;
@@ -597,6 +599,8 @@ public class SimSmokeTest {
             System.out.printf("SMOKE auto field contacts: %d loops touching a structure (last: %s); trench headroom %.3f m%n",
                 m_drive.getSim().contacts() - m_autoContactsAtStart, m_drive.getSim().lastContact(), m_autoMinHeadroom);
             m_drive.getSim().kickPose();
+            m_headingAtKick = m_container.getVision().headingMeasurements();
+            m_multiTagAtKick = m_container.getVision().multiTagMeasurements();
             report("after kick");
         }
     }
@@ -666,11 +670,14 @@ public class SimSmokeTest {
         var truth = m_drive.getSim().truthPose();
         double error = pose.getTranslation().getDistance(truth.getTranslation());
         double headingError = Math.abs(truth.getRotation().minus(pose.getRotation()).getDegrees());
-        System.out.printf("SMOKE vision heading: %d measurements with a heading%n",
-            m_container.getVision().headingMeasurements());
+        // Counted from the kick: frames from the auto before it say nothing about the correction.
+        int heading = m_container.getVision().headingMeasurements() - m_headingAtKick;
+        int multiTag = m_container.getVision().multiTagMeasurements() - m_multiTagAtKick;
+        System.out.printf("SMOKE vision after the kick: %d multi-tag measurements, %d with a heading%n",
+            multiTag, heading);
         if (error > 0.05 || headingError > 1.0) {
-            System.out.printf("SMOKE FAIL: vision did not correct the kick: error %.3f m, heading %.1f deg%n",
-                error, headingError);
+            System.out.printf("SMOKE FAIL: vision did not correct the kick: error %.3f m, heading %.1f deg"
+                + " (%d multi-tag, %d with a heading since the kick)%n", error, headingError, multiTag, heading);
         }
     }
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.DoubleFunction;
 
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
@@ -35,7 +36,7 @@ import frc.robot.constants.FieldConstants;
  */
 public class VisionCamera {
     /** A pose for the drive's estimator. */
-    public record Measurement(Pose2d pose, double timestamp, Matrix<N3, N1> stdDevs) {}
+    public record Measurement(Pose2d pose, double timestamp, Matrix<N3, N1> stdDevs, boolean multiTag) {}
 
     private final VisionConstants.CameraConfig m_config;
     private final boolean m_trustHeading;
@@ -76,15 +77,19 @@ public class VisionCamera {
     }
 
     /** One frame's robot pose and what the filter needs to judge it. */
-    private record Solve(Pose3d pose, List<PhotonTrackedTarget> used, double ambiguity, double headingError) {}
+    private record Solve(Pose3d pose, List<PhotonTrackedTarget> used, double ambiguity, double headingError,
+                         boolean multiTag) {}
 
     /**
      * Turn frames into measurements, oldest first. Rejected frames are left out.
      *
      * @param visionNowSeconds now, on the clock of the frame timestamps (see {@link VisionClock})
-     * @param heading the robot heading now (gyro): picks the right single-tag solution
+     * @param headingAt the robot heading at a capture time (vision clock): picks the right
+     *     single-tag solution. At capture, not now: a fast turn moves the heading tens of degrees
+     *     in a frame's latency.
      */
-    public List<Measurement> process(List<PhotonPipelineResult> results, double visionNowSeconds, Rotation2d heading) {
+    public List<Measurement> process(List<PhotonPipelineResult> results, double visionNowSeconds,
+                                     DoubleFunction<Rotation2d> headingAt) {
         m_accepted.clear();
         m_rejected.clear();
         m_lastRejectReason = "";
@@ -106,7 +111,7 @@ public class VisionCamera {
             // tag in view, fall back to that tag's solution that agrees with the gyro.
             Optional<Solve> solve = multiTagSolve(result);
             if (solve.isEmpty()) {
-                solve = singleTagSolve(result, heading);
+                solve = singleTagSolve(result, headingAt.apply(result.getTimestampSeconds()));
             }
             if (solve.isEmpty()) {
                 continue;
@@ -127,7 +132,8 @@ public class VisionCamera {
                 m_accepted.add(pose);
                 double factor = m_config.stdDevFactor();
                 measurements.add(new Measurement(pose, result.getTimestampSeconds(),
-                    VecBuilder.fill(verdict.xyStdDev() * factor, verdict.xyStdDev() * factor, verdict.thetaStdDev() * factor)));
+                    VecBuilder.fill(verdict.xyStdDev() * factor, verdict.xyStdDev() * factor, verdict.thetaStdDev() * factor),
+                    s.multiTag()));
             } else {
                 m_rejected.add(pose);
                 m_lastRejectReason = verdict.reason();
@@ -145,7 +151,7 @@ public class VisionCamera {
         // PhotonLib lists every tag in the frame; the coprocessor may have left some out.
         var ids = result.getMultiTagResult().get().fiducialIDsUsed;
         var used = estimate.get().targetsUsed.stream().filter(t -> ids.contains((short) t.getFiducialId())).toList();
-        return Optional.of(new Solve(estimate.get().estimatedPose, used, 0, 0));
+        return Optional.of(new Solve(estimate.get().estimatedPose, used, 0, 0, true));
     }
 
     /**
@@ -173,7 +179,7 @@ public class VisionCamera {
         Pose3d alt = tagPose.get().transformBy(target.getAlternateCameraToTarget().inverse()).transformBy(cameraToRobot);
         Pose3d pose = VisionFilter.closerToHeading(best, alt, heading);
         double headingError = Math.abs(pose.toPose2d().getRotation().minus(heading).getRadians());
-        return Optional.of(new Solve(pose, List.of(target), target.getPoseAmbiguity(), headingError));
+        return Optional.of(new Solve(pose, List.of(target), target.getPoseAmbiguity(), headingError, false));
     }
 
     public List<Pose2d> acceptedPoses() {
