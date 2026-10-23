@@ -202,6 +202,27 @@ class VisionCameraTest {
     }
 
     @Test
+    void futureFrameIsRejected() {
+        assertTrue(m_camera.process(List.of(resultAt(10.0, 0.05)), 9.9, t -> heading()).isEmpty());
+        assertEquals("future", m_camera.lastRejectReason());
+    }
+
+    @Test
+    void multiTagIsAcceptedWithTheGyroFarOff() {
+        var gyro = heading().plus(Rotation2d.fromDegrees(40)); // after a Pigeon reboot
+        var m = m_camera.process(List.of(multiTagAt(10.0, List.of((short) 10, (short) 11))), 10.03, t -> gyro);
+        assertEquals(1, m.size());
+        assertTrue(m.get(0).multiTag());
+    }
+
+    @Test
+    void oldFrameDoesNotBlockANewOneInTheSameBatch() {
+        var m = m_camera.process(List.of(resultAt(9.0, 0.05), resultAt(10.0, 0.05)), 10.03, t -> heading());
+        assertEquals(1, m.size());
+        assertEquals(10.0, m.get(0).timestamp(), 1e-6);
+    }
+
+    @Test
     void emptyResultsGiveNoMeasurements() {
         assertTrue(m_camera.process(List.of(), 10.03, t -> heading()).isEmpty());
     }

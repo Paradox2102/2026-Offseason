@@ -116,7 +116,8 @@ public class Drive extends TunerSwerveDrivetrain implements Subsystem {
             this));
 
     /**
-     * @param odometryHz odometry thread rate; 0 = the Phoenix default (100 Hz on CAN 2.0)
+     * @param odometryHz odometry thread rate; 0 = the Phoenix default (250 Hz on CAN FD, 100 Hz on
+     *     CAN 2.0; the SystemCore has CAN 2.0)
      * @param odometryStdDevs trust in wheel odometry, see {@link DriveConstants#kOdometryStdDevs}
      * @param visionStdDevs trust in a vision measurement sent without its own values
      */
