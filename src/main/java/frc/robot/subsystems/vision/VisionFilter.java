@@ -40,14 +40,16 @@ public final class VisionFilter {
     public static final double kMinXyStdDev = 0.02;
     public static final double kMinThetaStdDev = 0.02;
     /**
-     * Multi-tag heading only from tags nearer than this, meters: far away, a pixel of corner
-     * error turns the solved heading by too much.
+     * Multi-tag heading only when its own standard deviation is at most this, radians: far away,
+     * a pixel of corner error turns the solved heading by too much. 0.12 is 2 tags at 4 m; more
+     * tags count from farther (4 tags up to 8 m), as the error model says. A plain distance limit
+     * refused 4 to 6 tags at 5 to 7 m, which the model rates better than 2 tags at 3 m.
      *
      * <p>How to tune the coefficients: park the robot, log "Vision/Accepted Poses" for 30 s at
      * 1, 3 and 5 m from the tags, and set kXyCoefficient so that the standard deviation it gives
      * matches the spread of the logged poses.
      */
-    public static final double kMaxHeadingDistance = 4.0;
+    public static final double kMaxHeadingStdDev = 0.12;
     /** "Do not use the heading": a single tag cannot measure it well, the gyro is far better. */
     public static final double kUntrusted = 1e6;
 
@@ -84,8 +86,8 @@ public final class VisionFilter {
 
     /**
      * @param trustHeading may vision set the heading at all? Off until the cameras are checked
-     *     ({@link VisionConstants#kCamerasChecked}); even then only for 2 or more tags within
-     *     {@link #kMaxHeadingDistance}.
+     *     ({@link VisionConstants#kCamerasChecked}); even then only for 2 or more tags, with a
+     *     heading standard deviation of at most {@link #kMaxHeadingStdDev}.
      */
     public static Result evaluate(Observation obs, double fieldLength, double fieldWidth, boolean trustHeading) {
         if (obs.tagCount() < 1) {
@@ -114,10 +116,9 @@ public final class VisionFilter {
         double distanceSquared = obs.averageDistance() * obs.averageDistance();
         double tagsSquared = obs.tagCount() * obs.tagCount();
         double xy = Math.max(kMinXyStdDev, kXyCoefficient * distanceSquared / tagsSquared);
-        boolean useHeading = trustHeading && obs.tagCount() >= 2 && obs.averageDistance() <= kMaxHeadingDistance;
-        double theta = useHeading
-            ? Math.max(kMinThetaStdDev, kThetaCoefficient * distanceSquared / tagsSquared)
-            : kUntrusted;
+        double headingStdDev = Math.max(kMinThetaStdDev, kThetaCoefficient * distanceSquared / tagsSquared);
+        boolean useHeading = trustHeading && obs.tagCount() >= 2 && headingStdDev <= kMaxHeadingStdDev + 1e-12;
+        double theta = useHeading ? headingStdDev : kUntrusted;
         return new Result(true, "ok", xy, theta);
     }
 }

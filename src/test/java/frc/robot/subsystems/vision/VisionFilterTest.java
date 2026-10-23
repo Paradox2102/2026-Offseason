@@ -108,6 +108,19 @@ class VisionFilterTest {
     }
 
     @Test
+    void manyFarTagsGiveAHeading() {
+        // The left trench end in the sim: 4 tags at 4.66 m. Better than 2 tags at 3 m (0.068 rad).
+        var result = evaluateTrusted(pose(3, 4, 0), 4, 4.66, 0);
+        assertEquals(0.03 * 4.66 * 4.66 / 16, result.thetaStdDev(), 1e-9);
+    }
+
+    @Test
+    void twoTagsAtFourMetersStillGiveAHeading() {
+        var result = evaluateTrusted(pose(3, 4, 0), 2, 4.0, 0);
+        assertEquals(VisionFilter.kMaxHeadingStdDev, result.thetaStdDev(), 1e-9);
+    }
+
+    @Test
     void nearTagsStopAtTheMinimum() {
         assertEquals(VisionFilter.kMinXyStdDev, evaluate(pose(3, 4, 0), 4, 0.5, 0).xyStdDev(), 1e-12);
     }
