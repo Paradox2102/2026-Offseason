@@ -9,10 +9,10 @@
         "containers": [
           {
             "title": "Field",
-            "x": 0,
-            "y": 0,
-            "width": 896,
-            "height": 512,
+            "x": 0.0,
+            "y": 0.0,
+            "width": 896.0,
+            "height": 512.0,
             "type": "Field",
             "properties": {
               "topic": "/Telemetry/Field",
@@ -31,10 +31,10 @@
           },
           {
             "title": "Match Time",
-            "x": 896,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 896.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Match Time",
             "properties": {
               "topic": "/Telemetry/Match Time",
@@ -46,10 +46,10 @@
           },
           {
             "title": "Vision Target",
-            "x": 1152,
-            "y": 0,
-            "width": 128,
-            "height": 128,
+            "x": 1152.0,
+            "y": 0.0,
+            "width": 128.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Vision/Has Target",
@@ -62,10 +62,10 @@
           },
           {
             "title": "Battery",
-            "x": 1280,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 1280.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Voltage View",
             "properties": {
               "topic": "/Telemetry/Health/Battery V",
@@ -79,10 +79,10 @@
           },
           {
             "title": "Auto",
-            "x": 896,
-            "y": 128,
-            "width": 384,
-            "height": 128,
+            "x": 896.0,
+            "y": 128.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Dropdown Chooser",
             "properties": {
               "topic": "/Tunables/Auto Selection",
@@ -92,10 +92,10 @@
           },
           {
             "title": "Alerts",
-            "x": 896,
-            "y": 256,
-            "width": 640,
-            "height": 256,
+            "x": 896.0,
+            "y": 256.0,
+            "width": 640.0,
+            "height": 256.0,
             "type": "Alerts",
             "properties": {
               "topic": "/Telemetry/Alerts/Health",
@@ -104,10 +104,10 @@
           },
           {
             "title": "Shot ready",
-            "x": 1280,
-            "y": 128,
-            "width": 256,
-            "height": 128,
+            "x": 1280.0,
+            "y": 128.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Shooter/Ready",
@@ -120,10 +120,10 @@
           },
           {
             "title": "Near trench",
-            "x": 896,
-            "y": 512,
-            "width": 256,
-            "height": 128,
+            "x": 896.0,
+            "y": 512.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Shooter/Near Trench",
@@ -136,10 +136,10 @@
           },
           {
             "title": "Intake fully out",
-            "x": 1152,
-            "y": 512,
-            "width": 256,
-            "height": 128,
+            "x": 1152.0,
+            "y": 512.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Shooter/Intake Extended",
@@ -160,10 +160,10 @@
         "containers": [
           {
             "title": "Alerts",
-            "x": 0,
-            "y": 0,
-            "width": 640,
-            "height": 512,
+            "x": 0.0,
+            "y": 0.0,
+            "width": 640.0,
+            "height": 512.0,
             "type": "Alerts",
             "properties": {
               "topic": "/Telemetry/Alerts/Health",
@@ -172,10 +172,10 @@
           },
           {
             "title": "Swerve Self-Test",
-            "x": 640,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 640.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Pit/Swerve Self-Test",
@@ -186,10 +186,10 @@
           },
           {
             "title": "Wheels Forward",
-            "x": 896,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 896.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Pit/Wheels Forward",
@@ -200,10 +200,10 @@
           },
           {
             "title": "Reset Heading",
-            "x": 1152,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 1152.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Pit/Reset Heading",
@@ -214,10 +214,10 @@
           },
           {
             "title": "Battery V",
-            "x": 640,
-            "y": 128,
-            "width": 384,
-            "height": 256,
+            "x": 640.0,
+            "y": 128.0,
+            "width": 384.0,
+            "height": 256.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Health/Battery V",
@@ -231,10 +231,10 @@
           },
           {
             "title": "Loop Time ms",
-            "x": 1024,
-            "y": 128,
-            "width": 384,
-            "height": 256,
+            "x": 1024.0,
+            "y": 128.0,
+            "width": 384.0,
+            "height": 256.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Health/Loop Time ms",
@@ -246,10 +246,10 @@
           },
           {
             "title": "CAN S1 (indexer) %",
-            "x": 640,
-            "y": 384,
-            "width": 256,
-            "height": 128,
+            "x": 640.0,
+            "y": 384.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Health/CAN/CAN_S1/Utilization",
@@ -261,10 +261,10 @@
           },
           {
             "title": "CAN S2 (swerve) %",
-            "x": 896,
-            "y": 384,
-            "width": 256,
-            "height": 128,
+            "x": 896.0,
+            "y": 384.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Health/CAN/CAN_S2/Utilization",
@@ -276,10 +276,10 @@
           },
           {
             "title": "CAN S3 (shooter) %",
-            "x": 1152,
-            "y": 384,
-            "width": 256,
-            "height": 128,
+            "x": 1152.0,
+            "y": 384.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Health/CAN/CAN_S3/Utilization",
@@ -291,10 +291,10 @@
           },
           {
             "title": "CAN S4 (intake) %",
-            "x": 1408,
-            "y": 384,
-            "width": 256,
-            "height": 128,
+            "x": 1408.0,
+            "y": 384.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Health/CAN/CAN_S4/Utilization",
@@ -306,10 +306,10 @@
           },
           {
             "title": "Zero turret (in jig)",
-            "x": 1408,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 1408.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Pit/Zero turret (in jig)",
@@ -328,10 +328,10 @@
         "containers": [
           {
             "title": "Swerve",
-            "x": 0,
-            "y": 0,
-            "width": 384,
-            "height": 384,
+            "x": 0.0,
+            "y": 0.0,
+            "width": 384.0,
+            "height": 384.0,
             "type": "SwerveDrive",
             "properties": {
               "topic": "/Telemetry/Swerve Drive",
@@ -342,10 +342,10 @@
           },
           {
             "title": "Speed m/s",
-            "x": 384,
-            "y": 0,
-            "width": 512,
-            "height": 256,
+            "x": 384.0,
+            "y": 0.0,
+            "width": 512.0,
+            "height": 256.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Drive/Speed mps",
@@ -357,10 +357,10 @@
           },
           {
             "title": "Odometry Hz",
-            "x": 896,
-            "y": 0,
-            "width": 384,
-            "height": 256,
+            "x": 896.0,
+            "y": 0.0,
+            "width": 384.0,
+            "height": 256.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Drive/Odometry Hz",
@@ -372,10 +372,10 @@
           },
           {
             "title": "Heading (gyro) deg",
-            "x": 384,
-            "y": 256,
-            "width": 256,
-            "height": 128,
+            "x": 384.0,
+            "y": 256.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Drive/Raw Heading deg",
@@ -385,10 +385,10 @@
           },
           {
             "title": "Failed DAQs",
-            "x": 640,
-            "y": 256,
-            "width": 256,
-            "height": 128,
+            "x": 640.0,
+            "y": 256.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Drive/Failed DAQs",
@@ -398,10 +398,10 @@
           },
           {
             "title": "Open loop teleop",
-            "x": 896,
-            "y": 256,
-            "width": 256,
-            "height": 128,
+            "x": 896.0,
+            "y": 256.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Toggle Switch",
             "properties": {
               "topic": "/Tunables/Drive/Open loop teleop",
@@ -418,10 +418,10 @@
         "containers": [
           {
             "title": "front_right",
-            "x": 0,
-            "y": 0,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 0.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Vision/front_right/Connected",
@@ -434,10 +434,10 @@
           },
           {
             "title": "Tags",
-            "x": 0,
-            "y": 128,
-            "width": 128,
-            "height": 128,
+            "x": 0.0,
+            "y": 128.0,
+            "width": 128.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/front_right/Tag Count",
@@ -447,10 +447,10 @@
           },
           {
             "title": "Reject reason",
-            "x": 128,
-            "y": 128,
-            "width": 256,
-            "height": 128,
+            "x": 128.0,
+            "y": 128.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/front_right/Reject Reason",
@@ -460,10 +460,10 @@
           },
           {
             "title": "Robot roll deg (0 = camera OK)",
-            "x": 0,
-            "y": 256,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 256.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Vision/front_right/Robot Roll deg",
@@ -475,10 +475,10 @@
           },
           {
             "title": "Robot pitch deg (0 = camera OK)",
-            "x": 0,
-            "y": 384,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 384.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Vision/front_right/Robot Pitch deg",
@@ -490,10 +490,10 @@
           },
           {
             "title": "Robot z m (0 = camera OK)",
-            "x": 0,
-            "y": 512,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 512.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Vision/front_right/Robot Z m",
@@ -505,10 +505,10 @@
           },
           {
             "title": "Latency ms",
-            "x": 0,
-            "y": 640,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 640.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/front_right/Latency ms",
@@ -518,10 +518,10 @@
           },
           {
             "title": "front_left",
-            "x": 384,
-            "y": 0,
-            "width": 384,
-            "height": 128,
+            "x": 384.0,
+            "y": 0.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Vision/front_left/Connected",
@@ -534,10 +534,10 @@
           },
           {
             "title": "Tags",
-            "x": 384,
-            "y": 128,
-            "width": 128,
-            "height": 128,
+            "x": 384.0,
+            "y": 128.0,
+            "width": 128.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/front_left/Tag Count",
@@ -547,10 +547,10 @@
           },
           {
             "title": "Reject reason",
-            "x": 512,
-            "y": 128,
-            "width": 256,
-            "height": 128,
+            "x": 512.0,
+            "y": 128.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/front_left/Reject Reason",
@@ -560,10 +560,10 @@
           },
           {
             "title": "Robot roll deg (0 = camera OK)",
-            "x": 384,
-            "y": 256,
-            "width": 384,
-            "height": 128,
+            "x": 384.0,
+            "y": 256.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Vision/front_left/Robot Roll deg",
@@ -575,10 +575,10 @@
           },
           {
             "title": "Robot pitch deg (0 = camera OK)",
-            "x": 384,
-            "y": 384,
-            "width": 384,
-            "height": 128,
+            "x": 384.0,
+            "y": 384.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Vision/front_left/Robot Pitch deg",
@@ -590,10 +590,10 @@
           },
           {
             "title": "Robot z m (0 = camera OK)",
-            "x": 384,
-            "y": 512,
-            "width": 384,
-            "height": 128,
+            "x": 384.0,
+            "y": 512.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Vision/front_left/Robot Z m",
@@ -605,10 +605,10 @@
           },
           {
             "title": "Latency ms",
-            "x": 384,
-            "y": 640,
-            "width": 384,
-            "height": 128,
+            "x": 384.0,
+            "y": 640.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/front_left/Latency ms",
@@ -618,10 +618,10 @@
           },
           {
             "title": "side_left",
-            "x": 768,
-            "y": 0,
-            "width": 384,
-            "height": 128,
+            "x": 768.0,
+            "y": 0.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Vision/side_left/Connected",
@@ -634,10 +634,10 @@
           },
           {
             "title": "Tags",
-            "x": 768,
-            "y": 128,
-            "width": 128,
-            "height": 128,
+            "x": 768.0,
+            "y": 128.0,
+            "width": 128.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/side_left/Tag Count",
@@ -647,10 +647,10 @@
           },
           {
             "title": "Reject reason",
-            "x": 896,
-            "y": 128,
-            "width": 256,
-            "height": 128,
+            "x": 896.0,
+            "y": 128.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/side_left/Reject Reason",
@@ -660,10 +660,10 @@
           },
           {
             "title": "Robot roll deg (0 = camera OK)",
-            "x": 768,
-            "y": 256,
-            "width": 384,
-            "height": 128,
+            "x": 768.0,
+            "y": 256.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Vision/side_left/Robot Roll deg",
@@ -675,10 +675,10 @@
           },
           {
             "title": "Robot pitch deg (0 = camera OK)",
-            "x": 768,
-            "y": 384,
-            "width": 384,
-            "height": 128,
+            "x": 768.0,
+            "y": 384.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Vision/side_left/Robot Pitch deg",
@@ -690,10 +690,10 @@
           },
           {
             "title": "Robot z m (0 = camera OK)",
-            "x": 768,
-            "y": 512,
-            "width": 384,
-            "height": 128,
+            "x": 768.0,
+            "y": 512.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Vision/side_left/Robot Z m",
@@ -705,10 +705,10 @@
           },
           {
             "title": "Latency ms",
-            "x": 768,
-            "y": 640,
-            "width": 384,
-            "height": 128,
+            "x": 768.0,
+            "y": 640.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/side_left/Latency ms",
@@ -718,10 +718,10 @@
           },
           {
             "title": "side_right",
-            "x": 1152,
-            "y": 0,
-            "width": 384,
-            "height": 128,
+            "x": 1152.0,
+            "y": 0.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Vision/side_right/Connected",
@@ -734,10 +734,10 @@
           },
           {
             "title": "Tags",
-            "x": 1152,
-            "y": 128,
-            "width": 128,
-            "height": 128,
+            "x": 1152.0,
+            "y": 128.0,
+            "width": 128.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/side_right/Tag Count",
@@ -747,10 +747,10 @@
           },
           {
             "title": "Reject reason",
-            "x": 1280,
-            "y": 128,
-            "width": 256,
-            "height": 128,
+            "x": 1280.0,
+            "y": 128.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/side_right/Reject Reason",
@@ -760,10 +760,10 @@
           },
           {
             "title": "Robot roll deg (0 = camera OK)",
-            "x": 1152,
-            "y": 256,
-            "width": 384,
-            "height": 128,
+            "x": 1152.0,
+            "y": 256.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Vision/side_right/Robot Roll deg",
@@ -775,10 +775,10 @@
           },
           {
             "title": "Robot pitch deg (0 = camera OK)",
-            "x": 1152,
-            "y": 384,
-            "width": 384,
-            "height": 128,
+            "x": 1152.0,
+            "y": 384.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Vision/side_right/Robot Pitch deg",
@@ -790,10 +790,10 @@
           },
           {
             "title": "Robot z m (0 = camera OK)",
-            "x": 1152,
-            "y": 512,
-            "width": 384,
-            "height": 128,
+            "x": 1152.0,
+            "y": 512.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Vision/side_right/Robot Z m",
@@ -805,10 +805,10 @@
           },
           {
             "title": "Latency ms",
-            "x": 1152,
-            "y": 640,
-            "width": 384,
-            "height": 128,
+            "x": 1152.0,
+            "y": 640.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/side_right/Latency ms",
@@ -818,10 +818,10 @@
           },
           {
             "title": "Clock offset ms (vision)",
-            "x": 0,
-            "y": 768,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 768.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/Clock Offset ms",
@@ -831,10 +831,10 @@
           },
           {
             "title": "Clock offset ms (timer)",
-            "x": 384,
-            "y": 768,
-            "width": 384,
-            "height": 128,
+            "x": 384.0,
+            "y": 768.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/Timer Offset ms",
@@ -852,10 +852,10 @@
         "containers": [
           {
             "title": "Rack at stop",
-            "x": 0,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 0.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Intake/Rack/At Stop",
@@ -868,10 +868,10 @@
           },
           {
             "title": "Goal out",
-            "x": 256,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 256.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Intake/Rack/Goal Out",
@@ -884,10 +884,10 @@
           },
           {
             "title": "Rack position m",
-            "x": 512,
-            "y": 0,
-            "width": 512,
-            "height": 256,
+            "x": 512.0,
+            "y": 0.0,
+            "width": 512.0,
+            "height": 256.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Intake/Rack/Position m",
@@ -901,10 +901,10 @@
           },
           {
             "title": "Skew m (left - right)",
-            "x": 1024,
-            "y": 0,
-            "width": 512,
-            "height": 256,
+            "x": 1024.0,
+            "y": 0.0,
+            "width": 512.0,
+            "height": 256.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Intake/Rack/Skew m",
@@ -916,10 +916,10 @@
           },
           {
             "title": "Left phase",
-            "x": 0,
-            "y": 128,
-            "width": 256,
-            "height": 128,
+            "x": 0.0,
+            "y": 128.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Intake/Rack/Left/Phase",
@@ -929,10 +929,10 @@
           },
           {
             "title": "Left position m",
-            "x": 0,
-            "y": 256,
-            "width": 256,
-            "height": 128,
+            "x": 0.0,
+            "y": 256.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Intake/Rack/Left/Position m",
@@ -942,10 +942,10 @@
           },
           {
             "title": "Left out stop m",
-            "x": 0,
-            "y": 384,
-            "width": 256,
-            "height": 128,
+            "x": 0.0,
+            "y": 384.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Intake/Rack/Left/Out Stop m",
@@ -955,10 +955,10 @@
           },
           {
             "title": "Left rebooted",
-            "x": 0,
-            "y": 512,
-            "width": 256,
-            "height": 128,
+            "x": 0.0,
+            "y": 512.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Intake/Rack/Left/Lost",
@@ -971,10 +971,10 @@
           },
           {
             "title": "Right phase",
-            "x": 256,
-            "y": 128,
-            "width": 256,
-            "height": 128,
+            "x": 256.0,
+            "y": 128.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Intake/Rack/Right/Phase",
@@ -984,10 +984,10 @@
           },
           {
             "title": "Right position m",
-            "x": 256,
-            "y": 256,
-            "width": 256,
-            "height": 128,
+            "x": 256.0,
+            "y": 256.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Intake/Rack/Right/Position m",
@@ -997,10 +997,10 @@
           },
           {
             "title": "Right out stop m",
-            "x": 256,
-            "y": 384,
-            "width": 256,
-            "height": 128,
+            "x": 256.0,
+            "y": 384.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Intake/Rack/Right/Out Stop m",
@@ -1010,10 +1010,10 @@
           },
           {
             "title": "Right rebooted",
-            "x": 256,
-            "y": 512,
-            "width": 256,
-            "height": 128,
+            "x": 256.0,
+            "y": 512.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Intake/Rack/Right/Lost",
@@ -1026,10 +1026,10 @@
           },
           {
             "title": "Roller target rps",
-            "x": 512,
-            "y": 256,
-            "width": 512,
-            "height": 256,
+            "x": 512.0,
+            "y": 256.0,
+            "width": 512.0,
+            "height": 256.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Intake/Roller/Target rps",
@@ -1041,10 +1041,10 @@
           },
           {
             "title": "Roller speed rps",
-            "x": 1024,
-            "y": 256,
-            "width": 512,
-            "height": 256,
+            "x": 1024.0,
+            "y": 256.0,
+            "width": 512.0,
+            "height": 256.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Intake/Roller/Speed rps",
@@ -1056,10 +1056,10 @@
           },
           {
             "title": "Unjamming",
-            "x": 512,
-            "y": 512,
-            "width": 256,
-            "height": 128,
+            "x": 512.0,
+            "y": 512.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Intake/Roller/Unjamming",
@@ -1072,10 +1072,10 @@
           },
           {
             "title": "Recent jams",
-            "x": 768,
-            "y": 512,
-            "width": 256,
-            "height": 128,
+            "x": 768.0,
+            "y": 512.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Intake/Roller/Recent Jams",
@@ -1093,10 +1093,10 @@
         "containers": [
           {
             "title": "Ready to shoot",
-            "x": 0,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 0.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Shooter/Ready",
@@ -1109,10 +1109,10 @@
           },
           {
             "title": "Scoring (else pass)",
-            "x": 256,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 256.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Shooter/Scoring",
@@ -1125,10 +1125,10 @@
           },
           {
             "title": "Distance m",
-            "x": 512,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 512.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Shooter/Distance m",
@@ -1138,10 +1138,10 @@
           },
           {
             "title": "Feeder",
-            "x": 768,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 768.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Shooter/Feeder/State",
@@ -1151,10 +1151,10 @@
           },
           {
             "title": "Turret zeroed",
-            "x": 1024,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 1024.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Shooter/Turret/Zeroed",
@@ -1167,10 +1167,10 @@
           },
           {
             "title": "Hood homed",
-            "x": 1280,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 1280.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Shooter/Hood/Homed",
@@ -1183,10 +1183,10 @@
           },
           {
             "title": "Turret error deg",
-            "x": 0,
-            "y": 128,
-            "width": 512,
-            "height": 256,
+            "x": 0.0,
+            "y": 128.0,
+            "width": 512.0,
+            "height": 256.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Shooter/Turret/Error deg",
@@ -1200,10 +1200,10 @@
           },
           {
             "title": "Turret position deg",
-            "x": 512,
-            "y": 128,
-            "width": 512,
-            "height": 256,
+            "x": 512.0,
+            "y": 128.0,
+            "width": 512.0,
+            "height": 256.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Shooter/Turret/Position deg",
@@ -1215,10 +1215,10 @@
           },
           {
             "title": "Hood deg",
-            "x": 1024,
-            "y": 128,
-            "width": 512,
-            "height": 256,
+            "x": 1024.0,
+            "y": 128.0,
+            "width": 512.0,
+            "height": 256.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Shooter/Hood/Position deg",
@@ -1230,10 +1230,10 @@
           },
           {
             "title": "Flywheel rps",
-            "x": 0,
-            "y": 384,
-            "width": 768,
-            "height": 256,
+            "x": 0.0,
+            "y": 384.0,
+            "width": 768.0,
+            "height": 256.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Shooter/Flywheel/Speed rps",
@@ -1245,10 +1245,10 @@
           },
           {
             "title": "Flywheel target rps",
-            "x": 768,
-            "y": 384,
-            "width": 768,
-            "height": 256,
+            "x": 768.0,
+            "y": 384.0,
+            "width": 768.0,
+            "height": 256.0,
             "type": "Graph",
             "properties": {
               "topic": "/Telemetry/Shooter/Flywheel/Target rps",
@@ -1260,10 +1260,10 @@
           },
           {
             "title": "Zero turret (in jig)",
-            "x": 0,
-            "y": 640,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 640.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Pit/Zero turret (in jig)",
@@ -1274,10 +1274,10 @@
           },
           {
             "title": "Near trench",
-            "x": 384,
-            "y": 640,
-            "width": 256,
-            "height": 128,
+            "x": 384.0,
+            "y": 640.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Shooter/Near Trench",
@@ -1290,10 +1290,10 @@
           },
           {
             "title": "Intake fully out",
-            "x": 640,
-            "y": 640,
-            "width": 256,
-            "height": 128,
+            "x": 640.0,
+            "y": 640.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Shooter/Intake Extended",
@@ -1314,10 +1314,10 @@
         "containers": [
           {
             "title": "SysId routine (test pad, Calibration tab)",
-            "x": 0,
-            "y": 0,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 0.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Drive/SysId Routine",
@@ -1327,10 +1327,10 @@
           },
           {
             "title": "Translation Quasistatic Forward",
-            "x": 0,
-            "y": 128,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 128.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Tuning/SysId Translation/Quasistatic Forward",
@@ -1341,10 +1341,10 @@
           },
           {
             "title": "Translation Quasistatic Reverse",
-            "x": 384,
-            "y": 128,
-            "width": 384,
-            "height": 128,
+            "x": 384.0,
+            "y": 128.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Tuning/SysId Translation/Quasistatic Reverse",
@@ -1355,10 +1355,10 @@
           },
           {
             "title": "Translation Dynamic Forward",
-            "x": 768,
-            "y": 128,
-            "width": 384,
-            "height": 128,
+            "x": 768.0,
+            "y": 128.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Tuning/SysId Translation/Dynamic Forward",
@@ -1369,10 +1369,10 @@
           },
           {
             "title": "Translation Dynamic Reverse",
-            "x": 1152,
-            "y": 128,
-            "width": 384,
-            "height": 128,
+            "x": 1152.0,
+            "y": 128.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Tuning/SysId Translation/Dynamic Reverse",
@@ -1383,10 +1383,10 @@
           },
           {
             "title": "Steer Quasistatic Forward",
-            "x": 0,
-            "y": 256,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 256.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Tuning/SysId Steer/Quasistatic Forward",
@@ -1397,10 +1397,10 @@
           },
           {
             "title": "Steer Quasistatic Reverse",
-            "x": 384,
-            "y": 256,
-            "width": 384,
-            "height": 128,
+            "x": 384.0,
+            "y": 256.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Tuning/SysId Steer/Quasistatic Reverse",
@@ -1411,10 +1411,10 @@
           },
           {
             "title": "Steer Dynamic Forward",
-            "x": 768,
-            "y": 256,
-            "width": 384,
-            "height": 128,
+            "x": 768.0,
+            "y": 256.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Tuning/SysId Steer/Dynamic Forward",
@@ -1425,10 +1425,10 @@
           },
           {
             "title": "Steer Dynamic Reverse",
-            "x": 1152,
-            "y": 256,
-            "width": 384,
-            "height": 128,
+            "x": 1152.0,
+            "y": 256.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Tuning/SysId Steer/Dynamic Reverse",
@@ -1439,10 +1439,10 @@
           },
           {
             "title": "Rotation Quasistatic Forward",
-            "x": 0,
-            "y": 384,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 384.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Tuning/SysId Rotation/Quasistatic Forward",
@@ -1453,10 +1453,10 @@
           },
           {
             "title": "Rotation Quasistatic Reverse",
-            "x": 384,
-            "y": 384,
-            "width": 384,
-            "height": 128,
+            "x": 384.0,
+            "y": 384.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Tuning/SysId Rotation/Quasistatic Reverse",
@@ -1467,10 +1467,10 @@
           },
           {
             "title": "Rotation Dynamic Forward",
-            "x": 768,
-            "y": 384,
-            "width": 384,
-            "height": 128,
+            "x": 768.0,
+            "y": 384.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Tuning/SysId Rotation/Dynamic Forward",
@@ -1481,10 +1481,10 @@
           },
           {
             "title": "Rotation Dynamic Reverse",
-            "x": 1152,
-            "y": 384,
-            "width": 384,
-            "height": 128,
+            "x": 1152.0,
+            "y": 384.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Tuning/SysId Rotation/Dynamic Reverse",
@@ -1495,10 +1495,10 @@
           },
           {
             "title": "Wheel Radius",
-            "x": 0,
-            "y": 512,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 512.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Tuning/Wheel Radius",
@@ -1509,10 +1509,10 @@
           },
           {
             "title": "Sim: Kick Pose",
-            "x": 384,
-            "y": 512,
-            "width": 384,
-            "height": 128,
+            "x": 384.0,
+            "y": 512.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Sim/Kick Pose",
@@ -1523,10 +1523,10 @@
           },
           {
             "title": "Open loop teleop",
-            "x": 768,
-            "y": 512,
-            "width": 256,
-            "height": 128,
+            "x": 768.0,
+            "y": 512.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Toggle Switch",
             "properties": {
               "topic": "/Tunables/Drive/Open loop teleop",
@@ -1535,10 +1535,10 @@
           },
           {
             "title": "Sim: Reset Fuel",
-            "x": 0,
-            "y": 640,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 640.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Sim/Reset Fuel",
@@ -1549,10 +1549,10 @@
           },
           {
             "title": "Sim hopper",
-            "x": 384,
-            "y": 640,
-            "width": 256,
-            "height": 128,
+            "x": 384.0,
+            "y": 640.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Sim/Fuel/Hopper",
@@ -1562,10 +1562,10 @@
           },
           {
             "title": "Sim picked up",
-            "x": 640,
-            "y": 640,
-            "width": 256,
-            "height": 128,
+            "x": 640.0,
+            "y": 640.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Sim/Fuel/Picked Up",
@@ -1575,10 +1575,10 @@
           },
           {
             "title": "Sim scored blue",
-            "x": 896,
-            "y": 640,
-            "width": 256,
-            "height": 128,
+            "x": 896.0,
+            "y": 640.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Sim/Fuel/Scored Blue",
@@ -1588,10 +1588,10 @@
           },
           {
             "title": "Sim scored red",
-            "x": 1152,
-            "y": 640,
-            "width": 256,
-            "height": 128,
+            "x": 1152.0,
+            "y": 640.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Sim/Fuel/Scored Red",
@@ -1609,10 +1609,10 @@
         "containers": [
           {
             "title": "Procedure",
-            "x": 0,
-            "y": 0,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 0.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Dropdown Chooser",
             "properties": {
               "topic": "/Tunables/Calibration/Procedure",
@@ -1622,10 +1622,10 @@
           },
           {
             "title": "Utility mode",
-            "x": 384,
-            "y": 0,
-            "width": 256,
-            "height": 128,
+            "x": 384.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Telemetry/Calibration/Utility Mode",
@@ -1638,10 +1638,10 @@
           },
           {
             "title": "Step",
-            "x": 640,
-            "y": 0,
-            "width": 896,
-            "height": 128,
+            "x": 640.0,
+            "y": 0.0,
+            "width": 896.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Calibration/Step",
@@ -1651,10 +1651,10 @@
           },
           {
             "title": "Instructions",
-            "x": 0,
-            "y": 128,
-            "width": 1536,
-            "height": 128,
+            "x": 0.0,
+            "y": 128.0,
+            "width": 1536.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Calibration/Instructions",
@@ -1664,10 +1664,10 @@
           },
           {
             "title": "Reading 1",
-            "x": 0,
-            "y": 256,
-            "width": 768,
-            "height": 128,
+            "x": 0.0,
+            "y": 256.0,
+            "width": 768.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Calibration/Reading 1",
@@ -1677,10 +1677,10 @@
           },
           {
             "title": "Reading 2",
-            "x": 768,
-            "y": 256,
-            "width": 768,
-            "height": 128,
+            "x": 768.0,
+            "y": 256.0,
+            "width": 768.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Calibration/Reading 2",
@@ -1690,10 +1690,10 @@
           },
           {
             "title": "Reading 3",
-            "x": 0,
-            "y": 384,
-            "width": 768,
-            "height": 128,
+            "x": 0.0,
+            "y": 384.0,
+            "width": 768.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Calibration/Reading 3",
@@ -1703,10 +1703,10 @@
           },
           {
             "title": "Reading 4",
-            "x": 768,
-            "y": 384,
-            "width": 768,
-            "height": 128,
+            "x": 768.0,
+            "y": 384.0,
+            "width": 768.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Calibration/Reading 4",
@@ -1716,10 +1716,10 @@
           },
           {
             "title": "Capture",
-            "x": 0,
-            "y": 512,
-            "width": 256,
-            "height": 128,
+            "x": 0.0,
+            "y": 512.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Calibration/Capture",
@@ -1730,10 +1730,10 @@
           },
           {
             "title": "Save",
-            "x": 256,
-            "y": 512,
-            "width": 256,
-            "height": 128,
+            "x": 256.0,
+            "y": 512.0,
+            "width": 256.0,
+            "height": 128.0,
             "type": "Command",
             "properties": {
               "topic": "/Tunables/Calibration/Save",
@@ -1744,10 +1744,10 @@
           },
           {
             "title": "Message",
-            "x": 512,
-            "y": 512,
-            "width": 1024,
-            "height": 128,
+            "x": 512.0,
+            "y": 512.0,
+            "width": 1024.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Calibration/Message",
@@ -1757,10 +1757,10 @@
           },
           {
             "title": "Shot: typed distance m (0 = pose)",
-            "x": 0,
-            "y": 640,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 640.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Tunables/Calibration/Shot/Typed Distance m",
@@ -1770,10 +1770,10 @@
           },
           {
             "title": "Shot: typed time of flight s",
-            "x": 384,
-            "y": 640,
-            "width": 384,
-            "height": 128,
+            "x": 384.0,
+            "y": 640.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Tunables/Calibration/Shot/Typed Time of Flight s",
@@ -1783,10 +1783,10 @@
           },
           {
             "title": "Hood: upper stop angle deg",
-            "x": 768,
-            "y": 640,
-            "width": 384,
-            "height": 128,
+            "x": 768.0,
+            "y": 640.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Tunables/Calibration/Hood/Upper Stop Angle deg",
@@ -1796,10 +1796,10 @@
           },
           {
             "title": "Hood: lower stop above level deg",
-            "x": 1152,
-            "y": 640,
-            "width": 384,
-            "height": 128,
+            "x": 1152.0,
+            "y": 640.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Tunables/Calibration/Hood/Lower Stop Above Level deg",
@@ -1809,10 +1809,10 @@
           },
           {
             "title": "Pack fraction",
-            "x": 0,
-            "y": 768,
-            "width": 384,
-            "height": 128,
+            "x": 0.0,
+            "y": 768.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Tunables/Intake/Pack/Fraction",
@@ -1822,10 +1822,10 @@
           },
           {
             "title": "Pulse amplitude m",
-            "x": 384,
-            "y": 768,
-            "width": 384,
-            "height": 128,
+            "x": 384.0,
+            "y": 768.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Tunables/Intake/Pack/Pulse Amplitude m",
@@ -1835,10 +1835,10 @@
           },
           {
             "title": "Pulse rate Hz",
-            "x": 768,
-            "y": 768,
-            "width": 384,
-            "height": 128,
+            "x": 768.0,
+            "y": 768.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Tunables/Intake/Pack/Pulse Rate Hz",
@@ -1848,10 +1848,10 @@
           },
           {
             "title": "SysId routine",
-            "x": 1152,
-            "y": 768,
-            "width": 384,
-            "height": 128,
+            "x": 1152.0,
+            "y": 768.0,
+            "width": 384.0,
+            "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Drive/SysId Routine",

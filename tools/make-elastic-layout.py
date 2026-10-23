@@ -2,7 +2,9 @@
 
 Edit the tab lists below and run:  python3 tools/make-elastic-layout.py src/main/deploy/elastic-layout.json
 tools/sim-smoke.sh then checks that every widget topic exists in the simulator.
-Grid units: one cell = 128 px. Colors are ARGB integers.
+Grid units: one cell = 128 px. Colors are ARGB integers. Positions and sizes are written as decimals
+(384.0): Elastic 2027.0.09 reads a whole number (384) as missing and stacks every widget at the top
+left in one cell.
 """
 import json, sys
 G = 128
@@ -11,7 +13,8 @@ GREEN, RED, BLUE, ORANGE = 0xFF4CAF50, 0xFFF44336, 0xFF2196F3, 0xFFFF9800
 def w(title, typ, topic, x, y, cw, ch, **props):
     p = {"topic": topic, "period": 0.06}
     p.update(props)
-    return {"title": title, "x": x * G, "y": y * G, "width": cw * G, "height": ch * G, "type": typ, "properties": p}
+    return {"title": title, "x": float(x * G), "y": float(y * G), "width": float(cw * G), "height": float(ch * G),
+            "type": typ, "properties": p}
 
 def boolbox(title, topic, x, y, cw=1, ch=1):
     return w(title, "Boolean Box", topic, x, y, cw, ch, true_color=GREEN, false_color=RED, true_icon="None", false_icon="None")
