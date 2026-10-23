@@ -2,6 +2,7 @@ package frc.robot.subsystems.vision;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -152,6 +153,18 @@ class VisionCameraTest {
         var expected = VisionFilter.evaluate(new VisionFilter.Observation(alt, 1, distance, 0.1, 0),
             FieldConstants.kFieldLength, FieldConstants.kFieldWidth, false);
         assertEquals(expected.xyStdDev(), m.get(0).stdDevs().get(0, 0), 1e-9);
+    }
+
+    @Test
+    void cameraConfigRejectsABadFactor() {
+        assertThrows(IllegalArgumentException.class, () -> new VisionConstants.CameraConfig("c", kRobotToCamera, 0));
+        assertThrows(IllegalArgumentException.class, () -> new VisionConstants.CameraConfig("c", kRobotToCamera, Double.NaN));
+    }
+
+    @Test
+    void untrustedHeadingIsNotScaled() {
+        var m = camera(2.0, false).process(List.of(resultAt(10.0, 0.05)), 10.03, t -> heading());
+        assertEquals(VisionFilter.kUntrusted, m.get(0).stdDevs().get(2, 0), 0);
     }
 
     @Test

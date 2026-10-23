@@ -32,8 +32,17 @@ public final class VisionConstants {
      * One camera: its PhotonVision name, where it sits on the robot, and how much less to trust it
      * than the others (1 = the same; 2 = twice the standard deviation, for a camera that a log
      * shows to be noisier).
+     *
+     * <p>A factor that is not above 0 (a typo: 0 would make every frame of that camera exact) stops
+     * the robot code at boot, on purpose.
      */
-    public record CameraConfig(String name, Transform3d robotToCamera, double stdDevFactor) {}
+    public record CameraConfig(String name, Transform3d robotToCamera, double stdDevFactor) {
+        public CameraConfig {
+            if (!(stdDevFactor > 0)) { // NaN fails too
+                throw new IllegalArgumentException("stdDevFactor must be > 0 for camera " + name);
+            }
+        }
+    }
 
     private static CameraConfig camera(String name, double xIn, double yIn, double zIn,
                                        double rollDeg, double pitchDeg, double yawDeg) {

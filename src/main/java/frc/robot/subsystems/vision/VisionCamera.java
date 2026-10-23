@@ -131,8 +131,11 @@ public class VisionCamera {
             if (verdict.accepted()) {
                 m_accepted.add(pose);
                 double factor = m_config.stdDevFactor();
+                // An untrusted heading stays exactly untrusted, whatever the camera's factor.
+                double theta = verdict.thetaStdDev() < VisionFilter.kUntrusted
+                    ? verdict.thetaStdDev() * factor : VisionFilter.kUntrusted;
                 measurements.add(new Measurement(pose, result.getTimestampSeconds(),
-                    VecBuilder.fill(verdict.xyStdDev() * factor, verdict.xyStdDev() * factor, verdict.thetaStdDev() * factor),
+                    VecBuilder.fill(verdict.xyStdDev() * factor, verdict.xyStdDev() * factor, theta),
                     s.multiTag()));
             } else {
                 m_rejected.add(pose);
