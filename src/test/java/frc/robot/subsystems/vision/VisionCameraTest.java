@@ -7,9 +7,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.photonvision.targeting.MultiTargetPNPResult;
 import org.photonvision.targeting.PhotonPipelineMetadata;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
+import org.photonvision.targeting.PnpResult;
 import org.photonvision.targeting.TargetCorner;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation3d;
@@ -23,7 +25,11 @@ class VisionCameraTest {
     private static final Transform3d kRobotToCamera =
         new Transform3d(new Translation3d(-0.3, 0.2, 0.4), new Rotation3d(0, Math.toRadians(-25), Math.PI));
 
-    private final VisionCamera m_camera = new VisionCamera(new VisionConstants.CameraConfig("test_cam", kRobotToCamera));
+    private final VisionCamera m_camera = camera(1.0);
+
+    private static VisionCamera camera(double stdDevFactor) {
+        return new VisionCamera(new VisionConstants.CameraConfig("test_cam", kRobotToCamera, stdDevFactor));
+    }
 
     /** A robot 2 m in front of tag 10 (along the tag's facing direction), on the floor. */
     private static Pose3d robotPose() {
@@ -32,17 +38,38 @@ class VisionCameraTest {
         return new Pose3d(front);
     }
 
-    /** A result that sees tag 10 from {@link #robotPose()}, captured at {@code seconds}. */
-    private static PhotonPipelineResult resultAt(double seconds, double ambiguity) {
-        Pose3d camera = robotPose().transformBy(kRobotToCamera);
-        Pose3d tag = FieldConstants.kField.getTagPose(kTag).orElseThrow();
-        Transform3d cameraToTag = new Transform3d(camera, tag);
+    private static Pose3d cameraPose() {
+        return robotPose().transformBy(kRobotToCamera);
+    }
+
+    /** Tag {@code id} as seen from {@link #robotPose()}. */
+    private static PhotonTrackedTarget target(int id, double ambiguity) {
+        Transform3d cameraToTag = new Transform3d(cameraPose(), FieldConstants.kField.getTagPose(id).orElseThrow());
         // The pose comes from cameraToTag; the corners only need to exist (the constructor checks).
         var corners = List.of(new TargetCorner(0, 0), new TargetCorner(10, 0), new TargetCorner(10, 10), new TargetCorner(0, 10));
-        var target = new PhotonTrackedTarget(0, 0, 1, 0, kTag, -1, -1f, cameraToTag, cameraToTag, ambiguity, corners, corners);
+        return new PhotonTrackedTarget(0, 0, 1, 0, id, -1, -1f, cameraToTag, cameraToTag, ambiguity, corners, corners);
+    }
+
+    private static PhotonPipelineMetadata metadataAt(double seconds) {
         long nanos = (long) (seconds * 1e9);
-        var metadata = new PhotonPipelineMetadata(nanos, nanos, 1, 0); // capture time, publish time, sequence id, time since pong
-        return new PhotonPipelineResult(metadata, List.of(target), Optional.empty());
+        return new PhotonPipelineMetadata(nanos, nanos, 1, 0); // capture time, publish time, sequence id, time since pong
+    }
+
+    /** A result that sees tag 10 from {@link #robotPose()}, captured at {@code seconds}. */
+    private static PhotonPipelineResult resultAt(double seconds, double ambiguity) {
+        return new PhotonPipelineResult(metadataAt(seconds), List.of(target(kTag, ambiguity)), Optional.empty());
+    }
+
+    /** Sees tags 9, 10 and 11; the coprocessor solved with {@code used} only. */
+    private static PhotonPipelineResult multiTagAt(double seconds, List<Short> used) {
+        var fieldToCamera = new Transform3d(Pose3d.ZERO, cameraPose());
+        var multiTag = new MultiTargetPNPResult(new PnpResult(fieldToCamera, 0.1), used);
+        var targets = List.of(target(9, 0.05), target(10, 0.05), target(11, 0.05));
+        return new PhotonPipelineResult(metadataAt(seconds), targets, Optional.of(multiTag));
+    }
+
+    private static double distanceTo(int id) {
+        return target(id, 0).getBestCameraToTarget().getTranslation().getNorm();
     }
 
     @Test
@@ -72,6 +99,24 @@ class VisionCameraTest {
     void oldFrameIsRejected() {
         assertTrue(m_camera.process(List.of(resultAt(10.0, 0.05)), 11.0).isEmpty());
         assertEquals("old", m_camera.lastRejectReason());
+    }
+
+    @Test
+    void multiTagCountsOnlyTheTagsInTheSolve() {
+        var measurements = m_camera.process(List.of(multiTagAt(10.0, List.of((short) 10, (short) 11))), 10.03);
+        assertEquals(1, measurements.size());
+        assertEquals(2, m_camera.lastTagCount(), "tag 9 was seen but not used in the solve");
+        double distance = (distanceTo(10) + distanceTo(11)) / 2;
+        var expected = VisionFilter.evaluate(new VisionFilter.Observation(robotPose(), 2, distance, 0),
+            FieldConstants.kFieldLength, FieldConstants.kFieldWidth);
+        assertEquals(expected.xyStdDev(), measurements.get(0).stdDevs().get(0, 0), 1e-9);
+    }
+
+    @Test
+    void stdDevFactorScalesTheTrust() {
+        double one = camera(1.0).process(List.of(resultAt(10.0, 0.05)), 10.03).get(0).stdDevs().get(0, 0);
+        double two = camera(2.0).process(List.of(resultAt(10.0, 0.05)), 10.03).get(0).stdDevs().get(0, 0);
+        assertEquals(2 * one, two, 1e-9);
     }
 
     @Test

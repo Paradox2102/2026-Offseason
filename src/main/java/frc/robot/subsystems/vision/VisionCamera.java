@@ -92,6 +92,7 @@ public class VisionCamera {
             // Multi-tag (solved on the coprocessor with every tag in view) is far better; with one
             // tag in view, fall back to that tag's least ambiguous solution.
             Optional<EstimatedRobotPose> estimate = m_estimator.estimateCoprocMultiTagPose(result);
+            boolean multiTag = estimate.isPresent();
             if (estimate.isEmpty()) {
                 estimate = m_estimator.estimateLowestAmbiguityPose(result);
             }
@@ -100,6 +101,11 @@ public class VisionCamera {
             }
             var est = estimate.get();
             List<PhotonTrackedTarget> used = est.targetsUsed;
+            if (multiTag) {
+                // PhotonLib lists every tag in the frame; the coprocessor may have left some out.
+                var ids = result.getMultiTagResult().get().fiducialIDsUsed;
+                used = used.stream().filter(t -> ids.contains((short) t.getFiducialId())).toList();
+            }
             int tagCount = used.size();
             double distance = used.stream()
                 .mapToDouble(t -> t.getBestCameraToTarget().getTranslation().getNorm())
@@ -114,8 +120,9 @@ public class VisionCamera {
             Pose2d pose = est.estimatedPose.toPose2d();
             if (verdict.accepted()) {
                 m_accepted.add(pose);
+                double factor = m_config.stdDevFactor();
                 measurements.add(new Measurement(pose, est.timestampSeconds,
-                    VecBuilder.fill(verdict.xyStdDev(), verdict.xyStdDev(), verdict.thetaStdDev())));
+                    VecBuilder.fill(verdict.xyStdDev() * factor, verdict.xyStdDev() * factor, verdict.thetaStdDev() * factor)));
             } else {
                 m_rejected.add(pose);
                 m_lastRejectReason = verdict.reason();

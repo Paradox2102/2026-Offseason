@@ -28,14 +28,19 @@ import org.wpilib.math.util.Units;
 public final class VisionConstants {
     private VisionConstants() {}
 
-    /** One camera: its PhotonVision name and where it sits on the robot. */
-    public record CameraConfig(String name, Transform3d robotToCamera) {}
+    /**
+     * One camera: its PhotonVision name, where it sits on the robot, and how much less to trust it
+     * than the others (1 = the same; 2 = twice the standard deviation, for a camera that a log
+     * shows to be noisier).
+     */
+    public record CameraConfig(String name, Transform3d robotToCamera, double stdDevFactor) {}
 
     private static CameraConfig camera(String name, double xIn, double yIn, double zIn,
                                        double rollDeg, double pitchDeg, double yawDeg) {
         return new CameraConfig(name, new Transform3d(
             new Translation3d(Units.inchesToMeters(xIn), Units.inchesToMeters(yIn), Units.inchesToMeters(zIn)),
-            new Rotation3d(Units.degreesToRadians(rollDeg), Units.degreesToRadians(pitchDeg), Units.degreesToRadians(yawDeg))));
+            new Rotation3d(Units.degreesToRadians(rollDeg), Units.degreesToRadians(pitchDeg), Units.degreesToRadians(yawDeg))),
+            1.0);
     }
 
     /*

@@ -4,6 +4,11 @@ import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.RadiansPerSecond;
 import static org.wpilib.units.Units.RotationsPerSecond;
 
+import org.wpilib.math.linalg.Matrix;
+import org.wpilib.math.linalg.VecBuilder;
+import org.wpilib.math.numbers.N1;
+import org.wpilib.math.numbers.N3;
+
 import frc.robot.generated.TunerConstants;
 
 /** Driver feel and control values for the swerve. The hardware values are in TunerConstants. */
@@ -35,6 +40,15 @@ public final class DriveConstants {
     public static final double kHeadingHoldRateThreshold = 0.15;
     /** Heading hold only runs while the robot moves faster than this (m/s). */
     public static final double kHeadingHoldMinSpeed = 0.05;
+
+    /**
+     * How much the pose estimator trusts wheel odometry, [x m, y m, heading rad]. Small values: a
+     * vision frame moves the pose only a fraction of the way to it, so camera noise and one bad
+     * frame do little (the vision values are in VisionFilter). 6328 uses the same values.
+     */
+    public static final Matrix<N3, N1> kOdometryStdDevs = VecBuilder.fill(0.003, 0.003, 0.002);
+    /** Only for a vision measurement sent without its own values; ours always have them. */
+    public static final Matrix<N3, N1> kDefaultVisionStdDevs = VecBuilder.fill(0.9, 0.9, 0.9);
 
     /** Distance from the robot center to a wheel, meters (for the wheel-radius test). */
     public static final double kDriveBaseRadius =

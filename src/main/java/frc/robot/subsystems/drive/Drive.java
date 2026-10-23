@@ -18,6 +18,9 @@ import org.wpilib.math.filter.SlewRateLimiter;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.linalg.Matrix;
+import org.wpilib.math.numbers.N1;
+import org.wpilib.math.numbers.N3;
 import org.wpilib.math.util.Units;
 import org.wpilib.system.Notifier;
 import org.wpilib.system.RobotController;
@@ -112,8 +115,14 @@ public class Drive extends TunerSwerveDrivetrain implements Subsystem {
             null,
             this));
 
-    public Drive(SwerveDrivetrainConstants drivetrainConstants, SwerveModuleConstants<?, ?, ?>... modules) {
-        super(drivetrainConstants, modules);
+    /**
+     * @param odometryHz odometry thread rate; 0 = the Phoenix default (100 Hz on CAN 2.0)
+     * @param odometryStdDevs trust in wheel odometry, see {@link DriveConstants#kOdometryStdDevs}
+     * @param visionStdDevs trust in a vision measurement sent without its own values
+     */
+    public Drive(SwerveDrivetrainConstants drivetrainConstants, double odometryHz, Matrix<N3, N1> odometryStdDevs,
+                 Matrix<N3, N1> visionStdDevs, SwerveModuleConstants<?, ?, ?>... modules) {
+        super(drivetrainConstants, odometryHz, odometryStdDevs, visionStdDevs, modules);
         if (Utils.isSimulation()) {
             m_sim = new DriveSim(this);
             startSimThread();

@@ -24,7 +24,7 @@ class VisionFilterTest {
     @Test
     void multiTagNearbyIsTrustedMost() {
         var near = evaluate(pose(3, 4, 0), 3, 1.0, 0);
-        var far = evaluate(pose(3, 4, 0), 3, 4.0, 0);
+        var far = evaluate(pose(3, 4, 0), 3, 6.0, 0); // above the minimum with 3 tags
         assertTrue(near.accepted());
         assertTrue(far.accepted());
         assertTrue(near.xyStdDev() < far.xyStdDev(), "a nearer tag must be trusted more");
@@ -32,10 +32,15 @@ class VisionFilterTest {
 
     @Test
     void moreTagsAreTrustedMore() {
-        // 4 m: far enough that neither value is at the minimum.
-        var two = evaluate(pose(3, 4, 0), 2, 4.0, 0);
-        var four = evaluate(pose(3, 4, 0), 4, 4.0, 0);
-        assertEquals(two.xyStdDev() / 2, four.xyStdDev(), 1e-9);
+        // 6 m: far enough that neither value is at the minimum. The error drops with n squared.
+        var two = evaluate(pose(3, 4, 0), 2, 6.0, 0);
+        var four = evaluate(pose(3, 4, 0), 4, 6.0, 0);
+        assertEquals(two.xyStdDev() / 4, four.xyStdDev(), 1e-9);
+    }
+
+    @Test
+    void singleTagAtFourMeters() {
+        assertEquals(0.16, evaluate(pose(3, 4, 0), 1, 4.0, 0.05).xyStdDev(), 1e-9);
     }
 
     @Test

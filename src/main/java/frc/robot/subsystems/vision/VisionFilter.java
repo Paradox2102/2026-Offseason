@@ -8,7 +8,12 @@ import org.wpilib.math.geometry.Pose3d;
  * <p>The pose estimator mixes wheel odometry and vision. For each vision pose it needs a standard
  * deviation: a small value says "trust this a lot", a large value says "only nudge the pose". A
  * tag far away is seen with fewer pixels, so its error grows about with distance squared. More
- * tags in one solve give a better pose, so the error drops with the tag count.
+ * tags in one solve give a better pose, so the error drops with the tag count squared (as in
+ * 6328's 2026 code).
+ *
+ * <p>These values only mean something next to the odometry standard deviations
+ * ({@code DriveConstants.kOdometryStdDevs}): each frame moves the pose by the fraction
+ * q / (q + sqrt(q·r)) of its difference, with q and r the odometry and vision variances.
  *
  * <p>This class has no hardware in it, so the unit tests can check it.
  */
@@ -22,12 +27,12 @@ public final class VisionFilter {
     /** The robot is on the floor. A pose higher or lower than this is a bad solve. */
     public static final double kMaxZError = 0.25;
     /** Standard deviation per (meter of tag distance) squared, for x and y, in meters. */
-    public static final double kXyCoefficient = 0.02;
+    public static final double kXyCoefficient = 0.01;
     /** Standard deviation per (meter of tag distance) squared, for heading, in radians. */
-    public static final double kThetaCoefficient = 0.06;
+    public static final double kThetaCoefficient = 0.03;
     /** No pose is better than this, however near the tags are (camera noise, latency). */
-    public static final double kMinXyStdDev = 0.05;
-    public static final double kMinThetaStdDev = 0.05;
+    public static final double kMinXyStdDev = 0.02;
+    public static final double kMinThetaStdDev = 0.02;
     /**
      * Let vision set the heading? Off until the cameras are checked: a camera angle a few
      * degrees off in VisionConstants would pull the robot's heading away from the gyro, and turn
@@ -82,10 +87,11 @@ public final class VisionFilter {
         }
 
         double distanceSquared = obs.averageDistance() * obs.averageDistance();
-        double xy = Math.max(kMinXyStdDev, kXyCoefficient * distanceSquared / obs.tagCount());
+        double tagsSquared = obs.tagCount() * obs.tagCount();
+        double xy = Math.max(kMinXyStdDev, kXyCoefficient * distanceSquared / tagsSquared);
         double theta = obs.tagCount() == 1 || !kTrustVisionHeading
             ? kUntrusted
-            : Math.max(kMinThetaStdDev, kThetaCoefficient * distanceSquared / obs.tagCount());
+            : Math.max(kMinThetaStdDev, kThetaCoefficient * distanceSquared / tagsSquared);
         return new Result(true, "ok", xy, theta);
     }
 }
