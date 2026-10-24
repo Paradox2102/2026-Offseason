@@ -264,10 +264,10 @@ public class Constants {
     public static final CurrentLimitsConfigs k_aimingLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_aimingSupplyLimit);
     public static final CurrentLimitsConfigs k_shooterLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_shooterSupplyLimit);
 
-    public static final double k_kickerAcceleration = 10.0;
-    public static final double k_secondaryKickerAcceleration = 10.0;
+    public static final double k_kickerAcceleration = 40.0;
+    public static final double k_secondaryKickerAcceleration = 40.0;
 
-    public static final double k_shooterFlywheelAcceleration = 30.0;
+    public static final double k_shooterFlywheelAcceleration = 60.0;
 
     public static final MotionMagicConfigs m_shooterMotionMagicConfig = k_shooterConfigs.MotionMagic.withMotionMagicAcceleration(k_shooterFlywheelAcceleration);
     public static final MotionMagicConfigs m_kickerMotionMagicConfig = k_kickerConfig.MotionMagic.withMotionMagicAcceleration(k_kickerAcceleration);
@@ -372,8 +372,8 @@ public class Constants {
     public static final CurrentLimitsConfigs k_extensionLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_extensionSupplyLimit);
     public static final CurrentLimitsConfigs k_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
 
-    public static final double m_intakeExtensionAcceleration = 10.0;
-    public static final double m_rollerMotionMagicAcceleration = 10.0;
+    public static final double m_intakeExtensionAcceleration = 20.0;
+    public static final double m_rollerMotionMagicAcceleration = 40.0;
 
     public static final MotionMagicConfigs m_intakeExtensionMotionMagicConfig = m_intakeExtensionConfigs.MotionMagic.withMotionMagicAcceleration(m_intakeExtensionAcceleration);
     public static final MotionMagicConfigs m_intakeRollerMotionMagicConfig = m_intakeRollerConfigs.MotionMagic.withMotionMagicAcceleration(m_rollerMotionMagicAcceleration);
@@ -425,7 +425,7 @@ public class Constants {
         public static final double k_conveyorV = 0.1;
 
         public static final double k_conveyorMotionMagicAcceleration = 40.0;
-        public static final double k_rollerMotionMagicAcceleration = 20.0;
+        public static final double k_rollerMotionMagicAcceleration = 40.0;
 
         public static final double k_conveyorSupplyLimit = 18;
         public static final double k_rollerSupplyLimit = 25;

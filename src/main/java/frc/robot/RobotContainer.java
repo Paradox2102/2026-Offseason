@@ -10,6 +10,8 @@ import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
 import org.wpilib.command2.button.Trigger;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.util.Units;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.tunable.Tunables;
@@ -58,6 +60,12 @@ public class RobotContainer {
             Subsystems.m_intakeExtension.extendIntake(),
             Subsystems.m_intakeRoller.run(true)
         ));
+        // m_controller.faceLeft().onTrue(
+        //     Subsystems.m_intakeExtension.extendIntake()
+        // );
+        //         m_controller.faceLeft().onTrue(
+        //     Subsystems.m_intakeExtension.retractIntake()
+        // );
 
         // m_controller.rightTrigger().whileTrue(Commands.parallel( // Shooter bindings not properly set-up, don't have shooter yet :P
         //     Subsystems.m_shooterSubsystem.shoot(() -> SwerveSubsystem.distanceToTarget()),
@@ -117,7 +125,7 @@ public class RobotContainer {
 
         // m_controller.rightTrigger().whileTrue(Commands.parallel(Subsystems.m_intakeRoller.testRun(false), Subsystems.m_indexerRollerSubsystem.testRun(false)));
         // m_controller.faceLeft().whileTrue(Subsystems.m_indexerRollerSubsystem.testRun(true));
-        // m_joystick.getHID().button(5).onTrue(Commands.runOnce(() -> Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(Units.degreesToRadians(SwerveSubsystem.isRedAlliance() ? 0 : 180))))));
+        m_joystick.getHID().button(5).onTrue(Commands.runOnce(() -> Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(Units.degreesToRadians(SwerveSubsystem.isRedAlliance() ? 0 : 180))))));
         
         // m_controller.dpadUp().onTrue(Subsystems.m_intakeExtension.retractIntake());
         // m_controller.faceDown().whileTrue(Commands.parallel(

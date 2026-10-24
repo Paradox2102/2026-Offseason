@@ -94,7 +94,7 @@ public static final Field aprilTagField = fieldLayout.loadField();
       for (Cameras c : Cameras.values())
       {
         c.addToVisionSim(visionSim);
-        Telemetry.log(c.name() + " estimated pose", c.estimatedRobotPose.get().estimatedPose);
+        
       }
 
       // openSimCameraViews();
@@ -150,6 +150,7 @@ public static final Field aprilTagField = fieldLayout.loadField();
                                          pose.timestampSeconds,
                                          camera.curStdDevs);
       }
+      Telemetry.log(camera.name() + " estimated pose", camera.estimatedRobotPose.get().estimatedPose);
     }
 
   }
@@ -556,7 +557,7 @@ public static final Field aprilTagField = fieldLayout.loadField();
       Optional<EstimatedRobotPose> visionEst = Optional.empty();
       for (var change : resultsList)
       {
-  // TODO - Must use explicit update method (of which there are many)      visionEst = poseEstimator.update(change);
+        visionEst = poseEstimator.estimateAverageBestTargetsPose(change);
         updateEstimationStdDevs(visionEst, change.getTargets());
       }
       estimatedRobotPose = visionEst;
