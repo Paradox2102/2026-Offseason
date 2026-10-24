@@ -417,14 +417,14 @@
         "layouts": [],
         "containers": [
           {
-            "title": "front_right",
+            "title": "back_left",
             "x": 0.0,
             "y": 0.0,
             "width": 384.0,
             "height": 128.0,
             "type": "Boolean Box",
             "properties": {
-              "topic": "/Telemetry/Vision/front_right/Connected",
+              "topic": "/Telemetry/Vision/back_left/Connected",
               "period": 0.06,
               "true_color": 4283215696,
               "false_color": 4294198070,
@@ -440,7 +440,7 @@
             "height": 128.0,
             "type": "Text Display",
             "properties": {
-              "topic": "/Telemetry/Vision/front_right/Tag Count",
+              "topic": "/Telemetry/Vision/back_left/Tag Count",
               "period": 0.06,
               "show_submit_button": false
             }
@@ -453,7 +453,7 @@
             "height": 128.0,
             "type": "Text Display",
             "properties": {
-              "topic": "/Telemetry/Vision/front_right/Reject Reason",
+              "topic": "/Telemetry/Vision/back_left/Reject Reason",
               "period": 0.06,
               "show_submit_button": false
             }
@@ -466,7 +466,7 @@
             "height": 128.0,
             "type": "Graph",
             "properties": {
-              "topic": "/Telemetry/Vision/front_right/Robot Roll deg",
+              "topic": "/Telemetry/Vision/back_left/Robot Roll deg",
               "period": 0.06,
               "time_displayed": 10.0,
               "color": 4294940672,
@@ -481,7 +481,7 @@
             "height": 128.0,
             "type": "Graph",
             "properties": {
-              "topic": "/Telemetry/Vision/front_right/Robot Pitch deg",
+              "topic": "/Telemetry/Vision/back_left/Robot Pitch deg",
               "period": 0.06,
               "time_displayed": 10.0,
               "color": 4294940672,
@@ -496,7 +496,7 @@
             "height": 128.0,
             "type": "Graph",
             "properties": {
-              "topic": "/Telemetry/Vision/front_right/Robot Z m",
+              "topic": "/Telemetry/Vision/back_left/Robot Z m",
               "period": 0.06,
               "time_displayed": 10.0,
               "color": 4280391411,
@@ -511,20 +511,20 @@
             "height": 128.0,
             "type": "Text Display",
             "properties": {
-              "topic": "/Telemetry/Vision/front_right/Latency ms",
+              "topic": "/Telemetry/Vision/back_left/Latency ms",
               "period": 0.06,
               "show_submit_button": false
             }
           },
           {
-            "title": "front_left",
+            "title": "back_right",
             "x": 384.0,
             "y": 0.0,
             "width": 384.0,
             "height": 128.0,
             "type": "Boolean Box",
             "properties": {
-              "topic": "/Telemetry/Vision/front_left/Connected",
+              "topic": "/Telemetry/Vision/back_right/Connected",
               "period": 0.06,
               "true_color": 4283215696,
               "false_color": 4294198070,
@@ -540,7 +540,7 @@
             "height": 128.0,
             "type": "Text Display",
             "properties": {
-              "topic": "/Telemetry/Vision/front_left/Tag Count",
+              "topic": "/Telemetry/Vision/back_right/Tag Count",
               "period": 0.06,
               "show_submit_button": false
             }
@@ -553,7 +553,7 @@
             "height": 128.0,
             "type": "Text Display",
             "properties": {
-              "topic": "/Telemetry/Vision/front_left/Reject Reason",
+              "topic": "/Telemetry/Vision/back_right/Reject Reason",
               "period": 0.06,
               "show_submit_button": false
             }
@@ -566,7 +566,7 @@
             "height": 128.0,
             "type": "Graph",
             "properties": {
-              "topic": "/Telemetry/Vision/front_left/Robot Roll deg",
+              "topic": "/Telemetry/Vision/back_right/Robot Roll deg",
               "period": 0.06,
               "time_displayed": 10.0,
               "color": 4294940672,
@@ -581,7 +581,7 @@
             "height": 128.0,
             "type": "Graph",
             "properties": {
-              "topic": "/Telemetry/Vision/front_left/Robot Pitch deg",
+              "topic": "/Telemetry/Vision/back_right/Robot Pitch deg",
               "period": 0.06,
               "time_displayed": 10.0,
               "color": 4294940672,
@@ -596,7 +596,7 @@
             "height": 128.0,
             "type": "Graph",
             "properties": {
-              "topic": "/Telemetry/Vision/front_left/Robot Z m",
+              "topic": "/Telemetry/Vision/back_right/Robot Z m",
               "period": 0.06,
               "time_displayed": 10.0,
               "color": 4280391411,
@@ -611,114 +611,14 @@
             "height": 128.0,
             "type": "Text Display",
             "properties": {
-              "topic": "/Telemetry/Vision/front_left/Latency ms",
-              "period": 0.06,
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "side_left",
-            "x": 768.0,
-            "y": 0.0,
-            "width": 384.0,
-            "height": 128.0,
-            "type": "Boolean Box",
-            "properties": {
-              "topic": "/Telemetry/Vision/side_left/Connected",
-              "period": 0.06,
-              "true_color": 4283215696,
-              "false_color": 4294198070,
-              "true_icon": "None",
-              "false_icon": "None"
-            }
-          },
-          {
-            "title": "Tags",
-            "x": 768.0,
-            "y": 128.0,
-            "width": 128.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Telemetry/Vision/side_left/Tag Count",
-              "period": 0.06,
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "Reject reason",
-            "x": 896.0,
-            "y": 128.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Telemetry/Vision/side_left/Reject Reason",
-              "period": 0.06,
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "Robot roll deg (0 = camera OK)",
-            "x": 768.0,
-            "y": 256.0,
-            "width": 384.0,
-            "height": 128.0,
-            "type": "Graph",
-            "properties": {
-              "topic": "/Telemetry/Vision/side_left/Robot Roll deg",
-              "period": 0.06,
-              "time_displayed": 10.0,
-              "color": 4294940672,
-              "line_width": 2.0
-            }
-          },
-          {
-            "title": "Robot pitch deg (0 = camera OK)",
-            "x": 768.0,
-            "y": 384.0,
-            "width": 384.0,
-            "height": 128.0,
-            "type": "Graph",
-            "properties": {
-              "topic": "/Telemetry/Vision/side_left/Robot Pitch deg",
-              "period": 0.06,
-              "time_displayed": 10.0,
-              "color": 4294940672,
-              "line_width": 2.0
-            }
-          },
-          {
-            "title": "Robot z m (0 = camera OK)",
-            "x": 768.0,
-            "y": 512.0,
-            "width": 384.0,
-            "height": 128.0,
-            "type": "Graph",
-            "properties": {
-              "topic": "/Telemetry/Vision/side_left/Robot Z m",
-              "period": 0.06,
-              "time_displayed": 10.0,
-              "color": 4280391411,
-              "line_width": 2.0
-            }
-          },
-          {
-            "title": "Latency ms",
-            "x": 768.0,
-            "y": 640.0,
-            "width": 384.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Telemetry/Vision/side_left/Latency ms",
+              "topic": "/Telemetry/Vision/back_right/Latency ms",
               "period": 0.06,
               "show_submit_button": false
             }
           },
           {
             "title": "side_right",
-            "x": 1152.0,
+            "x": 768.0,
             "y": 0.0,
             "width": 384.0,
             "height": 128.0,
@@ -734,7 +634,7 @@
           },
           {
             "title": "Tags",
-            "x": 1152.0,
+            "x": 768.0,
             "y": 128.0,
             "width": 128.0,
             "height": 128.0,
@@ -747,7 +647,7 @@
           },
           {
             "title": "Reject reason",
-            "x": 1280.0,
+            "x": 896.0,
             "y": 128.0,
             "width": 256.0,
             "height": 128.0,
@@ -760,7 +660,7 @@
           },
           {
             "title": "Robot roll deg (0 = camera OK)",
-            "x": 1152.0,
+            "x": 768.0,
             "y": 256.0,
             "width": 384.0,
             "height": 128.0,
@@ -775,7 +675,7 @@
           },
           {
             "title": "Robot pitch deg (0 = camera OK)",
-            "x": 1152.0,
+            "x": 768.0,
             "y": 384.0,
             "width": 384.0,
             "height": 128.0,
@@ -790,7 +690,7 @@
           },
           {
             "title": "Robot z m (0 = camera OK)",
-            "x": 1152.0,
+            "x": 768.0,
             "y": 512.0,
             "width": 384.0,
             "height": 128.0,
@@ -805,13 +705,113 @@
           },
           {
             "title": "Latency ms",
-            "x": 1152.0,
+            "x": 768.0,
             "y": 640.0,
             "width": 384.0,
             "height": 128.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Telemetry/Vision/side_right/Latency ms",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "side_left",
+            "x": 1152.0,
+            "y": 0.0,
+            "width": 384.0,
+            "height": 128.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_left/Connected",
+              "period": 0.06,
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Tags",
+            "x": 1152.0,
+            "y": 128.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_left/Tag Count",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Reject reason",
+            "x": 1280.0,
+            "y": 128.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_left/Reject Reason",
+              "period": 0.06,
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Robot roll deg (0 = camera OK)",
+            "x": 1152.0,
+            "y": 256.0,
+            "width": 384.0,
+            "height": 128.0,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_left/Robot Roll deg",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Robot pitch deg (0 = camera OK)",
+            "x": 1152.0,
+            "y": 384.0,
+            "width": 384.0,
+            "height": 128.0,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_left/Robot Pitch deg",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4294940672,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Robot z m (0 = camera OK)",
+            "x": 1152.0,
+            "y": 512.0,
+            "width": 384.0,
+            "height": 128.0,
+            "type": "Graph",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_left/Robot Z m",
+              "period": 0.06,
+              "time_displayed": 10.0,
+              "color": 4280391411,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "Latency ms",
+            "x": 1152.0,
+            "y": 640.0,
+            "width": 384.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Vision/side_left/Latency ms",
               "period": 0.06,
               "show_submit_button": false
             }

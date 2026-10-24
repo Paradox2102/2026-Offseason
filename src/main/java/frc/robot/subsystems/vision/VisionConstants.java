@@ -10,10 +10,14 @@ import org.wpilib.math.util.Units;
 /**
  * Where each camera is on the robot.
  *
- * <p>Source: the CAD (Onshape "G0000 - Main", 2026-10-19), at the center of each lens front.
- * x and y are from the robot center (+x = intake side, +y = left), z is from the bottom of the
- * wheels. Angles are WPILib {@code Rotation3d(roll, pitch, yaw)}: roll about x, then pitch about y,
- * then yaw about z, all in the robot frame. A NEGATIVE pitch tilts the camera UP.
+ * <p>Source: the CAD (Onshape "G0000 - Main", 2026-10-19). The numbers below are the origin of
+ * each camera part; the code moves each camera {@link #kLensOffsetIn} along its lens axis, to
+ * halfway between that origin and the lens front, close to where the lens takes its picture
+ * from. x and y are from the robot center (+x = intake side, +y = left), z is from the bottom of
+ * the wheels (the floor: in the CAD the wheel bottoms are at z = 0). The angles are the camera
+ * part's lens axis (its -Y axis), as WPILib {@code Rotation3d(roll, pitch, yaw)}: roll about x,
+ * then pitch about y, then yaw about z, all in the robot frame. A NEGATIVE pitch tilts the camera
+ * UP.
  *
  * <p>How to check on the robot:
  * <ul>
@@ -44,24 +48,29 @@ public final class VisionConstants {
         }
     }
 
+    /**
+     * From the camera part origin along the lens axis, inches: half of the 0.98 in from the origin
+     * to the lens front (the same for all four cameras in the CAD).
+     */
+    public static final double kLensOffsetIn = 0.49;
+
+    /** A camera at a CAD part origin (inches, degrees), moved {@link #kLensOffsetIn} along its lens. */
     private static CameraConfig camera(String name, double xIn, double yIn, double zIn,
                                        double rollDeg, double pitchDeg, double yawDeg) {
-        return new CameraConfig(name, new Transform3d(
-            new Translation3d(Units.inchesToMeters(xIn), Units.inchesToMeters(yIn), Units.inchesToMeters(zIn)),
-            new Rotation3d(Units.degreesToRadians(rollDeg), Units.degreesToRadians(pitchDeg), Units.degreesToRadians(yawDeg))),
-            1.0);
+        var rotation = new Rotation3d(Units.degreesToRadians(rollDeg), Units.degreesToRadians(pitchDeg),
+            Units.degreesToRadians(yawDeg));
+        // The camera looks along its own +x axis.
+        var lens = new Translation3d(Units.inchesToMeters(kLensOffsetIn), 0, 0).rotateBy(rotation);
+        var origin = new Translation3d(Units.inchesToMeters(xIn), Units.inchesToMeters(yIn), Units.inchesToMeters(zIn));
+        return new CameraConfig(name, new Transform3d(origin.plus(lens), rotation), 1.0);
     }
 
-    /*
-     * The two rear cameras cross: front_right sits at the back left and looks back and to the
-     * right; front_left sits at the back right and looks back and to the left. (The PhotonVision
-     * names were chosen when the shooter end was called the front.)
-     */
+    /** Named by where each camera sits (the PhotonVision names, the same as on main). */
     public static final List<CameraConfig> kCameras = List.of(
-        camera("front_right", -12.25, +9.60, 9.18, -17.3, -30.0, -148.0), // CAD cambrea 1 (moved 2026-10-19)
-        camera("front_left", -12.19, -8.62, 16.63, -2.1, -25.0, +148.0),  // CAD cambrea 2
-        camera("side_left", -11.05, -13.54, 16.60, -11.1, -25.0, -65.0),  // CAD cambrea 3 (right side, looks right)
-        camera("side_right", -0.44, +13.78, 9.62, -8.9, -30.0, +65.0));   // CAD cambrea 4; PhotonVision name not confirmed
+        camera("back_left", -11.53, +10.05, 8.69, -17.3, -30.0, -148.0),  // CAD cambrea 1 (moved 2026-10-19); looks back and right
+        camera("back_right", -11.44, -9.09, 16.22, -2.1, -25.0, +148.0),  // CAD cambrea 2; looks back and left
+        camera("side_right", -11.43, -12.73, 16.18, -11.1, -25.0, -65.0), // CAD cambrea 3; looks right
+        camera("side_left", -0.80, +13.01, 9.13, -8.9, -30.0, +65.0));    // CAD cambrea 4; looks left
 
     /**
      * Have the camera angles above been checked on the robot? Until then vision does not set the

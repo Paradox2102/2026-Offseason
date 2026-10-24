@@ -66,7 +66,7 @@ drive = [
 ]
 
 vision = []
-for i, cam in enumerate(["front_right", "front_left", "side_left", "side_right"]):
+for i, cam in enumerate(["back_left", "back_right", "side_right", "side_left"]):
     x = i * 3
     base = f"/Telemetry/Vision/{cam}/"
     vision += [
