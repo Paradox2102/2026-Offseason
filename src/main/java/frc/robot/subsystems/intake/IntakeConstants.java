@@ -64,7 +64,8 @@ public final class IntakeConstants {
     public static final double kRackA = kRackSideMass * kRackPinionRadius / (kRackGearRatio * kX44.Kt) * kX44.R;
     public static final double kRackCruise = 1.0; // m/s
     public static final double kRackAcceleration = 6.0; // m/s^2
-    public static final double kRackStatorLimit = 40; // A per side
+    // 60, not 40: on the robot (2026-10-23) the in moves stalled 5-22 cm short of the in stop at 40 A.
+    public static final double kRackStatorLimit = 60; // A per side
     public static final double kRackSupplyLimit = 30; // A per side
 
     /**
@@ -73,6 +74,11 @@ public final class IntakeConstants {
      * stop. Check on the robot: from 3.5 cm away, the push must reach the stop (Intake tab).
      */
     public static final double kPushCurrent = 12;
+    /**
+     * The push into the in stop, amps (net, like kPushCurrent). More than out: the rack goes in up
+     * its slope, and on the robot (2026-10-23) a 12 A in push stalled short of the in stop.
+     */
+    public static final double kPushInCurrent = 20;
     /**
      * At rest the rack leans on its stop with this much current, amps. Low on purpose: a hit can
      * push the intake in without the motors fighting it (and without wasting battery).

@@ -42,7 +42,7 @@ import frc.robot.lib.util.StallDetector;
  *       the position to that side's out stop; then the side goes to the goal.
  *   <li>MOTION: Motion Magic to 3.5 cm before the stop. (The old code made Talon 22 a Follower,
  *       which copies the leader's output, not its position, so the sides drifted.)
- *   <li>PUSH: a push (12 A net) into the stop until the side stops moving. Then its position is
+ *   <li>PUSH: a push (12 A net out, 20 A net in) into the stop until the side stops moving. Then its position is
  *       set to the stop ({@link RackSide}): this corrects skipped teeth.
  *   <li>REST: a light push (2 A net) holds the side against the stop. A hit can push the intake in
  *       without the motors fighting it.
@@ -222,7 +222,8 @@ public class IntakeRack extends SubsystemBase {
                     }
                 }
                 case PUSH -> {
-                    m_talon.setControl(m_currentRequest.withOutput(sign * IntakeConstants.kPushCurrent - IntakeConstants.kGravityAmps));
+                    double push = m_out ? IntakeConstants.kPushCurrent : IntakeConstants.kPushInCurrent;
+                    m_talon.setControl(m_currentRequest.withOutput(sign * push - IntakeConstants.kGravityAmps));
                     if (m_stall.update(now, velocity())) {
                         m_lastStall = position();
                         var result = m_state.stalledAt(m_out, m_lastStall);
