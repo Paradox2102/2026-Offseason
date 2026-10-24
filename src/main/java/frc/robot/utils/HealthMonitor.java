@@ -1,7 +1,9 @@
 package frc.robot.utils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.StatusSignal;
@@ -63,6 +65,8 @@ public final class HealthMonitor {
     private static final Timer s_checkTimer = new Timer();
     private static double s_lastLoopTime = -1;
     private static boolean s_reportedError = false;
+    /** Checks that threw once. Each one is off for the rest of the run; the others keep going. */
+    private static final Set<String> s_failedChecks = new HashSet<>();
 
     private static boolean s_wasBrownedOut = false;
     private static int s_brownouts = 0;
@@ -164,25 +168,46 @@ public final class HealthMonitor {
         s_brownoutAlert.set(k_showHardwareAlerts && s_brownouts > 0);
 
         if (s_checkTimer.advanceIfElapsed(k_checkPeriod)) {
-            checkSystem();
+            // Each check runs on its own. If one throws (for example a HAL call that this
+            // SystemCore image does not have yet), only that check stops: the CAN bus, device
+            // and camera checks after it still run.
+            runCheck("battery", HealthMonitor::checkBattery);
+            runCheck("DS comms loss", HealthMonitor::checkCommsLoss);
+            runCheck("3.3 V rail", HealthMonitor::checkRail3V3);
+            runCheck("CPU temperature", HealthMonitor::checkCpuTemp);
             for (WatchedBus bus : s_buses) {
-                bus.check();
+                runCheck(bus.m_port.name(), bus::check);
             }
             for (WatchedDevice device : s_devices) {
-                device.check();
+                runCheck(device.m_name, device::check);
             }
             for (WatchedCamera camera : s_cameras) {
-                camera.check();
+                runCheck("camera " + camera.m_camera.getName(), camera::check);
             }
         }
     }
 
-    private static void checkSystem() {
+    /** Run one check. If it throws, report it once and turn off only that check. */
+    private static void runCheck(String name, Runnable check) {
+        if (s_failedChecks.contains(name)) {
+            return;
+        }
+        try {
+            check.run();
+        } catch (RuntimeException e) {
+            s_failedChecks.add(name);
+            DriverStationErrors.reportError("HealthMonitor: the " + name + " check failed and is now off: " + e, e.getStackTrace());
+        }
+    }
+
+    private static void checkBattery() {
         double volts = RobotController.getBatteryVoltage();
         boolean low = RobotState.isDisabled() && volts < k_lowBatteryVolts;
         s_lowBatteryAlert.setText(String.format("Battery is %.1f V: change it before the match", volts));
         s_lowBatteryAlert.set(k_showHardwareAlerts && s_lowBatteryDebounce.calculate(low));
+    }
 
+    private static void checkCommsLoss() {
         // The DS disables the robot each time it loses comms (radio, Ethernet cable, field network).
         int commsLoss = RobotController.getCommsDisableCount();
         if (s_commsLossAtStart < 0) {
@@ -192,7 +217,9 @@ public final class HealthMonitor {
         SignalLogger.writeInteger("Health/System/CommsDisableCount", commsLoss);
         s_commsLossAlert.setText("Lost DS comms " + lost + " time(s) since code start: check the radio and its cables");
         s_commsLossAlert.set(k_showHardwareAlerts && lost > 0);
+    }
 
+    private static void checkRail3V3() {
         // A 3.3 V rail fault means a short on a sensor port.
         int railFaults = RobotController.getFaultCount3V3();
         if (s_rail3V3FaultsAtStart < 0) {
@@ -201,7 +228,9 @@ public final class HealthMonitor {
         int newRailFaults = railFaults - s_rail3V3FaultsAtStart;
         s_rail3V3Alert.setText("3.3 V rail fault " + newRailFaults + " time(s): check the sensor wiring for a short");
         s_rail3V3Alert.set(k_showHardwareAlerts && newRailFaults > 0);
+    }
 
+    private static void checkCpuTemp() {
         SignalLogger.writeDouble("Health/System/CPUTemp", RobotController.getCPUTemp(), "C");
     }
 
@@ -273,6 +302,7 @@ public final class HealthMonitor {
     /** One CTRE device on CAN. */
     private static class WatchedDevice {
         private final ParentDevice m_device;
+        private final String m_name;
         // Only alert after 0.5 s of silence, so one late frame does not cause a false alarm.
         private final Debouncer m_missingDebounce = new Debouncer(0.5, DebounceType.RISING);
         private final Alert m_disconnectedAlert;
@@ -280,6 +310,7 @@ public final class HealthMonitor {
 
         WatchedDevice(ParentDevice device, String name) {
             m_device = device;
+            m_name = name;
             m_disconnectedAlert = new Alert(k_group, name + "/disconnected", name + " is not on CAN", Level.HIGH);
             if (device instanceof TalonFX talon) {
                 m_faults.add(new StickyFault(talon.getStickyFault_BootDuringEnable(false), name + " rebooted while enabled", Level.HIGH));
