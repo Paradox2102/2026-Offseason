@@ -47,6 +47,14 @@ public abstract class Procedure {
     /** The dashboard's Capture button (Utility mode only). */
     public void capture() {}
 
+    /**
+     * While this procedure is picked and the robot is enabled, Calibration holds the turret still
+     * instead of letting it aim at the hub. False: the procedure aims or moves the turret itself.
+     */
+    boolean holdTurret() {
+        return true;
+    }
+
     /** Y saves the file (SysId uses Y for a test). */
     boolean saveWithY() {
         return true;

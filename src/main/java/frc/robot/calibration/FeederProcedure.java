@@ -86,4 +86,10 @@ public class FeederProcedure extends Procedure {
         m_readings[2] = String.format("Fire rate: %d balls, %.1f per second", m_dips.count(), m_dips.rate());
         m_readings[3] = "";
     }
+
+    /** The turret aims at the hub, as in a match. */
+    @Override
+    boolean holdTurret() {
+        return false;
+    }
 }

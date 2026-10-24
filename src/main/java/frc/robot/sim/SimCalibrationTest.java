@@ -50,6 +50,8 @@ public class SimCalibrationTest {
     /** Next loop: the shot the robot works out now uses the recorded point. */
     private boolean m_liveCheck = false;
     private Command m_hoodJog = null;
+    /** Turret angle when the hold check starts, degrees. */
+    private double m_turretBeforeDeg = Double.NaN;
 
     public SimCalibrationTest(RobotContainer container, Drive drive) {
         m_container = container;
@@ -125,6 +127,14 @@ public class SimCalibrationTest {
             step(7, RobotMode.UTILITY, true); // hood zero
         } else if (t < 37) {
             step(8, RobotMode.UTILITY, true); // feeder
+        } else if (t < 38) {
+            step(9, RobotMode.UTILITY, false); // hood zero picked while disabled; the robot moves
+        } else if (t < 40) {
+            step(10, RobotMode.UTILITY, true); // enabled: the turret holds still
+        } else if (t < 41) {
+            step(11, RobotMode.UTILITY, false); // turret zero picked while disabled
+        } else if (t < 45) {
+            step(12, RobotMode.UTILITY, true); // enabled: jig zero, then the 90 deg check turn
         } else if (m_step != 99) {
             step(99, RobotMode.UTILITY, false);
             System.out.println("CALIB end");
@@ -209,6 +219,21 @@ public class SimCalibrationTest {
                 m_command = feeder.fireRateTest();
                 System.out.println("CALIB step 8: feeder: fire-rate test (the sim flywheel has no ball load: no dips expected)");
             }
+            case 9 -> {
+                // Picked while disabled, as at the robot. The robot moves, so aiming would turn the turret.
+                m_calibration.select("Hood zero");
+                m_drive.resetPose(new Pose2d(5.0, 6.5, Rotation2d.ZERO));
+                System.out.println("CALIB step 9: Utility mode disabled, hood zero picked, robot moved to (5.0, 6.5)");
+            }
+            case 10 -> {
+                m_turretBeforeDeg = m_container.getTurret().getPosition() * 360;
+                System.out.printf("CALIB step 10: enabled: the turret must hold %.1f deg, not aim at the hub%n", m_turretBeforeDeg);
+            }
+            case 11 -> {
+                m_calibration.select("Turret zero");
+                System.out.println("CALIB step 11: Utility mode disabled, turret zero picked");
+            }
+            case 12 -> System.out.println("CALIB step 12: enabled: jig zero, then the turret turns 90 deg clockwise");
             default -> {}
         }
     }
@@ -227,6 +252,15 @@ public class SimCalibrationTest {
                 }
                 var turret = m_calibration.procedure(TurretZeroProcedure.class);
                 turret.jog(3.0 - m_container.getTurret().getPosition() * 360);
+                return true;
+            }
+            case 12 -> {
+                // The hold starts at the enable; then the jig zero (the sim turret is not in a jig:
+                // where it is becomes 0).
+                if (sinceStart < 0.3) {
+                    return false;
+                }
+                m_calibration.procedure(TurretZeroProcedure.class).capture();
                 return true;
             }
             case 7 -> {
@@ -316,6 +350,18 @@ public class SimCalibrationTest {
             case 7 -> {
                 double ratio = m_container.getHood().ratio();
                 check(Math.abs(ratio - 85) < 85 * 0.03, String.format("hood ratio %.2f (the sim's is 85)", ratio));
+            }
+            case 10 -> {
+                double now = m_container.getTurret().getPosition() * 360;
+                double aimDeg = m_container.getSuperstructure().getShot().turretRot() * 360;
+                check(Math.abs(now - m_turretBeforeDeg) < 1.0 && Math.abs(aimDeg - m_turretBeforeDeg) > 10,
+                    String.format("turret held %.1f deg (was %.1f; aiming would be %.1f)", now, m_turretBeforeDeg, aimDeg));
+            }
+            case 12 -> {
+                var turret = m_container.getTurret();
+                double now = turret.getPosition() * 360;
+                check(turret.isZeroed() && Math.abs(now + 90) < 1.0,
+                    String.format("after the jig zero the turret turned to %.1f deg (check: -90, clockwise)", now));
             }
             case 8 -> {
                 CommandScheduler.getInstance().cancelAll();

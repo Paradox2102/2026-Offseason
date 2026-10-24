@@ -41,6 +41,8 @@ public class Calibration {
     private final Selectable<Procedure> m_chooser = new Selectable<>();
     private final Alert m_fileAlert = AlertPublisher.create("Health", "calibration/file", "", Level.MEDIUM);
     private final SysIdProcedure m_sysId;
+    /** The angle the turret holds while a procedure that does not aim is picked, rotations. */
+    private double m_turretHoldRot = 0;
     private Procedure m_selected;
     private String m_message = "";
 
@@ -82,6 +84,12 @@ public class Calibration {
         Tunables.publish("Calibration/Procedure", m_chooser);
 
         Trigger utility = new Trigger(RobotState::isUtility);
+        // In Utility mode the turret's default command still aims at the hub. Hold it still for the
+        // procedures that do not shoot. isUtility() is true while disabled too, and a command
+        // scheduled while disabled is dropped, so the hold starts at the enable.
+        new Trigger(RobotState::isUtilityEnabled).and(() -> m_selected.holdTurret())
+            .whileTrue(turret.track(() -> m_turretHoldRot).beforeStarting(() -> m_turretHoldRot = turret.getPosition())
+                .withName("Calibration Turret Hold"));
         for (Procedure p : m_procedures) {
             Trigger active = utility.and(() -> m_selected == p);
             p.bind(pad, active);

@@ -190,6 +190,11 @@ public class Turret extends SubsystemBase {
         return m_zeroed;
     }
 
+    /** A jig zero was asked for, and the Talon has not taken it yet. */
+    public boolean isJigZeroPending() {
+        return m_jigZeroPending;
+    }
+
     /** Zeroed, not restoring after a reboot, and within the tolerance of {@code goal}. */
     public boolean isOnTarget(double goal) {
         return isOnTarget(goal, ShooterConstants.kTurretToleranceDeg);

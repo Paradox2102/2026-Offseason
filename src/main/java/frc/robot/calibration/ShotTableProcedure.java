@@ -157,4 +157,10 @@ public class ShotTableProcedure extends Procedure {
         m_readings[2] = String.format("Hood %.1f deg (now %.1f)", hoodDeg(), m_hood.getAngleDeg());
         m_readings[3] = m_last;
     }
+
+    /** The turret aims at the hub, as in a match. */
+    @Override
+    boolean holdTurret() {
+        return false;
+    }
 }
