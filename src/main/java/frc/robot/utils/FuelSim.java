@@ -12,7 +12,6 @@ import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.networktables.StructArrayPublisher;
-import org.wpilib.telemetry.Telemetry;
 
 public class FuelSim {
     private static final double PERIOD = 0.02; // sec

@@ -16,7 +16,6 @@ import frc.robot.utils.ParadoxTalon;
 
 import org.wpilib.math.system.Models;
 import org.wpilib.math.util.Units;
-import org.wpilib.math.controller.BangBangController;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.system.RobotController;
@@ -34,8 +33,6 @@ public class IntakeRollerSubsystem extends SubsystemBase {
 
     private final ParadoxTalon m_intakeRollerMotor = new ParadoxTalon(CANIDConstants.intakeRoller, k_CANBus, m_coastRequest, 0.1);
     
-    private final BangBangController k_bangBang = new BangBangController();
-
     private final double k_gearRatio = 0.5;
 
     private final FlywheelSim m_motorSimModel = new FlywheelSim(

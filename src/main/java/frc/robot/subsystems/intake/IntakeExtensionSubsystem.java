@@ -4,7 +4,6 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
-import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -18,7 +17,6 @@ import frc.robot.utils.ParadoxTalon;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
-import org.wpilib.system.Timer;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.simulation.ElevatorSim;
 import org.wpilib.command2.Command;
@@ -31,7 +29,6 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     private static final double k_elevatorMass = 5.401715051809;
     private final CANBus k_CANBus = CANIDConstants.k_canBus4;
 
-    private final PositionTorqueCurrentFOC m_positionRequest = new PositionTorqueCurrentFOC(0).withSlot(0);
     private final MotionMagicVelocityVoltage m_velocityRequest = new MotionMagicVelocityVoltage(0);
     private final Follower m_followRequest = new Follower(CANIDConstants.intakeExtensionLeader, MotorAlignmentValue.Opposed);
     private final StaticBrake m_brakeRequest = new StaticBrake();

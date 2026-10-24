@@ -106,13 +106,13 @@ public class Constants {
 
     public static class VisionConstants {
 
-        public static final Translation3d backLeftPositon = new Translation3d(-0.292809, 0.10624, -0.255329);
+        public static final Translation3d backLeftPositon = new Translation3d(-0.292809, 0.10624 + 0.1143, -0.255329);
         public static final Rotation3d backLeftRotation = new Rotation3d(-0.973204, 1.571245, -2.665181);
-        public static final Translation3d backRightPosition = new Translation3d(-0.29045, 0.297344, 0.230864);
+        public static final Translation3d backRightPosition = new Translation3d(-0.29045, 0.297344 + 0.1143, 0.230864);
         public static final Rotation3d backRightRotation = new Rotation3d(-1.133065, 0.926906, -3.064224);
-        public static final Translation3d sideLeftPosition = new Translation3d(-0.020386, 0.117404, -0.330569);
+        public static final Translation3d sideLeftPosition = new Translation3d(-0.020386, 0.117404 + 0.1143, -0.330569);
         public static final Rotation3d sideLeftRotation = new Rotation3d(-1.026815, -0.739057, -2.880453);
-        public static final Translation3d sideRightPosition = new Translation3d(-0.290205, 0.296509, 0.323435);
+        public static final Translation3d sideRightPosition = new Translation3d(-0.290205, 0.296509 + 0.1143, 0.323435);
         public static final Rotation3d sideRightRotation = new Rotation3d(-1.095605, 3.141593, -2.748527);
 
     }

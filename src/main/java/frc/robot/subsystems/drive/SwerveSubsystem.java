@@ -222,7 +222,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         for(double[] values : ShooterConstants.k_scoreShotTimes){
             m_shotTimeInt.put(values[0], values[1]);
         }
-        resetPose(new Pose2d(0, 0,new Rotation2d(Math.PI)));
+        resetPose(new Pose2d(0, 0, new Rotation2d(Math.PI)));
         
     }
 

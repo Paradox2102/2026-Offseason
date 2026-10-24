@@ -20,6 +20,8 @@ import org.wpilib.math.numbers.N1;
 import org.wpilib.math.numbers.N3;
 import org.wpilib.networktables.NetworkTablesJNI;
 import org.wpilib.smartdashboard.Field2d;
+import org.wpilib.telemetry.Telemetry;
+
 import frc.robot.Robot;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.utils.HealthMonitor;
@@ -92,6 +94,7 @@ public static final Field aprilTagField = fieldLayout.loadField();
       for (Cameras c : Cameras.values())
       {
         c.addToVisionSim(visionSim);
+        Telemetry.log(c.name() + " estimated pose", c.estimatedRobotPose.get().estimatedPose);
       }
 
       // openSimCameraViews();
