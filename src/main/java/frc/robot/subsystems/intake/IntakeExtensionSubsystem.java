@@ -60,8 +60,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.setParadoxControl(m_followRequest);
 
-        m_intakeExtensionLeader.setPosition(0);
-        m_intakeExtensionFollower.setPosition(0);
+        // m_intakeExtensionLeader.setPosition(0);
+        // m_intakeExtensionFollower.setPosition(0);
 
         if (Utils.isSimulation()){
             var talonFXSim = m_intakeExtensionLeader.getSimState();

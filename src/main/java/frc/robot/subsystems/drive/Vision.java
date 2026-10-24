@@ -152,6 +152,8 @@ public static final Field aprilTagField = fieldLayout.loadField();
                                          pose.timestampSeconds,
                                          camera.curStdDevs);
       }
+      if (camera.estimatedRobotPose.isPresent())
+       Telemetry.log(camera.name() + " estimated pose", camera.estimatedRobotPose.get().estimatedPose);
     }
 
   }
@@ -431,10 +433,8 @@ public static final Field aprilTagField = fieldLayout.loadField();
       robotToCamTransform = new Transform3d(robotToCamTranslation, robotToCamRotation);
 
       poseEstimator = new PhotonPoseEstimator(Vision.aprilTagField,
-                                              // PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,  TODO - This has been removed from the constructor but needs to be addressed elsewhere
                                               robotToCamTransform);
-      // poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY); TODO - Supposedly no longer needed but need to investigate what is replacing it.
-
+        
       this.singleTagStdDevs = singleTagStdDevs;
       this.multiTagStdDevs = multiTagStdDevsMatrix;
 
@@ -490,6 +490,7 @@ public static final Field aprilTagField = fieldLayout.loadField();
         currentAmbiguity = result.getBestTarget().getPoseAmbiguity();
         if (currentAmbiguity < amiguity && currentAmbiguity > 0)
         {
+          
           bestResult = result;
           amiguity = currentAmbiguity;
         }
@@ -558,6 +559,7 @@ public static final Field aprilTagField = fieldLayout.loadField();
       Optional<EstimatedRobotPose> visionEst = Optional.empty();
       for (var change : resultsList)
       {
+        
         visionEst = poseEstimator.estimateAverageBestTargetsPose(change);
         updateEstimationStdDevs(visionEst, change.getTargets());
       }

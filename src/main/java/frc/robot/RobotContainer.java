@@ -67,12 +67,11 @@ public class RobotContainer {
         //     Subsystems.m_intakeExtension.retractIntake()
         // );
 
-        // m_controller.rightTrigger().whileTrue(Commands.parallel( // Shooter bindings not properly set-up, don't have shooter yet :P
-        //     Subsystems.m_shooterSubsystem.shoot(() -> SwerveSubsystem.distanceToTarget()),
-        //     Subsystems.m_hoodSubsystem.pitchHood(() -> SwerveSubsystem.distanceToTarget()),
-        //     launchSim.repeatedlyLaunchFuel(() -> Subsystems.m_shooterSubsystem.m_shooterLerpTable.get(SwerveSubsystem.distanceToTarget()), () -> Subsystems.m_hoodSubsystem.m_hoodLerpTable.get(SwerveSubsystem.distanceToTarget()))
+        m_controller.rightTrigger().whileTrue(Commands.parallel( // Shooter bindings not properly set-up, don't have shooter yet :P
+            Subsystems.m_shooterSubsystem.staticShoot(),
+            Subsystems.m_hoodSubsystem.staticPitch()
             
-        // ));
+        ));
 
         isReadyToShoot.whileTrue(Commands.parallel(
             Subsystems.m_indexerConveyor.run(true),
@@ -101,12 +100,12 @@ public class RobotContainer {
 
         m_joystick.getHID().button(10).onTrue(Commands.run(() -> SalesAssociate.careAboutCustomerService(!SalesAssociate.getCareAboutCustomerService())));
 
-        // isReadyToShoot.whileTrue(Commands.parallel(
-        //     Subsystems.m_indexerRollerSubsystem.run(true),
-        //     Subsystems.m_indexerConveyor.run(),
-        //     Subsystems.m_kickerSubsystem.run(true),
-        //     Subsystems.m_secondaryKicker.run()
-        // ));
+        isReadyToShoot.whileTrue(Commands.parallel(
+            Subsystems.m_indexerRollerSubsystem.run(true),
+            Subsystems.m_indexerConveyor.run(true),
+            Subsystems.m_kickerSubsystem.run(),
+            Subsystems.m_secondaryKicker.run(true)
+        ));
 
 
 
@@ -125,7 +124,7 @@ public class RobotContainer {
 
         // m_controller.rightTrigger().whileTrue(Commands.parallel(Subsystems.m_intakeRoller.testRun(false), Subsystems.m_indexerRollerSubsystem.testRun(false)));
         // m_controller.faceLeft().whileTrue(Subsystems.m_indexerRollerSubsystem.testRun(true));
-        m_joystick.getHID().button(5).onTrue(Commands.runOnce(() -> Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(Units.degreesToRadians(SwerveSubsystem.isRedAlliance() ? 0 : 180))))));
+        m_joystick.getHID().button(5).onTrue(Commands.runOnce(() -> Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(Units.degreesToRadians(SwerveSubsystem.isRedAlliance() ? 180 : 0))))));
         
         // m_controller.dpadUp().onTrue(Subsystems.m_intakeExtension.retractIntake());
         // m_controller.faceDown().whileTrue(Commands.parallel(

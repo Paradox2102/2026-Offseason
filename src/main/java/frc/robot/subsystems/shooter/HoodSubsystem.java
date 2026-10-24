@@ -38,6 +38,8 @@ public class HoodSubsystem extends SubsystemBase{
     k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, Math.toRadians(0), Math.toRadians(42), true, 0.1);
     
     public boolean isOnTarget() {
+        // System.out.println("My target: " + String.valueOf(m_positionRequest.Position));
+        // System.out.println("My Position: " + String.valueOf(m_hoodMotor.getPosition().getValueAsDouble()));
         return Math.abs(m_hoodMotor.getPosition().getValueAsDouble() - m_positionRequest.Position) < 0.01;
     }
 
@@ -47,7 +49,7 @@ public class HoodSubsystem extends SubsystemBase{
             m_hoodLerpTable.put(shotAngle[0], shotAngle[1]);
         }
         m_hoodMotor.getConfigurator().apply(ShooterConstants.k_hoodConfig);
-
+        m_hoodMotor.setPosition(0);
         if (Utils.isSimulation()){
             var talonFXSim = m_hoodMotor.getSimState();
             talonFXSim.Orientation = ChassisReference.CounterClockwise_Positive;
@@ -86,7 +88,10 @@ public class HoodSubsystem extends SubsystemBase{
             }, this);
     }
 
-
+    @Override
+    public void periodic() {
+        Telemetry.log("Is hood at position", isOnTarget());
+    }
 
     @Override
     public void simulationPeriodic() {

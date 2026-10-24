@@ -87,6 +87,10 @@ public class ShooterSubsystem extends SubsystemBase{
     }
 
     @Override
+    public void periodic() {
+        Telemetry.log("Is Shooter At Speed", isAtSpeed());
+    }
+    @Override
     public void simulationPeriodic() {
         var talonFXSim = m_shooterLeader.getSimState();
 

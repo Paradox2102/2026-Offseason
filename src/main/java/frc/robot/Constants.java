@@ -247,7 +247,7 @@ public class Constants {
     };
 
     public static final double k_staticShotSpeed = 40;
-    public static final double k_staticShotAngle = 20;
+    public static final double k_staticShotAngle = 0;
     public static final double k_hoodMOI = 0.02635296; 
     public static final double k_hoodArmLength = 0.20860766;
     public static final double k_hoodMaxAngle = 90;
@@ -440,7 +440,7 @@ public class Constants {
 
             m_indexerRollerMotionMagicConfig.MotionMagicAcceleration = k_rollerMotionMagicAcceleration;
 
-            m_indexerRollerConfigs.withCurrentLimits(m_rollerLimitConfig).withMotorOutput(m_indexerRollerConfigs.MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
+            m_indexerRollerConfigs.withCurrentLimits(m_rollerLimitConfig).withMotorOutput(m_indexerRollerConfigs.MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive));
             m_indexerRollerConfigs.Slot0.kP = k_rollerP;
             m_indexerRollerConfigs.Slot0.kS = k_rollerS;
             m_indexerRollerConfigs.Slot0.kV = k_rollerV;
@@ -448,7 +448,7 @@ public class Constants {
             
             m_indexerConveyorMotionMagicConfig.withMotionMagicAcceleration(k_conveyorMotionMagicAcceleration);
             
-            m_indexerConveyorConfigs.withCurrentLimits(m_conveyorLimitConfig);
+            m_indexerConveyorConfigs.withCurrentLimits(m_conveyorLimitConfig).withMotorOutput(m_indexerConveyorConfigs.MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
             m_indexerConveyorConfigs.Slot0.kP = k_conveyorP;
             m_indexerConveyorConfigs.Slot0.kS = k_conveyorS;
             m_indexerConveyorConfigs.Slot0.kV = k_conveyorV;
