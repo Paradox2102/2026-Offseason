@@ -2,9 +2,12 @@ package frc.robot.subsystems.indexer;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityDutyCycle;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
@@ -19,20 +22,18 @@ import org.wpilib.system.RobotController;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.simulation.FlywheelSim;
 
-import static java.util.Arrays.asList;
-import java.util.List;
-
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class IndexerConveyorSubsystem extends SubsystemBase {
-    private final MotionMagicVelocityDutyCycle m_velocityRequest = new MotionMagicVelocityDutyCycle(0);
+    private final MotionMagicVelocityVoltage m_velocityRequestTop = new MotionMagicVelocityVoltage(0);
+    private final Follower m_followRequest = new Follower(CANIDConstants.indexerConveyorLeader, MotorAlignmentValue.Aligned);
     private final StaticBrake m_brakeRequest = new StaticBrake();
 
     private final CANBus k_CANBus = CANIDConstants.k_canBus1;
     private final ParadoxTalon m_indexerConveyorTop = new ParadoxTalon(CANIDConstants.indexerConveyorLeader, k_CANBus, m_brakeRequest, 0.1);
-    private final ParadoxTalon m_indexerConveyorBottom = new ParadoxTalon(CANIDConstants.indexerConveyorFollower, k_CANBus, m_brakeRequest, 0.1);
+    private final ParadoxTalon m_indexerConveyorBottom = new ParadoxTalon(CANIDConstants.indexerConveyorFollower, k_CANBus, m_followRequest, 0.1);
 
     private final double k_gearRatio = 1;
 
@@ -40,8 +41,8 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
         Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX44(1), IndexerConstants.k_indexerConveyorMOI, k_gearRatio), DCMotor.getKrakenX44(1));
 
     public IndexerConveyorSubsystem() {
-        m_indexerConveyorTop.getConfigurator().apply(IndexerConstants.m_indexerConveyorConfigs);
-        m_indexerConveyorBottom.getConfigurator().apply(IndexerConstants.m_indexerConveyorConfigs.withMotorOutput(IndexerConstants.m_indexerConveyorConfigs.MotorOutput.withInverted(InvertedValue.Clockwise_Positive)));
+        m_indexerConveyorTop.getConfigurator().apply(IndexerConstants.m_indexerConveyorConfigs.withMotorOutput(IndexerConstants.m_indexerConveyorConfigs.MotorOutput.withInverted(InvertedValue.Clockwise_Positive)));
+        m_indexerConveyorBottom.getConfigurator().apply(IndexerConstants.m_indexerConveyorConfigs);
 
 
         if (Utils.isSimulation()){
@@ -52,10 +53,9 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
     }
     public Command run(boolean in) {
         return Commands.runEnd(() -> {
-            // TODO: Different Speeds
-            setSpeed(asList(m_indexerConveyorTop, m_indexerConveyorBottom), in ? asList(IndexerConstants.k_conveyorInRPS, IndexerConstants.k_conveyorInRPS) : asList(IndexerConstants.k_conveyorOutRPS, IndexerConstants.k_conveyorOutRPS));
+            m_indexerConveyorTop.setControl(m_velocityRequestTop.withVelocity(in ? IndexerConstants.k_conveyorInRPS : IndexerConstants.k_conveyorOutRPS));
             }, () -> {
-                stop(m_indexerConveyorTop, m_indexerConveyorBottom);
+                m_indexerConveyorTop.setControl(m_brakeRequest);
             }, this); 
     }
 
@@ -69,19 +69,7 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
             m_indexerConveyorBottom.setParadoxControl(m_brakeRequest);
         }, this);
     }
-    
-    public void setSpeed(List<ParadoxTalon> motors, List<Double> speeds){
-        for (int i = 0; i < motors.size(); i++) {
-            // motors.get(i).setParadoxControl(m_velocityRequest.withVelocity(speeds.get(i)));
-            motors.get(i).setParadoxControl(m_velocityRequest.withVelocity(speeds.get(i)));
-        }
-    }
 
-        public void stop(ParadoxTalon... motors){
-        for (ParadoxTalon motor : motors) {
-            motor.setParadoxControl(m_brakeRequest);
-        }
-    }
     
     @Override
     public void simulationPeriodic() {

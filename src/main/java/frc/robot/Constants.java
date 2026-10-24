@@ -148,10 +148,10 @@ public class Constants {
   public static class ShooterConstants {
     public static final double k_shooterGearReduction = (67.86);
     
-    public static final double k_kickOutRPS = -20;
+    public static final double k_kickOutRPS = 50;
 
-    public static final double k_secondaryKickerInRPS = 30;
-    public static final double k_secondaryKickerOutRPS = -20;
+    public static final double k_secondaryKickerInRPS = 50;
+    public static final double k_secondaryKickerOutRPS = -30;
 
     public static final double k_upKickerMOI = 0.00000494 * 2;
     public static final double k_kickerMOI = 0.0000356;
@@ -275,7 +275,7 @@ public class Constants {
 
 
     static {
-        k_shooterConfigs.withCurrentLimits(k_shooterLimitConfig);
+        k_shooterConfigs.withCurrentLimits(k_shooterLimitConfig).withMotorOutput(k_shooterConfigs.MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
         k_shooterConfigs.Slot0.kP = k_shooterP;
         k_shooterConfigs.Slot0.kS = k_shooterS;
         k_shooterConfigs.Slot0.kV = k_shooterV;
@@ -285,7 +285,7 @@ public class Constants {
         k_kickerConfig.Slot0.kS = k_kickerS;
         k_kickerConfig.Slot0.kV = k_kickerV;
 
-        k_secondaryKickerConfig.withMotorOutput(k_secondaryKickerConfig.MotorOutput.clone().withInverted(InvertedValue.Clockwise_Positive)).withCurrentLimits(k_secondaryKickerLimitConfig);
+        k_secondaryKickerConfig.withMotorOutput(k_secondaryKickerConfig.MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive)).withCurrentLimits(k_secondaryKickerLimitConfig);
         k_secondaryKickerConfig.Slot0.kP = k_secondaryKickerP;
         k_secondaryKickerConfig.Slot0.kS = k_secondaryKickerS;
         k_secondaryKickerConfig.Slot0.kV = k_secondaryKickerV;
@@ -448,7 +448,7 @@ public class Constants {
             
             m_indexerConveyorMotionMagicConfig.withMotionMagicAcceleration(k_conveyorMotionMagicAcceleration);
             
-            m_indexerConveyorConfigs.withCurrentLimits(m_conveyorLimitConfig).withMotorOutput(m_indexerConveyorConfigs.MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
+            m_indexerConveyorConfigs.withCurrentLimits(m_conveyorLimitConfig);
             m_indexerConveyorConfigs.Slot0.kP = k_conveyorP;
             m_indexerConveyorConfigs.Slot0.kS = k_conveyorS;
             m_indexerConveyorConfigs.Slot0.kV = k_conveyorV;

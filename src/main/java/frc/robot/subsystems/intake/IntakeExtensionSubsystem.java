@@ -17,6 +17,7 @@ import frc.robot.utils.ParadoxTalon;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.system.RobotController;
+import org.wpilib.system.Timer;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.simulation.ElevatorSim;
 import org.wpilib.command2.Command;
@@ -36,7 +37,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     private final ParadoxTalon m_intakeExtensionLeader = new ParadoxTalon(CANIDConstants.intakeExtensionLeader, k_CANBus, m_brakeRequest, 0.1);
     private final ParadoxTalon m_intakeExtensionFollower = new ParadoxTalon(CANIDConstants.intakeExtensionFollower, k_CANBus, m_brakeRequest, 0.1); 
 
-    
+    private final Timer m_crushTimer = new Timer();
+    private final double crushTimerTime = 1.0;
 
     private final double k_gearRatio = 2.8;
     private final ElevatorSim m_motorSimModel = new ElevatorSim(
@@ -83,11 +85,23 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     //     }, this).until(() -> isIntakeAtTarget(position)).finallyDo(() -> m_intakeExtensionLeader.setParadoxControl(m_brakeRequest));
     // }
 
-    public Command crush(){
-        return Commands.repeatingSequence(extendIntakePower(), retractIntakePower());
-    }
+
 
     public Command retractIntake() {
+        return Commands.run(() -> {
+            m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(-10));
+            SalesAssociate.persuasion();
+        }
+        ).until(() -> isIntakeAtTarget(TargetPosition.IN)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+    }
+
+    public Command extendIntakeCrush() {
+        return Commands.runEnd(() -> {
+            m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(10));
+        }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+    }
+
+        public Command retractIntakeCrush() {
         return Commands.run(() -> {
             m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(-10));
             SalesAssociate.persuasion();
