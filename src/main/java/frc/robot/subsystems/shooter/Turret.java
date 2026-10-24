@@ -72,9 +72,10 @@ public class Turret extends SubsystemBase {
 
     public Turret() {
         var config = new TalonFXConfiguration();
-        // Check on the robot: a positive command must turn the turret counterclockwise (seen from
-        // above). If it turns the other way, change this to Clockwise_Positive.
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        // A positive command turns the turret counterclockwise (seen from above). Checked on the
+        // robot 2026-10-23: with CounterClockwise_Positive the 90 deg clockwise check turn went
+        // counterclockwise, so the motor is Clockwise_Positive. The sim orientation below matches.
+        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.Feedback.SensorToMechanismRatio = ShooterConstants.kTurretRatio;
         config.Slot0.kS = ShooterConstants.kTurretS;
@@ -102,7 +103,7 @@ public class Turret extends SubsystemBase {
             var motor = DCMotor.getKrakenX60Foc(1);
             m_sim = new DCMotorSim(Models.singleJointedArmFromPhysicalConstants(motor, 0.0497, ShooterConstants.kTurretRatio), motor);
             var state = m_talon.getSimState();
-            state.Orientation = ChassisReference.CounterClockwise_Positive;
+            state.Orientation = ChassisReference.Clockwise_Positive; // matches MotorOutput.Inverted
             state.setMotorType(TalonFXSimState.MotorType.KrakenX60);
             m_simNotifier = new Notifier(this::simStep);
             m_simNotifier.startPeriodic(kSimPeriod);
