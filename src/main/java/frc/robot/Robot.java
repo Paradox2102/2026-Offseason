@@ -19,6 +19,7 @@ import org.wpilib.networktables.StructPublisher;
 import org.wpilib.framework.TimedRobot;
 import org.wpilib.hardware.power.PowerDistribution;
 import org.wpilib.hardware.power.PowerDistribution.ModuleType;
+import org.wpilib.system.Timer;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
 
@@ -40,6 +41,9 @@ public class Robot extends TimedRobot {
 
     /* log PDH channel currents into the hoot log, next to the Talon signals */
     private final PowerDistribution m_pdh = new PowerDistribution(CANIDConstants.k_pdhPort, CANIDConstants.pdh, ModuleType.REV);
+    /* after a PDH read fails, wait this long before the next try */
+    private static final double k_pdhRetrySeconds = 1.0;
+    private double m_pdhRetryTime = 0;
 
     // private final boolean kUseLimelight = false;
 
@@ -54,8 +58,7 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         m_timeAndJoystickReplay.update();
-        SignalLogger.writeDoubleArray("PDH/ChannelCurrents", m_pdh.getAllCurrents(), "A");
-        SignalLogger.writeDouble("PDH/Voltage", m_pdh.getVoltage(), "V");
+        logPdh();
         HealthMonitor.periodic();
         CommandScheduler.getInstance().run();
 
@@ -105,6 +108,26 @@ public class Robot extends TimedRobot {
         
 
 
+    }
+
+    /**
+     * Log the PDH channel currents and voltage into the hoot log.
+     * The PDH answers over CAN, and a reply can be missing (a loose CAN cable, the PDH still
+     * starting up). Then getAllCurrents() returns null. A log must never stop the robot, so
+     * skip it and try again in a second (the HAL prints an error for every failed read).
+     */
+    private void logPdh() {
+        double now = Timer.getTimestamp();
+        if (now < m_pdhRetryTime) {
+            return;
+        }
+        double[] currents = m_pdh.getAllCurrents();
+        if (currents == null) {
+            m_pdhRetryTime = now + k_pdhRetrySeconds;
+            return;
+        }
+        SignalLogger.writeDoubleArray("PDH/ChannelCurrents", currents, "A");
+        SignalLogger.writeDouble("PDH/Voltage", m_pdh.getVoltage(), "V");
     }
 
     @Override
