@@ -104,17 +104,44 @@ public class Constants {
     public static final double k_driveBaseRadius = Math.hypot(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY);
     }
 
+    /**
+     * Where each camera sits on the robot, from the CAD (Onshape "G0000 - Main", 2026-10-19).
+     *
+     * WPILib robot frame: +x = toward the intake, +y = LEFT, +z = UP, origin on the floor
+     * at the robot center. A CAD export (glTF) is Y-up: there the second number is the height.
+     * Always change CAD numbers into this frame before they go here.
+     *
+     * Angles are Rotation3d(roll, pitch, yaw) of the lens axis: a NEGATIVE pitch tilts the
+     * camera UP, a positive yaw turns it to the left. The camera looks along its own +x.
+     */
     public static class VisionConstants {
 
-        public static final Translation3d backLeftPositon = new Translation3d(-0.292809, 0.10624 + 0.1143, -0.255329);
-        public static final Rotation3d backLeftRotation = new Rotation3d(-0.973204, 1.571245, -2.665181);
-        public static final Translation3d backRightPosition = new Translation3d(-0.29045, 0.297344 + 0.1143, 0.230864);
-        public static final Rotation3d backRightRotation = new Rotation3d(-1.133065, 0.926906, -3.064224);
-        public static final Translation3d sideLeftPosition = new Translation3d(-0.020386, 0.117404 + 0.1143, -0.330569);
-        public static final Rotation3d sideLeftRotation = new Rotation3d(-1.026815, -0.739057, -2.880453);
-        public static final Translation3d sideRightPosition = new Translation3d(-0.290205, 0.296509 + 0.1143, 0.323435);
-        public static final Rotation3d sideRightRotation = new Rotation3d(-1.095605, 3.141593, -2.748527);
+        // CAD cambrea 1: back left corner, looks back and right
+        public static final Rotation3d backLeftRotation = camRotation(-17.3, -30.0, -148.0);
+        public static final Translation3d backLeftPositon = camPosition(-11.53, 10.05, 8.69, backLeftRotation);
+        // CAD cambrea 2: back right corner, looks back and left
+        public static final Rotation3d backRightRotation = camRotation(-2.1, -25.0, 148.0);
+        public static final Translation3d backRightPosition = camPosition(-11.44, -9.09, 16.22, backRightRotation);
+        // CAD cambrea 4: left side, looks left
+        public static final Rotation3d sideLeftRotation = camRotation(-8.9, -30.0, 65.0);
+        public static final Translation3d sideLeftPosition = camPosition(-0.80, 13.01, 9.13, sideLeftRotation);
+        // CAD cambrea 3: right side, looks right
+        public static final Rotation3d sideRightRotation = camRotation(-11.1, -25.0, -65.0);
+        public static final Translation3d sideRightPosition = camPosition(-11.43, -12.73, 16.18, sideRightRotation);
 
+        /** CAD angles are in degrees; Rotation3d wants radians. */
+        private static Rotation3d camRotation(double rollDeg, double pitchDeg, double yawDeg) {
+            return new Rotation3d(Units.degreesToRadians(rollDeg), Units.degreesToRadians(pitchDeg), Units.degreesToRadians(yawDeg));
+        }
+
+        /**
+         * The CAD numbers (inches) are the camera part's origin, 0.98 in behind the lens front.
+         * Move half of that along the lens axis, close to where the lens takes its picture from.
+         */
+        private static Translation3d camPosition(double xIn, double yIn, double zIn, Rotation3d rotation) {
+            Translation3d alongLens = new Translation3d(Units.inchesToMeters(0.49), 0, 0).rotateBy(rotation);
+            return new Translation3d(Units.inchesToMeters(xIn), Units.inchesToMeters(yIn), Units.inchesToMeters(zIn)).plus(alongLens);
+        }
     }
 
 
