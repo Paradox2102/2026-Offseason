@@ -94,7 +94,6 @@ public static final Field aprilTagField = fieldLayout.loadField();
       for (Cameras c : Cameras.values())
       {
         c.addToVisionSim(visionSim);
-        Telemetry.log(c.name() + " estimated pose", c.estimatedRobotPose.get().estimatedPose);
       }
 
       // openSimCameraViews();
@@ -146,6 +145,9 @@ public static final Field aprilTagField = fieldLayout.loadField();
       if (poseEst.isPresent())
       {
         var pose = poseEst.get();
+        // Log each camera's own estimate, so we can compare the cameras with each other.
+        // Only here: an Optional may be empty, and get() on an empty Optional throws.
+        Telemetry.log(camera.name() + " estimated pose", pose.estimatedPose);
         swerveDrive.addVisionMeasurement(pose.estimatedPose.toPose2d(),
                                          pose.timestampSeconds,
                                          camera.curStdDevs);
