@@ -96,7 +96,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     }
 
     public Command extendIntakeCrush() {
-        return Commands.runEnd(() -> {
+        return Commands.run(() -> {
             m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(10));
         }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
