@@ -17,14 +17,14 @@ public final class IntakeConstants {
      * Out stop of each side, meters: where each side reads when it rests at its out stop. The
      * code trusts a stall short of these as "not out" (something may hold the side), so they
      * must be measured on the robot, with nothing in the way, not learned in a match (a ball on
-     * the first extend would make a short stop look like the out stop). CAD values until then.
+     * the first extend would make a short stop look like the out stop).
      *
-     * <p>To measure: power the robot on with the intake fully in, enable, extend, and read
-     * Intake/Rack/Left/Last Stall m and Intake/Rack/Right/Last Stall m (the reading at the stall,
-     * before any fix). Do it three times (retract between) and write the largest of each here.
+     * <p>Measured on the robot 2026-10-23 with the Calibration tool ("Intake zero": three times
+     * out and in, the largest stall reading of each side), 3-4 % longer than the CAD stroke. The
+     * robot's calibration.json has the same values; a new measurement there is used over these.
      */
-    public static final double kOutStopLeft = kRackStroke;
-    public static final double kOutStopRight = kRackStroke;
+    public static final double kOutStopLeft = 0.33350;
+    public static final double kOutStopRight = 0.33618;
     /**
      * Motor rotations per meter of rack travel. From the old code's full stroke (3.95 motor
      * rotations) over the CAD stroke. Check on the robot: push the rack out by hand and read the

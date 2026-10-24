@@ -24,8 +24,11 @@ class IntakeSim {
 
     private final TalonFX m_leftTalon;
     private final TalonFX m_rightTalon;
-    private final ElevatorSim m_left = side(IntakeConstants.kRackStroke);
-    private final ElevatorSim m_right = side(IntakeConstants.kRackStroke + 0.006);
+    /** Where the sim's out stops are, meters: the left at its constant, the right 6 mm past. */
+    static final double kLeftStop = IntakeConstants.kOutStopLeft;
+    static final double kRightStop = IntakeConstants.kOutStopRight + 0.006;
+    private final ElevatorSim m_left = side(kLeftStop);
+    private final ElevatorSim m_right = side(kRightStop);
     /** Skipped teeth: how far the motor reading is off the real rack position, meters. */
     private double m_leftSkip = 0;
     private double m_rightSkip = 0;
@@ -41,10 +44,10 @@ class IntakeSim {
         if ("out".equalsIgnoreCase(System.getenv("SIM_RACK_START"))) {
             // As on the robot: the rack slid out while the robot was off, and the Talons read 0 there.
             for (var side : new ElevatorSim[] {m_left, m_right}) {
-                side.setState(side == m_left ? IntakeConstants.kRackStroke : IntakeConstants.kRackStroke + 0.006, 0);
+                side.setState(side == m_left ? kLeftStop : kRightStop, 0);
             }
-            m_leftSkip = -IntakeConstants.kRackStroke;
-            m_rightSkip = -(IntakeConstants.kRackStroke + 0.006);
+            m_leftSkip = -kLeftStop;
+            m_rightSkip = -kRightStop;
             System.out.println("SIM rack starts out (SIM_RACK_START=out): the Talons read 0 at the out stops");
         }
         setup(left.getSimState(), ChassisReference.CounterClockwise_Positive);

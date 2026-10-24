@@ -20,6 +20,7 @@ import frc.robot.calibration.SteerZeroProcedure;
 import frc.robot.calibration.TurretZeroProcedure;
 import frc.robot.generated.TunerConstants;
 import frc.robot.health.SwerveHealth;
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.drive.Drive;
 
 /**
@@ -342,9 +343,11 @@ public class SimCalibrationTest {
             case 6 -> {
                 var rack = m_container.getIntakeRack();
                 check(!m_calibration.procedure(IntakeZeroProcedure.class).isRunning(), "intake zero finished in 12 s");
-                System.out.printf("CALIB intake out stops: left %.4f m, right %.4f m (sim stops: 0.324, 0.330)%n",
-                    rack.outStop(true), rack.outStop(false));
-                check(Math.abs(rack.outStop(true) - 0.324) < 0.004 && Math.abs(rack.outStop(false) - 0.330) < 0.004,
+                double simLeft = IntakeConstants.kOutStopLeft;
+                double simRight = IntakeConstants.kOutStopRight + 0.006; // as in IntakeSim
+                System.out.printf("CALIB intake out stops: left %.4f m, right %.4f m (sim stops: %.4f, %.4f)%n",
+                    rack.outStop(true), rack.outStop(false), simLeft, simRight);
+                check(Math.abs(rack.outStop(true) - simLeft) < 0.004 && Math.abs(rack.outStop(false) - simRight) < 0.004,
                     "each side measured its own out stop");
             }
             case 7 -> {
