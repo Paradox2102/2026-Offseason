@@ -38,6 +38,15 @@ class IntakeSim {
     IntakeSim(TalonFX left, TalonFX right) {
         m_leftTalon = left;
         m_rightTalon = right;
+        if ("out".equalsIgnoreCase(System.getenv("SIM_RACK_START"))) {
+            // As on the robot: the rack slid out while the robot was off, and the Talons read 0 there.
+            for (var side : new ElevatorSim[] {m_left, m_right}) {
+                side.setState(side == m_left ? IntakeConstants.kRackStroke : IntakeConstants.kRackStroke + 0.006, 0);
+            }
+            m_leftSkip = -IntakeConstants.kRackStroke;
+            m_rightSkip = -(IntakeConstants.kRackStroke + 0.006);
+            System.out.println("SIM rack starts out (SIM_RACK_START=out): the Talons read 0 at the out stops");
+        }
         setup(left.getSimState(), ChassisReference.CounterClockwise_Positive);
         setup(right.getSimState(), ChassisReference.Clockwise_Positive);
     }

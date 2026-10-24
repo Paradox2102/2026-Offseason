@@ -10,7 +10,11 @@ package frc.robot.subsystems.intake;
  * hard stop. The motor's sensor cannot tell skipped teeth from something in the way, so the
  * direction of the error decides:
  * <ul>
- *   <li>At boot the side reads 0, and 0 is "in" (the robot boots with the intake in).
+ *   <li>At code start the reading means nothing. The rack is loose: while the robot is off it
+ *       slides out down its slope, and a Talon reads 0 wherever it powers on. So the first move
+ *       goes out (gravity helps), and the first out stall sets the reading to this side's out
+ *       stop ("homed"). The first in stall after that within 3 cm of 0 sets the in stop (0) with
+ *       no alert: the out stop constant may be a little off.
  *   <li>Every move ends with a push into its stop. A stall within 1 cm of the stop sets the
  *       reading to the stop: 0 for the in stop, the measured out stop of this side
  *       (IntakeConstants) for the out stop.
@@ -42,10 +46,15 @@ public class RackSide {
     public static final double kMaxCorrection = 0.05;
     /** Further than this from its stop at rest, the side was pushed away and goes back, meters. */
     public static final double kPushedAway = 0.02;
+    /** The first in stall after homing within this of 0 is the in stop, meters. */
+    public static final double kFirstInTolerance = 0.03;
 
     private final String m_name;
     private double m_outStop;
     private boolean m_lost = false;
+    private boolean m_homed = false;
+    /** Homed at the out stop; the in stop is not confirmed yet. */
+    private boolean m_firstIn = false;
 
     /**
      * @param name for alerts, for example "Talon 22 (right)"
@@ -58,6 +67,11 @@ public class RackSide {
 
     public boolean isLost() {
         return m_lost;
+    }
+
+    /** False until the first stall at the out stop after code start: until then the reading means nothing. */
+    public boolean isHomed() {
+        return m_homed;
     }
 
     /** The out stop, meters. */
@@ -97,6 +111,19 @@ public class RackSide {
      * @param position the position the side reads now
      */
     public StopResult stalledAt(boolean out, double position) {
+        if (!m_homed && out) {
+            // Homing: the stall is the out stop, whatever the reading says.
+            m_homed = true;
+            m_firstIn = true;
+            m_lost = false;
+            return new StopResult(outStop(), null, true);
+        }
+        if (!out && m_firstIn && Math.abs(position) <= kFirstInTolerance) {
+            // The first in stop after homing: the out stop constant may be a little off.
+            m_firstIn = false;
+            m_lost = false;
+            return new StopResult(0.0, null, true);
+        }
         double stop = stopPosition(out);
         String where = out ? "out" : "in";
         // How far the reading is past the stop, in the direction of the push (negative = short).

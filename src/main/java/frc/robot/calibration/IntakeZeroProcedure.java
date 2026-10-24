@@ -11,7 +11,8 @@ import frc.robot.subsystems.intake.IntakeRack;
 /**
  * Intake zero: the out stop of each side. The rack goes out and in three times; each side keeps
  * its largest stall reading at the out stop (the reading before any fix). Those become the out
- * stops at once. Start with the intake fully in and nothing in its way.
+ * stops at once. The rack can start anywhere (it homes at its out stop first); nothing may be in its
+ * way.
  *
  * <p>Test pad: A start (again), B stop, Y save.
  */
@@ -29,7 +30,7 @@ public class IntakeZeroProcedure extends Procedure {
         super("Intake zero");
         m_calibration = calibration;
         m_rack = rack;
-        m_instructions = "Intake fully in, nothing in its way, robot on blocks or with room in front. A (or Capture): out and in"
+        m_instructions = "Nothing in the intake's way, robot on blocks or with room in front. A (or Capture): out and in"
             + " three times; each side's largest stall reading becomes its out stop. B: stop. Y: save";
         var cycles = new Command[kCycles];
         for (int i = 0; i < kCycles; i++) {

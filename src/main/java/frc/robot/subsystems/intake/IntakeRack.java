@@ -37,6 +37,9 @@ import frc.robot.lib.util.StallDetector;
  *
  * <p>Each side works on its own, because a hit can make one side skip teeth and not the other:
  * <ol>
+ *   <li>Homing: at code start the reading means nothing (the rack slides out while the robot is
+ *       off). The first move of each side goes out, whatever the goal, and its out stall sets
+ *       the position to that side's out stop; then the side goes to the goal.
  *   <li>MOTION: Motion Magic to 3.5 cm before the stop. (The old code made Talon 22 a Follower,
  *       which copies the leader's output, not its position, so the sides drifted.)
  *   <li>PUSH: a push (12 A net) into the stop until the side stops moving. Then its position is
@@ -72,7 +75,10 @@ public class IntakeRack extends SubsystemBase {
         final Alert m_problemAlert;
         final Alert m_skipAlert;
         Phase m_phase = Phase.REST;
+        /** The stop the side moves to now (out while homing). */
         boolean m_out = false;
+        /** The stop asked for: after homing at the out stop, the side goes here. */
+        boolean m_goal = false;
         double m_pushStart = 0;
         int m_resets = 0;
         /** True after a push has put the side at its stop; false while moving or after a problem. */
@@ -119,9 +125,7 @@ public class IntakeRack extends SubsystemBase {
             config.CurrentLimits.SupplyCurrentLimit = IntakeConstants.kRackSupplyLimit;
             config.CurrentLimits.SupplyCurrentLimitEnable = true;
             PhoenixUtil.applyConfig("Intake rack " + label, () -> m_talon.getConfigurator().apply(config));
-            // No setPosition(0) here: a Talon reads 0 when it powers on, and the robot powers on
-            // with the intake in. A robot code restart does not restart the Talon, which still
-            // knows where the rack is; zeroing here would make the rack's present place "in".
+            // No setPosition here: the side homes at its out stop on the first enable.
             m_talon.hasResetOccurred(); // clear the "reset" flag of this boot
             HealthMonitor.register(m_talon);
         }
@@ -145,9 +149,12 @@ public class IntakeRack extends SubsystemBase {
 
         /** @param position where the side is (given, when the Talon's reading is not up to date yet) */
         void start(boolean out, double now, double position) {
+            m_goal = out;
             if (m_phase == Phase.RESYNC) {
-                m_out = out; // RESYNC starts the move when the Talon has its position
-                return;
+                return; // RESYNC starts the move when the Talon has its position
+            }
+            if (!m_state.isHomed()) {
+                out = true; // home at the out stop first; then the goal
             }
             // Already resting at this stop: nothing to do (no delay for the rollers).
             if (m_confirmed && out == m_out && m_phase == Phase.REST && !m_state.awayFromStop(out, position)) {
@@ -170,15 +177,15 @@ public class IntakeRack extends SubsystemBase {
             m_state.onReset();
             m_rebootAlert.set(true);
             m_confirmed = false;
-            m_out = out;
+            m_goal = out;
             m_resyncValue = value;
             m_phase = Phase.RESYNC;
         }
 
         /** Hold this position (Motion Magic, no push). Not at a stop: a later move to a stop confirms it again. */
         void hold(double goal) {
-            if (m_phase == Phase.RESYNC) {
-                return; // the Talon gets its position first
+            if (m_phase == Phase.RESYNC || !m_state.isHomed()) {
+                return; // the Talon gets its position first, or the side homes first
             }
             m_phase = Phase.POSITION;
             m_confirmed = false;
@@ -200,7 +207,7 @@ public class IntakeRack extends SubsystemBase {
                         double value = m_resyncValue;
                         m_resyncValue = Double.NaN;
                         m_phase = Phase.REST;
-                        start(m_out, now, value); // the reading may not show the new value yet
+                        start(m_goal, now, value); // the reading may not show the new value yet
                     }
                 }
                 case MOTION -> {
@@ -238,6 +245,9 @@ public class IntakeRack extends SubsystemBase {
                             m_retryAfter = now + IntakeConstants.kRetryDelay;
                         }
                         rest(now);
+                        if (result.atStop() && m_out != m_goal) {
+                            start(m_goal, now); // homed at the out stop: now to the goal
+                        }
                     } else if (now - m_pushStart > IntakeConstants.kPushTimeout) {
                         m_problemAlert.setText(m_state.pushTimedOut(m_out));
                         m_problemAlert.set(true);
@@ -268,6 +278,10 @@ public class IntakeRack extends SubsystemBase {
 
         boolean atStop() {
             return m_phase == Phase.REST;
+        }
+
+        boolean homed() {
+            return m_state.isHomed();
         }
     }
 
@@ -458,7 +472,7 @@ public class IntakeRack extends SubsystemBase {
 
     /** The goal is out and each side is at least at {@code fraction} of its out stop less {@code tolerance} meters. */
     public boolean atLeast(double fraction, double tolerance) {
-        return m_goalOut
+        return m_goalOut && m_left.homed() && m_right.homed()
             && m_left.position() >= fraction * m_left.m_state.outStop() - tolerance
             && m_right.position() >= fraction * m_right.m_state.outStop() - tolerance;
     }
@@ -479,7 +493,7 @@ public class IntakeRack extends SubsystemBase {
      * side pushed in by a hit is "not out".
      */
     public boolean isExtended() {
-        return m_goalOut && !m_packing
+        return m_goalOut && !m_packing && m_left.homed() && m_right.homed()
             && m_left.position() >= m_left.m_state.outStop() - IntakeConstants.kExtendedTolerance
             && m_right.position() >= m_right.m_state.outStop() - IntakeConstants.kExtendedTolerance;
     }
@@ -575,6 +589,7 @@ public class IntakeRack extends SubsystemBase {
             Telemetry.log(prefix + "Last Stall m", side.m_lastStall);
             Telemetry.log(prefix + "Connected", !side.m_dead);
             Telemetry.log(prefix + "Lost", side.m_state.isLost());
+            Telemetry.log(prefix + "Homed", side.homed());
             Telemetry.log(prefix + "Current A", side.m_talon.getStatorCurrent().getValueAsDouble());
         }
     }

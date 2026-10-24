@@ -10,7 +10,54 @@ import org.junit.jupiter.api.Test;
 
 class RackSideTest {
     private static final double kOutStop = 0.324;
-    private final RackSide m_side = new RackSide("Test", kOutStop);
+    private final RackSide m_side = homed(new RackSide("Test", kOutStop));
+
+    /** Most tests start after homing: one out stall, then the first in stop. */
+    private static RackSide homed(RackSide side) {
+        side.stalledAt(true, 0.0);
+        side.stalledAt(false, 0.0);
+        return side;
+    }
+
+    @Test
+    void theFirstOutStallHomesTheSide() {
+        // The rack slid out while the robot was off: the Talon reads 0 at the out stop.
+        var side = new RackSide("Test", kOutStop);
+        assertFalse(side.isHomed());
+        var result = side.stalledAt(true, 0.0);
+        assertTrue(side.isHomed());
+        assertEquals(kOutStop, result.setPosition(), 1e-9);
+        assertNull(result.alert(), "homing is normal, not skipped teeth");
+        assertTrue(result.atStop());
+    }
+
+    @Test
+    void theFirstInStopAfterHomingTakesUpToThreeCentimeters() {
+        // The true stroke is 2.5 cm shorter than the constant: the first in stall reads 2.5 cm.
+        var side = new RackSide("Test", kOutStop);
+        side.stalledAt(true, 0.1);
+        var first = side.stalledAt(false, 0.025);
+        assertEquals(0.0, first.setPosition(), 1e-9);
+        assertNull(first.alert());
+        assertTrue(first.atStop());
+        // After that the normal rule: 2.5 cm short of the in stop is not corrected.
+        var later = side.stalledAt(false, 0.025);
+        assertTrue(Double.isNaN(later.setPosition()));
+        assertFalse(later.atStop());
+    }
+
+    @Test
+    void aFirstInStallFarFromZeroFollowsTheNormalRule() {
+        var side = new RackSide("Test", kOutStop);
+        side.stalledAt(true, 0.0);
+        var blocked = side.stalledAt(false, 0.10); // something holds it 10 cm out
+        assertTrue(Double.isNaN(blocked.setPosition()));
+        assertFalse(blocked.atStop());
+        // The next try reaches the stop: still the first in stop, so it is re-trued with no alert.
+        var next = side.stalledAt(false, -0.02);
+        assertEquals(0.0, next.setPosition(), 1e-9);
+        assertNull(next.alert());
+    }
 
     @Test
     void startsAtTheGivenOutStop() {
