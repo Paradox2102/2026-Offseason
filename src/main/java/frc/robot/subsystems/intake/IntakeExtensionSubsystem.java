@@ -60,8 +60,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.setParadoxControl(m_followRequest);
 
-        // m_intakeExtensionLeader.setPosition(0);
-        // m_intakeExtensionFollower.setPosition(0);
+        m_intakeExtensionLeader.setPosition(0);
+        m_intakeExtensionFollower.setPosition(0);
 
         if (Utils.isSimulation()){
             var talonFXSim = m_intakeExtensionLeader.getSimState();
@@ -88,7 +88,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     }
 
     public Command retractIntake() {
-        return Commands.runOnce(() -> {
+        return Commands.run(() -> {
             m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(-10));
             SalesAssociate.persuasion();
         }
@@ -96,7 +96,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     }
 
     public Command extendIntake() {
-        return Commands.runOnce(() -> {
+        return Commands.run(() -> {
             m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(10));
         }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
@@ -104,6 +104,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     public Command retractIntakePower() {
         return Commands.runOnce(() -> {
             m_intakeExtensionLeader.setThrottle(-0.5);
+            m_intakeExtensionFollower.setThrottle(0.5);
         }, this).until(() -> isIntakeAtTarget(TargetPosition.IN)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 

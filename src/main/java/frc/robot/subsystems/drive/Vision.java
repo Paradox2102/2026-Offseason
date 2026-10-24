@@ -558,7 +558,7 @@ public static final Field aprilTagField = fieldLayout.loadField();
       Optional<EstimatedRobotPose> visionEst = Optional.empty();
       for (var change : resultsList)
       {
-  // TODO - Must use explicit update method (of which there are many)      visionEst = poseEstimator.update(change);
+        visionEst = poseEstimator.estimateAverageBestTargetsPose(change);
         updateEstimationStdDevs(visionEst, change.getTargets());
       }
       estimatedRobotPose = visionEst;
