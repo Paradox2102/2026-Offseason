@@ -1,7 +1,9 @@
 package frc.robot.health;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.StatusSignal;
@@ -18,6 +20,7 @@ import org.wpilib.driverstation.DriverStationErrors;
 import org.wpilib.driverstation.RobotState;
 import org.wpilib.hardware.bus.CANPort;
 import org.wpilib.hardware.hal.can.CANStatus;
+import org.wpilib.hardware.hal.util.HalHandleException;
 import org.wpilib.math.filter.Debouncer;
 import org.wpilib.math.filter.Debouncer.DebounceType;
 import org.wpilib.system.RobotController;
@@ -65,7 +68,14 @@ public final class HealthMonitor {
 
     private static final Timer s_checkTimer = new Timer();
     private static double s_lastLoopTime = -1;
-    private static boolean s_reportedError = false;
+    /** Checks that failed once. Each one reports its first failure only. */
+    private static final Set<String> s_reportedErrors = new HashSet<>();
+    /**
+     * Checks that read a value this SystemCore image does not have. The HAL throws
+     * "Code: -1098" for getCommsDisableCount, getFaultCount3V3, getCPUTemp and getCANStatus.
+     * Such a check is skipped from then on.
+     */
+    private static final Set<String> s_skipped = new HashSet<>();
 
     private static boolean s_wasBrownedOut = false;
     private static int s_brownouts = 0;
@@ -165,28 +175,73 @@ public final class HealthMonitor {
 
     /** Call every loop from Robot.robotPeriodic(). */
     public static void periodic() {
-        // A health check must never stop the robot. Report a failure once and keep going.
-        try {
-            runChecks();
-        } catch (RuntimeException e) {
-            if (!s_reportedError) {
-                s_reportedError = true;
-                DriverStationErrors.reportError("HealthMonitor failed: " + e, e.getStackTrace());
+        runCheck("loop time", HealthMonitor::checkLoopTime);
+        runCheck("brownout", HealthMonitor::checkBrownout);
+
+        // The swerve checks compare the modules on every loop.
+        if (s_swerve != null) {
+            runCheck("swerve", s_swerve::periodic);
+        }
+
+        if (s_checkTimer.advanceIfElapsed(k_checkPeriod)) {
+            runCheck("battery", HealthMonitor::checkBattery);
+            runCheck("comms loss", HealthMonitor::checkCommsLoss);
+            runCheck("3.3 V rail", HealthMonitor::check3V3Rail);
+            runCheck("CPU temperature", HealthMonitor::logCpuTemp);
+            for (WatchedBus bus : s_buses) {
+                runCheck("CAN bus " + bus.m_port.name(), bus::check);
+            }
+            for (WatchedDevice device : s_devices) {
+                runCheck("device " + device.m_name, device::check);
+            }
+            for (WatchedCamera camera : s_cameras) {
+                runCheck("camera " + camera.m_camera.getName(), camera::check);
             }
         }
     }
 
-    private static void runChecks() {
-        // Loop time: the scheduler should run every 20 ms. Longer loops make the robot feel laggy.
+    /**
+     * Runs one check on its own. A health check must never stop the robot, and one failed check
+     * must not stop the others. A check that reads a value the HAL does not have on this robot is
+     * skipped from then on; any other failure is reported once and the check runs again next time.
+     *
+     * @return false if the check failed or was skipped
+     */
+    static boolean runCheck(String name, Runnable check) {
+        if (s_skipped.contains(name)) {
+            return false;
+        }
+        try {
+            check.run();
+            return true;
+        } catch (HalHandleException e) {
+            s_skipped.add(name);
+            SignalLogger.writeString("Health/Skipped", name);
+            DriverStationErrors.reportWarning("HealthMonitor: " + name + " check is off: this robot does not have that value ("
+                + e.getMessage().trim() + ")", false);
+        } catch (RuntimeException e) {
+            if (s_reportedErrors.add(name)) {
+                DriverStationErrors.reportError("HealthMonitor " + name + " check failed: " + e, e.getStackTrace());
+            }
+        }
+        return false;
+    }
+
+    /** Loop time: the scheduler should run every 20 ms. Longer loops make the robot feel laggy. */
+    private static void checkLoopTime() {
         double now = Timer.getTimestamp();
         if (s_lastLoopTime >= 0) {
             SignalLogger.writeDouble("Health/System/LoopTime", (now - s_lastLoopTime) * 1000.0, "ms");
             Telemetry.log("Health/Loop Time ms", (now - s_lastLoopTime) * 1000.0);
         }
         s_lastLoopTime = now;
+    }
 
-        // Brownout: the SystemCore turned the motors off because the battery voltage fell too low.
-        // A brownout is short, so check it every loop.
+    /**
+     * Brownout: the SystemCore turned the motors off because the battery voltage fell too low.
+     * A brownout is short, so check it every loop.
+     */
+    private static void checkBrownout() {
         boolean brownedOut = RobotController.isBrownedOut();
         SignalLogger.writeBoolean("Health/System/BrownedOut", brownedOut);
         SignalLogger.writeDouble("Health/System/BatteryVoltage", RobotController.getBatteryVoltage(), "V");
@@ -197,33 +252,17 @@ public final class HealthMonitor {
         }
         s_wasBrownedOut = brownedOut;
         s_brownoutAlert.set(k_showHardwareAlerts && s_brownouts > 0);
-
-        // The swerve checks compare the modules on every loop.
-        if (s_swerve != null) {
-            s_swerve.periodic();
-        }
-
-        if (s_checkTimer.advanceIfElapsed(k_checkPeriod)) {
-            checkSystem();
-            for (WatchedBus bus : s_buses) {
-                bus.check();
-            }
-            for (WatchedDevice device : s_devices) {
-                device.check();
-            }
-            for (WatchedCamera camera : s_cameras) {
-                camera.check();
-            }
-        }
     }
 
-    private static void checkSystem() {
+    private static void checkBattery() {
         double volts = RobotController.getBatteryVoltage();
         boolean low = RobotState.isDisabled() && volts < k_lowBatteryVolts;
         s_lowBatteryAlert.setText(String.format("Battery is %.1f V: change it before the match", volts));
         s_lowBatteryAlert.set(k_showHardwareAlerts && s_lowBatteryDebounce.calculate(low));
+    }
 
-        // The DS disables the robot each time it loses comms (radio, Ethernet cable, field network).
+    /** The DS disables the robot each time it loses comms (radio, Ethernet cable, field network). */
+    private static void checkCommsLoss() {
         int commsLoss = RobotController.getCommsDisableCount();
         if (s_commsLossAtStart < 0) {
             s_commsLossAtStart = commsLoss;
@@ -232,8 +271,10 @@ public final class HealthMonitor {
         SignalLogger.writeInteger("Health/System/CommsDisableCount", commsLoss);
         s_commsLossAlert.setText("Lost DS comms " + lost + " time(s) since code start: check the radio and its cables");
         s_commsLossAlert.set(k_showHardwareAlerts && lost > 0);
+    }
 
-        // A 3.3 V rail fault means a short on a sensor port.
+    /** A 3.3 V rail fault means a short on a sensor port. */
+    private static void check3V3Rail() {
         int railFaults = RobotController.getFaultCount3V3();
         if (s_rail3V3FaultsAtStart < 0) {
             s_rail3V3FaultsAtStart = railFaults;
@@ -241,7 +282,9 @@ public final class HealthMonitor {
         int newRailFaults = railFaults - s_rail3V3FaultsAtStart;
         s_rail3V3Alert.setText("3.3 V rail fault " + newRailFaults + " time(s): check the sensor wiring for a short");
         s_rail3V3Alert.set(k_showHardwareAlerts && newRailFaults > 0);
+    }
 
+    private static void logCpuTemp() {
         SignalLogger.writeDouble("Health/System/CPUTemp", RobotController.getCPUTemp(), "C");
     }
 
@@ -314,6 +357,7 @@ public final class HealthMonitor {
     /** One CTRE device on CAN. */
     private static class WatchedDevice {
         private final ParentDevice m_device;
+        private final String m_name;
         // Only alert after 0.5 s of silence, so one late frame does not cause a false alarm.
         private final Debouncer m_missingDebounce = new Debouncer(0.5, DebounceType.RISING);
         private final Alert m_disconnectedAlert;
@@ -321,6 +365,7 @@ public final class HealthMonitor {
 
         WatchedDevice(ParentDevice device, String name) {
             m_device = device;
+            m_name = name;
             m_disconnectedAlert = AlertPublisher.create(k_group, name + "/disconnected", name + " is not on CAN", Level.HIGH);
             if (device instanceof TalonFX talon) {
                 m_faults.add(new StickyFault(talon.getStickyFault_BootDuringEnable(false), name + " rebooted while enabled", Level.HIGH));
