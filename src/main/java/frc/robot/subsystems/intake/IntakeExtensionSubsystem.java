@@ -128,6 +128,13 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
             m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(10));
         }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT, false)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
+
+    public Command extendIntakeAndReset() {
+        return Commands.sequence(extendIntake()).andThen(() -> {
+            m_intakeExtensionLeader.setPosition(k_intakeMaxExtension);
+            m_intakeExtensionFollower.setPosition(k_intakeMaxExtension);
+        });
+    }
     
     public Command retractIntakePower() {
         return Commands.runOnce(() -> {

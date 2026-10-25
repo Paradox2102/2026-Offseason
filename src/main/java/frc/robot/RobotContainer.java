@@ -97,7 +97,7 @@ public class RobotContainer {
         ));
 
         m_joystick.getHID().button(0).whileTrue(Commands.parallel(Subsystems.m_intakeExtension.retractIntake(), Subsystems.m_intakeRoller.run(true)));
-        m_joystick.getHID().button(7).onTrue(Subsystems.m_intakeExtension.extendIntake());
+        m_joystick.getHID().button(7).onTrue(Subsystems.m_intakeExtension.extendIntakeAndReset());
         m_joystick.getHID().button(1).whileTrue(Commands.parallel(
                 Subsystems.m_secondaryKicker.run(false),
                 Subsystems.m_indexerConveyor.run(false)
