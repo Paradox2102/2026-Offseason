@@ -346,10 +346,14 @@ public class Vision {
       estimatedRobotPose = visionEst;
     }
 
-    public Command toggleCameraDisabled(){
-      return Commands.runOnce(() -> {
-        manualDisable = !manualDisable;
-      });
+    // public Command toggleCameraDisabled(){
+    //   return Commands.runOnce(() -> {
+    //     manualDisable = !manualDisable;
+    //   });
+    // }
+
+    public void toggleCameraDisabled() {
+      manualDisable = !manualDisable;
     }
 
     private void disconnectFilter() {
