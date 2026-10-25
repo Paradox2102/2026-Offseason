@@ -39,6 +39,13 @@ class ShotTablesTest {
     }
 
     @Test
+    void everyHoodAngleIsInsideTheHoodsTravel() {
+        for (double[] p : ShooterConstants.kScoreHood.points()) {
+            assertTrue(p[1] >= 0 && p[1] <= ShooterConstants.kHoodMaxDeg, "hood " + p[1] + " deg at " + p[0] + " m");
+        }
+    }
+
+    @Test
     void theTimeOfFlightTableMatchesTheModel() {
         for (double d = 1.25; d <= 6.0; d += 0.25) {
             assertEquals(shot(d).flightTime(), ShooterConstants.kScoreTimeOfFlight.get(d), 0.011, "at " + d + " m");

@@ -439,6 +439,10 @@ code: +-250 degrees from the jig), shot speeds and hood angles per distance, tim
   mechanism with no measurements yet is easier to set up in volts.
 - **Stow:** the hood stays down (0) unless the driver holds the shoot trigger, so the robot fits
   under the trench.
+- **Hood table (2026-10-25, best guess):** each shot enters the hub at about 45 degrees, launch =
+  78 - hood (ShotModel fit): 2 deg at 1.25 m, 10.5 at 2 m, 15 at 3 m, 18.5 at 4 m, 20.5 at 5 m,
+  22.5 at 6 m. Flywheel speeds and time of flight solved again in ShotModel. kHoodMaxDeg 36 (the
+  upper stop measured at 37.4 deg on 2026-10-23).
 
 ### Flywheel
 

@@ -118,8 +118,12 @@ public final class ShooterConstants {
      * divide by the hood's travel in rotations.
      */
     public static final double kHoodRatio = 85;
-    /** Highest hood angle to ask for, degrees (old sim: 42). Check on the robot. */
-    public static final double kHoodMaxDeg = 40;
+    /**
+     * Highest hood angle to ask for, degrees. Measured 2026-10-23: the hood's upper stop is 8.84
+     * motor turns from the lower stop, 37.4 degrees at 85:1 (was 40, past the stop). The Talon
+     * soft limit is 1 degree above this.
+     */
+    public static final double kHoodMaxDeg = 36;
     /** Voltage gains, per hood rotation. kP 180 V/rot = 0.5 V per degree. */
     public static final double kHoodS = 0.2;
     public static final double kHoodP = 180;
@@ -236,15 +240,26 @@ public final class ShooterConstants {
      * {1.125, 40}, {2.25, 45}, {2.75, 47}, {3.25, 50}, {4, 55}, {4.75, 60}.
      */
     public static final ShotTable kScoreSpeeds = new ShotTable(new double[][] {
-        {1.25, 82.42}, {1.5, 78.73}, {1.75, 78.97}, {2.0, 81.2}, {2.25, 83.54},
-        {2.5, 85.99}, {2.75, 88.38}, {3.0, 90.76}, {3.25, 93.15}, {3.5, 95.48},
-        {3.75, 97.96}, {4.0, 100.35}, {4.25, 102.72}, {4.5, 105.02}, {4.75, 107.28},
-        {5.0, 109.41}, {5.25, 111.79}, {5.5, 114.03}, {5.75, 116.25}, {6.0, 118.28}});
+        {1.25, 78.8}, {1.5, 78.05}, {1.75, 80.56}, {2.0, 82.71}, {2.25, 85.11},
+        {2.5, 87.53}, {2.75, 90.03}, {3.0, 92.45}, {3.25, 94.71}, {3.5, 97.08},
+        {3.75, 99.51}, {4.0, 101.62}, {4.25, 104.04}, {4.5, 106.31}, {4.75, 108.66},
+        {5.0, 110.82}, {5.25, 113.11}, {5.5, 115.18}, {5.75, 117.31}, {6.0, 119.49}});
     public static final ShotTable kPassSpeeds = kScoreSpeeds;
-    /** Hood angles, degrees: the old code's (motor degrees there, not measured as hood degrees), but 6 at 1.5 m (10 hit the rim in the sim). */
+    /**
+     * Hood angles, degrees above the lower stop. BEST GUESS, to tune on the robot: each shot comes
+     * down into the hub at about 45 degrees (steep enough to drop in over the near rim, and less
+     * long/short error than a flat shot), with launch = 78 - hood (ShotModel's fit, not measured).
+     * Launch angle for a 45 degree entry with no drag: tan(launch) = 1 + 2 x rise / run, rise 1.37 m
+     * (hub top 1.83 m less the exit 0.455 m), run = distance - 0.084 m. At 1.25 m that hits the
+     * rim in the sim, so it is 2 (the steepest shot that comes down on the center). Rounded to
+     * 0.5 degree. The 10 m point is for passes only (kept from the old table). Were the old
+     * code's numbers, which were motor degrees there (1.5 m: 6, 2 m: 15, 3-4 m: 22, 5 m: 25).
+     */
     public static final ShotTable kScoreHood = new ShotTable(new double[][] {
-        {1.125, 0}, {1.25, 0}, {1.5, 6}, {1.75, 12.5}, {2, 15}, {2.25, 17.5}, {2.5, 19},
-        {2.75, 21}, {3, 22}, {4, 22}, {4.5, 23}, {5, 25}, {10, 35}});
+        {1.25, 2.0}, {1.5, 7.0}, {1.75, 8.5}, {2.0, 10.5}, {2.25, 12.0},
+        {2.5, 13.0}, {2.75, 14.0}, {3.0, 15.0}, {3.25, 16.0}, {3.5, 17.0},
+        {3.75, 17.5}, {4.0, 18.5}, {4.25, 19.0}, {4.5, 19.5}, {4.75, 20.0},
+        {5.0, 20.5}, {5.25, 21.0}, {5.5, 21.5}, {5.75, 22.0}, {6.0, 22.5}, {10, 35}});
     public static final ShotTable kPassHood = kScoreHood;
     /**
      * Time of flight, seconds: from the shot until the ball comes down through the height of the
@@ -252,9 +267,9 @@ public final class ShooterConstants {
      * robot's velocity x this. Measure on the robot (video at 240 fps from the side).
      */
     public static final ShotTable kScoreTimeOfFlight = new ShotTable(new double[][] {
-        {1.25, 0.925}, {1.5, 0.785}, {1.75, 0.69}, {2.0, 0.705}, {2.25, 0.715},
-        {2.5, 0.74}, {2.75, 0.755}, {3.0, 0.785}, {3.25, 0.835}, {3.5, 0.88},
-        {3.75, 0.925}, {4.0, 0.965}, {4.25, 0.995}, {4.5, 1.02}, {4.75, 1.035},
-        {5.0, 1.045}, {5.25, 1.065}, {5.5, 1.09}, {5.75, 1.105}, {6.0, 1.125}});
+        {1.25, 0.825}, {1.5, 0.755}, {1.75, 0.795}, {2.0, 0.82}, {2.25, 0.85},
+        {2.5, 0.89}, {2.75, 0.92}, {3.0, 0.955}, {3.25, 0.975}, {3.5, 1.0},
+        {3.75, 1.035}, {4.0, 1.055}, {4.25, 1.085}, {4.5, 1.11}, {4.75, 1.135},
+        {5.0, 1.16}, {5.25, 1.185}, {5.5, 1.2}, {5.75, 1.225}, {6.0, 1.245}});
     public static final ShotTable kPassTimeOfFlight = kScoreTimeOfFlight;
 }
