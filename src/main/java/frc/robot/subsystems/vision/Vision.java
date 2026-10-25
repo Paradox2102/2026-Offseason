@@ -2,6 +2,7 @@ package frc.robot.subsystems.vision;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.DoubleFunction;
 
 import org.photonvision.simulation.PhotonCameraSim;
@@ -43,6 +44,12 @@ public class Vision extends SubsystemBase {
     private int m_headingMeasurements = 0;
     private int m_multiTagMeasurements = 0;
     private final HeadingReference m_headingReference = new HeadingReference();
+    /** Recent {@link FirstPoseSeed} candidates of all cameras, until the robot has a field pose. */
+    private final List<FirstPoseSeed.Candidate> m_seedCandidates = new ArrayList<>();
+    /** Seed only while the robot is about still: the cameras' frames are a little apart in time. */
+    private static final double kSeedMaxSpeed = 0.5; // m/s
+    private static final double kSeedMaxTurn = 0.5; // rad/s
+    private int m_seeds = 0;
     /*
      * A camera at 30 fps sends no frame in many 20 ms loops, so "accepted this loop" blinks.
      * Stay true for 0.2 s after the last accepted pose.
@@ -119,8 +126,11 @@ public class Vision extends SubsystemBase {
             }
             accepted.addAll(camera.acceptedPoses());
             rejected.addAll(camera.rejectedPoses());
+            m_seedCandidates.addAll(camera.seedCandidates());
             log(camera, frames.size(), visionNow);
         }
+
+        seedFirstPose(VisionClock.networkTablesNowSeconds());
 
         Telemetry.log("Vision/Accepted Poses", accepted, Pose2d.struct);
         Telemetry.log("Vision/Rejected Poses", rejected, Pose2d.struct);
@@ -129,6 +139,28 @@ public class Vision extends SubsystemBase {
         var field = Telemetry.getTable("Field");
         field.log("Vision Accepted", accepted, Pose2d.struct);
         field.log("Vision Rejected", rejected, Pose2d.struct);
+    }
+
+    /**
+     * No field pose yet: two or more cameras that agree set it, heading too ({@link FirstPoseSeed}).
+     * After that the normal checks apply, against a heading that is now a field heading.
+     */
+    private void seedFirstPose(double visionNow) {
+        m_seedCandidates.removeIf(c -> visionNow - c.time() > FirstPoseSeed.kWindow);
+        if (m_drive.hasFieldPose()) {
+            m_seedCandidates.clear();
+            return;
+        }
+        var velocity = m_drive.getRobotVelocity();
+        boolean still = Math.hypot(velocity.vx, velocity.vy) < kSeedMaxSpeed && Math.abs(velocity.omega) < kSeedMaxTurn;
+        var seed = still ? FirstPoseSeed.find(m_seedCandidates) : Optional.<Pose2d>empty();
+        if (seed.isPresent()) {
+            m_drive.resetPose(seed.get());
+            m_seedCandidates.clear();
+            m_seeds++;
+        }
+        Telemetry.log("Vision/Seed Candidates", m_seedCandidates.size());
+        Telemetry.log("Vision/Seeds", m_seeds);
     }
 
     /** Measurements sent with a usable heading since boot (the sim smoke test reads it). */

@@ -45,6 +45,8 @@ public class VisionCamera {
 
     // For telemetry: what happened to the frames of the last loop.
     private final List<Pose2d> m_accepted = new ArrayList<>();
+    /** Single-tag poses that pass every check but the gyro heading ({@link FirstPoseSeed}). */
+    private final List<FirstPoseSeed.Candidate> m_seedCandidates = new ArrayList<>();
     private final List<Pose2d> m_rejected = new ArrayList<>();
     private String m_lastRejectReason = "";
     private Pose3d m_lastEstimate = null;
@@ -107,6 +109,7 @@ public class VisionCamera {
                                      DoubleFunction<Rotation2d> headingAt) {
         m_accepted.clear();
         m_rejected.clear();
+        m_seedCandidates.clear();
         m_lastRejectReason = "";
         m_lastLatency = Double.NaN;
         List<Measurement> measurements = new ArrayList<>();
@@ -135,6 +138,7 @@ public class VisionCamera {
             Optional<Solve> solve = multiTagSolve(result);
             if (solve.isEmpty()) {
                 solve = singleTagSolve(result, headingAt.apply(result.getTimestampSeconds()));
+                addSeedCandidate(result);
             }
             if (solve.isEmpty()) {
                 continue;
@@ -195,9 +199,26 @@ public class VisionCamera {
     }
 
     /**
+     * For {@link FirstPoseSeed}: this frame's single tag, PhotonVision's best solution (no gyro to
+     * choose with), if it passes every check of {@link VisionFilter} but the gyro heading.
+     */
+    private void addSeedCandidate(PhotonPipelineResult result) {
+        singleTagSolve(result, null).ifPresent(s -> {
+            var verdict = VisionFilter.evaluate(
+                new VisionFilter.Observation(s.pose(), 1, s.distance(), s.ambiguity(), 0),
+                FieldConstants.kFieldLength, FieldConstants.kFieldWidth, m_trustHeading);
+            if (verdict.accepted()) {
+                m_seedCandidates.add(new FirstPoseSeed.Candidate(m_config.name(), s.pose().toPose2d(), result.getTimestampSeconds()));
+            }
+        });
+    }
+
+    /**
      * The least ambiguous tag of the frame. A tag seen alone has two solutions; the one with the
      * lower error can be the "flipped" one, so take the one whose heading is nearer the gyro
      * (6328 does the same). The filter rejects it if even that one is far from the gyro.
+     *
+     * @param heading the gyro heading, or null for the best solution with no gyro check
      */
     private Optional<Solve> singleTagSolve(PhotonPipelineResult result, Rotation2d heading) {
         PhotonTrackedTarget target = null;
@@ -220,13 +241,14 @@ public class VisionCamera {
         Pose3d best = tagPose.get().transformBy(bestToTag.inverse()).transformBy(cameraToRobot);
         Pose3d pose = best;
         Transform3d picked = bestToTag;
-        // A zero alternate would put the robot at the tag: use the best solution alone.
-        if (altToTag.getTranslation().getNorm() >= kNoAlternate) {
+        // A zero alternate would put the robot at the tag: use the best solution alone. No
+        // heading (null, for FirstPoseSeed): the best solution, with no gyro check.
+        if (heading != null && altToTag.getTranslation().getNorm() >= kNoAlternate) {
             Pose3d alt = tagPose.get().transformBy(altToTag.inverse()).transformBy(cameraToRobot);
             pose = VisionFilter.closerToHeading(best, alt, heading);
             picked = pose == alt ? altToTag : bestToTag;
         }
-        double headingError = Math.abs(pose.toPose2d().getRotation().minus(heading).getRadians());
+        double headingError = heading == null ? 0 : Math.abs(pose.toPose2d().getRotation().minus(heading).getRadians());
         return Optional.of(new Solve(pose, List.of(target), target.getPoseAmbiguity(), headingError, false,
             picked.getTranslation().getNorm()));
     }
@@ -237,6 +259,11 @@ public class VisionCamera {
 
     public List<Pose2d> rejectedPoses() {
         return m_rejected;
+    }
+
+    /** This loop's {@link FirstPoseSeed} candidates. */
+    public List<FirstPoseSeed.Candidate> seedCandidates() {
+        return m_seedCandidates;
     }
 
     public String lastRejectReason() {
