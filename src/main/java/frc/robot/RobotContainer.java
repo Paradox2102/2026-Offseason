@@ -149,9 +149,9 @@ public class RobotContainer {
         Subsystems.m_swerveSubsystem.setDefaultCommand(
             // m_swerveSubsystem will execute this command periodically
             Subsystems.m_swerveSubsystem.applyRequest(() ->
-                Subsystems.m_swerveSubsystem.getDrive().withVelocityX((m_controller.getLeftY() * Math.abs(m_controller.getLeftY())) * SwerveSubsystem.MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY((m_controller.getLeftX() * Math.abs(m_controller.getLeftX())) * SwerveSubsystem.MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(Math.pow(m_controller.getRightX(), 4) * Math.signum(-m_controller.getRightX()) * SwerveSubsystem.MaxAngularRate) // Drive counterclockwise with negative X (left)
+                Subsystems.m_swerveSubsystem.getDrive().withVelocityX(-(m_controller.getLeftY() * Math.abs(m_controller.getLeftY())) * SwerveSubsystem.MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-(m_controller.getLeftX() * Math.abs(m_controller.getLeftX())) * SwerveSubsystem.MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(-Math.pow(m_controller.getRightX(), 4) * Math.signum(-m_controller.getRightX()) * SwerveSubsystem.MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
         Subsystems.m_turretAimSubsystem.setDefaultCommand(Subsystems.m_turretAimSubsystem.rotateToTarget());

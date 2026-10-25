@@ -5,6 +5,7 @@ import org.photonvision.PhotonUtils;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
+import org.wpilib.fields.Fields;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
@@ -74,7 +75,7 @@ public class TurretAimSubsystem extends SubsystemBase{
         var rotatedPose = new Pose3d(ShooterConstants.k_turretOffset, new Rotation3d()).rotateBy(new Rotation3d(0, 0, hubPose.getRotation().getAngle()));
         hubPose.plus(new Transform3d(hubPose.getX() + rotatedPose.getX(), hubPose.getY() + rotatedPose.getY(), hubPose.getZ() + rotatedPose.getZ(), hubPose.getRotation()));
 
-
+        Telemetry.log("Turret position", hubPose);
 
         var hub = SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueDepot;
         /**
@@ -93,7 +94,7 @@ public class TurretAimSubsystem extends SubsystemBase{
         //     bestRotation = (checkBestRotation(bestRotation, targetRotation + (i * (2 * Math.PI))) * ShooterConstants.k_shooterGearReduction);
         // }
         // System.out.println(targetRotation * ShooterConstants.k_shooterGearReduction);
-        return Units.radiansToRotations(targetRotation.getRadians() * ShooterConstants.k_shooterGearReduction);
+        return Units.radiansToRotations(Units.degreesToRadians(30) - Units.degreesToRadians(90) * ShooterConstants.k_shooterGearReduction);
     }
     /**
      * checks the coterminal angles and finds whihc one is closer to our current position
