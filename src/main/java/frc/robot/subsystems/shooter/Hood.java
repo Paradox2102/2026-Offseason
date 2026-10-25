@@ -6,8 +6,6 @@ import org.wpilib.command2.Command;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.driverstation.RobotState;
 import org.wpilib.framework.RobotBase;
-import org.wpilib.math.filter.Debouncer;
-import org.wpilib.math.filter.Debouncer.DebounceType;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.simulation.SingleJointedArmSim;
 import org.wpilib.system.RobotController;
@@ -52,9 +50,10 @@ public class Hood extends SubsystemBase {
     private static final double kJogVolts = 1.0;
     private final StallDetector m_stall = new StallDetector(0.002, 0.15, 0.2); // hood rps
     private final double m_startTime = Timer.getTimestamp();
-    private final Debouncer m_strainDebouncer = new Debouncer(0.5, DebounceType.RISING);
+    /** On a stop short of the goal: over 20 A, over 2 deg from the goal, under 5 deg/s, for 0.5 s. */
+    private final HoodStrain m_strain = new HoodStrain(20, 2, 5, 0.5);
     private final Alert m_ratioAlert = AlertPublisher.create("Health", "shooter/hood/strain",
-        "Hood pushes hard short of its goal: it is on a stop. Check ShooterConstants.kHoodRatio", Level.MEDIUM);
+        "Hood pushes hard short of its goal and does not move: it is on a stop or blocked. Check ShooterConstants.kHoodRatio and the hood by hand", Level.MEDIUM);
     private boolean m_homed = false;
     private boolean m_homing = false;
     private double m_goalDeg = 0;
@@ -125,16 +124,17 @@ public class Hood extends SubsystemBase {
                 if (m_stall.update(now, m_talon.getVelocity().getValueAsDouble()) && m_talon.setPosition(0).isOK()) {
                     m_homed = true;
                     m_homing = false;
+                    m_strain.reset(); // the homing push's own current is not strain
                 }
             } else if (m_jogging) {
                 m_talon.setControl(m_jogRequest);
             } else {
                 m_talon.setControl(m_request.withPosition(m_goalDeg / 360));
-                // Pushing hard but not at the goal: the hood is on a stop. Most likely kHoodRatio is
-                // wrong (the angles are then wrong too).
-                boolean straining = m_talon.getStatorCurrent().getValueAsDouble() > 20
-                    && Math.abs(getAngleDeg() - m_goalDeg) > 2;
-                m_ratioAlert.set(m_strainDebouncer.calculate(straining) || m_ratioAlert.get());
+                // Pushing hard, not moving, not at the goal: the hood is on a stop. Most likely
+                // kHoodRatio is wrong (the angles are then wrong too), or something blocks it.
+                boolean straining = m_strain.update(now, m_talon.getStatorCurrent().getValueAsDouble(),
+                    getAngleDeg() - m_goalDeg, m_talon.getVelocity().getValueAsDouble() * 360);
+                m_ratioAlert.set(straining || m_ratioAlert.get());
             }
         } else {
             m_homing = false; // a push cut short by a disable starts again
@@ -142,6 +142,10 @@ public class Hood extends SubsystemBase {
         Telemetry.log("Shooter/Hood/Goal deg", m_goalDeg);
         Telemetry.log("Shooter/Hood/Position deg", getAngleDeg());
         Telemetry.log("Shooter/Hood/Homed", m_homed);
+        // To see what the hood does on the robot (2026-10-25 it stayed at 0 with a 35 deg goal).
+        Telemetry.log("Shooter/Hood/Current A", m_talon.getStatorCurrent().getValueAsDouble());
+        Telemetry.log("Shooter/Hood/Motor V", m_talon.getMotorVoltage().getValueAsDouble());
+        Telemetry.log("Shooter/Hood/Speed deg per s", m_talon.getVelocity().getValueAsDouble() * 360);
     }
 
     public boolean isHomed() {
