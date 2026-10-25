@@ -37,11 +37,10 @@ import frc.robot.subsystems.shooter.Turret;
  * Makes the shooter parts work together.
  *
  * <p>Each loop it works out one shot ({@link ShotCalculator}): the target, the turret angle, the
- * flywheel speed and the hood angle. The turret always points at the target, so a shot never
- * waits for the turret to turn. The hood stays down (under the trench) until the driver shoots.
+ * flywheel speed and the hood angle. The turret and the hood always track the shot (user,
+ * 2026-10-25), so a shot never waits for them to move; near a trench the hood goes down.
  *
- * <p>Shoot (driver holds the right trigger): the flywheel spins to the shot's speed and the hood
- * goes to the shot's angle. The balls are fed only while all three are ready: flywheel at speed,
+ * <p>Shoot (driver holds the right trigger): the flywheel spins to the shot's speed. The balls are fed only while all three are ready: flywheel at speed,
  * hood and turret on their angles. A ball fed too early hits a slow wheel and falls short.
  *
  * <p>Two rules from the robot's build, in every mode (teleop and auto):
@@ -72,6 +71,12 @@ public class Superstructure extends SubsystemBase {
     private static final double kZoneLookahead = 1.0;
     /** The hood counts as down (fits under a trench) below this, degrees. */
     private static final double kHoodDownDeg = 1.0;
+    /**
+     * The trench alert waits this long, seconds. The hood tracks (it is up most of the time) and
+     * needs ~0.3 s to come down from a far shot (22.5 deg; 35 for a pass: 0.36 s), the intake ~0.4 s
+     * to go out: inside the guard's 0.6 s look ahead, so a short "not low enough" is normal.
+     */
+    private static final double kTrenchAlertDelay = 0.45;
     /** The intake packs this long after the first feed of a shot, seconds ... */
     private static final double kPackDelay = 1.0;
     /** ... and pulses once it has had this long to get there, seconds. */
@@ -100,6 +105,7 @@ public class Superstructure extends SubsystemBase {
     private final ShotCalculator m_calculator = new ShotCalculator();
     private final Alert m_trenchAlert = AlertPublisher.create("Health", "trench",
         "Near a trench with the intake not fully out or the hood up: the robot does not fit under the arm", Level.HIGH);
+    private final Debouncer m_trenchAlertDebouncer = new Debouncer(kTrenchAlertDelay, DebounceType.RISING);
     private boolean m_nearTrench = false;
     /** Near enough a trench that the intake must not pack (it would not be out in time). */
     private boolean m_noPackNearTrench = false;
@@ -146,7 +152,8 @@ public class Superstructure extends SubsystemBase {
         m_intakeRack.packWhile(this::packGoal);
         m_intakeRoller.runInWhile(m_intakeRack::isPacking);
         m_turret.setDefaultCommand(m_turret.track(() -> m_shot.turretRot()));
-        m_hood.setDefaultCommand(m_hood.stow());
+        // Track all the time: hoodGoal() is 0 near a trench.
+        m_hood.setDefaultCommand(m_hood.aim(this::hoodGoal).withName("Hood Track"));
     }
 
     private Shot compute() {
@@ -162,7 +169,8 @@ public class Superstructure extends SubsystemBase {
         m_nearTrench = TrenchGuard.nearTrench(m_drive.getPose(), m_drive.getFieldVelocity());
         m_noPackNearTrench = TrenchGuard.nearTrench(m_drive.getPose(), m_drive.getFieldVelocity(), kPackTrenchLookahead,
             kPackTrenchMargin);
-        m_trenchAlert.set(m_nearTrench && (!m_intakeRack.isExtended() || m_hood.getAngleDeg() > kHoodDownDeg));
+        m_trenchAlert.set(m_trenchAlertDebouncer.calculate(
+            m_nearTrench && (!m_intakeRack.isExtended() || m_hood.getAngleDeg() > kHoodDownDeg)));
         m_turretOnTarget = m_turretSteady.calculate(
             m_turret.isOnTarget(m_shot.turretAimRot(), ShotCalculator.turretToleranceDeg(m_shot.distance())));
         m_wheelReady = m_wheelSteady.calculate(m_flywheel.isNear(flywheelNeed(), ShooterConstants.kFlywheelTolerance));
