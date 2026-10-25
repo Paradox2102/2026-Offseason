@@ -94,7 +94,7 @@ public class TurretAimSubsystem extends SubsystemBase{
         //     bestRotation = (checkBestRotation(bestRotation, targetRotation + (i * (2 * Math.PI))) * ShooterConstants.k_shooterGearReduction);
         // }
         // System.out.println(targetRotation * ShooterConstants.k_shooterGearReduction);
-        return Units.radiansToRotations(Units.degreesToRadians(30) - Units.degreesToRadians(90) * ShooterConstants.k_shooterGearReduction);
+        return Units.radiansToRotations(((-targetRotation.getRadians()) - Units.degreesToRadians(90)) * ShooterConstants.k_shooterGearReduction);
     }
     /**
      * checks the coterminal angles and finds whihc one is closer to our current position
