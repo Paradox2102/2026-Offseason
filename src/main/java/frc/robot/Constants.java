@@ -14,6 +14,9 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.math.linalg.VecBuilder;
+import org.wpilib.math.linalg.Vector;
+import org.wpilib.math.numbers.N3;
 import org.wpilib.math.util.Units;
 
 import frc.robot.generated.TunerConstants;
@@ -116,32 +119,23 @@ public class Constants {
      */
     public static class VisionConstants {
 
-        // CAD cambrea 1: back left corner, looks back and right
-        public static final Rotation3d backLeftRotation = camRotation(-17.3, -30.0, -148.0);
-        public static final Translation3d backLeftPositon = camPosition(-11.53, 10.05, 8.69, backLeftRotation);
-        // CAD cambrea 2: back right corner, looks back and left
-        public static final Rotation3d backRightRotation = camRotation(-2.1, -25.0, 148.0);
-        public static final Translation3d backRightPosition = camPosition(-11.44, -9.09, 16.22, backRightRotation);
-        // CAD cambrea 4: left side, looks left
-        public static final Rotation3d sideLeftRotation = camRotation(-8.9, -30.0, 65.0);
-        public static final Translation3d sideLeftPosition = camPosition(-0.80, 13.01, 9.13, sideLeftRotation);
-        // CAD cambrea 3: right side, looks right
-        public static final Rotation3d sideRightRotation = camRotation(-11.1, -25.0, -65.0);
-        public static final Translation3d sideRightPosition = camPosition(-11.43, -12.73, 16.18, sideRightRotation);
+		public static final Translation3d backLeftPosition = new Translation3d(-0.30970102548599, -0.24477368593216, 0.23230773210526);
+		public static final Rotation3d backLeftRotation = new Rotation3d(-0.97320371866226, -2.66518068313599, 1.57124507427216);
 
-        /** CAD angles are in degrees; Rotation3d wants radians. */
-        private static Rotation3d camRotation(double rollDeg, double pitchDeg, double yawDeg) {
-            return new Rotation3d(Units.degreesToRadians(rollDeg), Units.degreesToRadians(pitchDeg), Units.degreesToRadians(yawDeg));
-        }
+		public static final Translation3d backRightPosition = new Translation3d(-0.30812799930573, 0.21981756389141, 0.42163202166557);
+		public static final Rotation3d backRightRotation = new Rotation3d(-1.13306474685669, -3.06422424316406, 0.92690563201904);
 
-        /**
-         * The CAD numbers (inches) are the camera part's origin, 0.98 in behind the lens front.
-         * Move half of that along the lens axis, close to where the lens takes its picture from.
-         */
-        private static Translation3d camPosition(double xIn, double yIn, double zIn, Rotation3d rotation) {
-            Translation3d alongLens = new Translation3d(Units.inchesToMeters(0.49), 0, 0).rotateBy(rotation);
-            return new Translation3d(Units.inchesToMeters(xIn), Units.inchesToMeters(yIn), Units.inchesToMeters(zIn)).plus(alongLens);
-        }
+		public static final Translation3d sideRightPosition = new Translation3d(-0.28139585256577, 0.3423268198967, 0.42079696059227);
+		public static final Rotation3d sideRightRotation = new Rotation3d(-1.0956050157547, -2.74852681159973, 3.14159274101257);
+
+		public static final Translation3d sideLeftPosition = new Translation3d(-0.0119677465409, -0.34862169623375, 0.24347171187401);
+		public static final Rotation3d sideLeftRotation = new Rotation3d(-1.02681541442871, -2.88045334815979, -0.73905700445175);
+
+
+        public static final Vector<N3> k_visionBaseSDev = VecBuilder.fill(15, 15, 15);
+        public static final Vector<N3> k_multiTagSDev = VecBuilder.fill(.5, .5, .5);
+
+        public static final int[] ignoreTagList = {};
     }
 
 

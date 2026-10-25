@@ -390,7 +390,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     // }
 
     private void setupPhotonVision() {
-        vision = new Vision(() -> getPose(), new Field2d());
+        vision = new Vision(() -> getPose(), new Field2d(), this);
     }
 
     private void startSimThread() {
