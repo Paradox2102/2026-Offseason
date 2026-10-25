@@ -162,19 +162,46 @@ public final class ShooterConstants {
      * full duty cycle (here as a speed: 12 V / kV), top belt 31 at 90 rps with bottom belt 32 as an
      * Aligned follower (same turn direction, same speed), Scotty 45 at 90 rps, vertical roller 40
      * at 90 rps. Main sets no mechanism ratio on these, so all are motor rps. The inversions in
-     * Feeder make each of these speeds positive. kV: V per motor rps (old code; X44 12 V / 125 rps).
+     * Feeder make each of these speeds positive.
+     *
+     * Control: each stage is a Motion Magic velocity loop (MotionMagicVelocityVoltage, no FOC:
+     * these five Talons have no Pro license). Motion Magic ramps the speed at kFeedAcceleration,
+     * so a start does not pull a current spike; kS + kV x speed gives about the right volts, and kP
+     * adds volts when a ball slows the stage. kS, kV, kP: main's tuned values for 31/32 (kI not
+     * used), 45 and 40. The indexer roller's gains on main are amps (torque current), so its kS
+     * and kP here are start values. Units: V, V per motor rps, V per motor rps of error.
+     *
+     * Main runs the indexer roller at full duty cycle. As a speed that is 12 V / kV = 96 rps: the
+     * feedforward alone then asks the whole battery, kP has nothing left, and the stage is straight
+     * power again. 85 rps keeps every stage at or under kFeedMaxFeedforwardVolts.
      */
-    public static final double kIndexerRollerKv = 0.125; // Talon 30, X60, CAN_S1
-    public static final double kIndexerRollerRps = 1.0 * 12 / kIndexerRollerKv;
-    public static final double kBeltTunnelKv = 0.096; // Talons 31 and 32, X44, CAN_S1
+    public static final double kIndexerRollerKs = 0.25; // Talon 30, X60, CAN_S1
+    public static final double kIndexerRollerKv = 0.125;
+    public static final double kIndexerRollerKp = 0.1;
+    public static final double kIndexerRollerRps = 85;
+    public static final double kBeltTunnelKs = 0.0; // Talons 31 and 32, X44, CAN_S1
+    public static final double kBeltTunnelKv = 0.097;
+    public static final double kBeltTunnelKp = 0.05;
     public static final double kTopBeltRps = 90;
     public static final double kBottomBeltRps = 90;
-    public static final double kScottyKv = 0.1195; // Talon 45 (code name "goUp"), X60, CAN_S3
+    public static final double kScottyKs = 0.6; // Talon 45 (code name "goUp"), X60, CAN_S3
+    public static final double kScottyKv = 0.115;
+    public static final double kScottyKp = 0.06;
     public static final double kScottyRps = 90;
-    public static final double kVerticalRollerKv = 0.118; // Talon 40 (code name "kicker"), X60, CAN_S3
+    public static final double kVerticalRollerKs = 0.25; // Talon 40 (code name "kicker"), X60, CAN_S3
+    public static final double kVerticalRollerKv = 0.118;
+    public static final double kVerticalRollerKp = 0.09;
     public static final double kVerticalRollerRps = 90;
-    /** Motor rps per second: the fastest stage (96 rps) is at speed in about 0.16 s. */
-    public static final double kFeedAcceleration = 600;
+    /**
+     * The most volts a stage's feedforward can ask at its feed speed. The rest of the battery
+     * (it sags to about 11 V while the flywheel spins up) is for kP.
+     */
+    public static final double kFeedMaxFeedforwardVolts = 11.0;
+    /**
+     * Motor rps per second: 90 rps in 0.075 s. An unjam goes from +90 to -45 rps in 0.11 s, so
+     * most of its 0.3 s really runs back (at 600 it took 0.23 s to get there).
+     */
+    public static final double kFeedAcceleration = 1200;
     /** Stator limits, amps. Start values: measure each stage's current, empty and loaded. */
     public static final double kFeedStatorLimitX60 = 60;
     public static final double kFeedStatorLimitX44 = 40;

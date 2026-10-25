@@ -48,7 +48,7 @@ public class Feeder extends SubsystemBase {
     /** One motor of the path. */
     private record Stage(String name, TalonFX talon, double statorLimit, RollerSim sim) {}
 
-    private final MotionMagicVelocityVoltage m_request = new MotionMagicVelocityVoltage(0);
+    private final MotionMagicVelocityVoltage m_request = new MotionMagicVelocityVoltage(0).withEnableFOC(false); // no Pro license on these Talons
     private final StaticBrake m_brake = new StaticBrake();
     private final List<Stage> m_stages;
     private final FeedLogic m_logic;
@@ -68,15 +68,15 @@ public class Feeder extends SubsystemBase {
             // 30: CCW_Positive, +duty. 31: CW_Positive, +90. 32: follows 31 Aligned, so it turns
             // as 31 does. 45: CCW_Positive, +90. 40: CCW_Positive, -90 (so CW here, +90).
             stage("Indexer roller (30)", CanIds.indexerRoller, CanIds.k_canBus1, InvertedValue.CounterClockwise_Positive,
-                ShooterConstants.kIndexerRollerKv, 25, x60, true),
+                ShooterConstants.kIndexerRollerKs, ShooterConstants.kIndexerRollerKv, ShooterConstants.kIndexerRollerKp, 25, x60, true),
             stage("Top belt tunnel (31)", CanIds.indexerConveyorLeader, CanIds.k_canBus1, InvertedValue.Clockwise_Positive,
-                ShooterConstants.kBeltTunnelKv, 18, x44, false),
+                ShooterConstants.kBeltTunnelKs, ShooterConstants.kBeltTunnelKv, ShooterConstants.kBeltTunnelKp, 18, x44, false),
             stage("Bottom belt tunnel (32)", CanIds.indexerConveyorFollower, CanIds.k_canBus1, InvertedValue.Clockwise_Positive,
-                ShooterConstants.kBeltTunnelKv, 18, x44, false),
+                ShooterConstants.kBeltTunnelKs, ShooterConstants.kBeltTunnelKv, ShooterConstants.kBeltTunnelKp, 18, x44, false),
             stage("Scotty rollers (45)", CanIds.goUp, CanIds.k_canBus3, InvertedValue.CounterClockwise_Positive,
-                ShooterConstants.kScottyKv, 23, x60, true),
+                ShooterConstants.kScottyKs, ShooterConstants.kScottyKv, ShooterConstants.kScottyKp, 23, x60, true),
             stage("Vertical roller (40)", CanIds.kicker, CanIds.k_canBus3, InvertedValue.Clockwise_Positive,
-                ShooterConstants.kVerticalRollerKv, 23, x60, true));
+                ShooterConstants.kVerticalRollerKs, ShooterConstants.kVerticalRollerKv, ShooterConstants.kVerticalRollerKp, 23, x60, true));
         m_speeds = new double[] {ShooterConstants.kIndexerRollerRps, ShooterConstants.kTopBeltRps,
             ShooterConstants.kBottomBeltRps, ShooterConstants.kScottyRps, ShooterConstants.kVerticalRollerRps};
         double[] tuned = Calibration.get().feedSpeeds;
@@ -89,13 +89,14 @@ public class Feeder extends SubsystemBase {
     }
 
     private Stage stage(String name, int id, CANBus bus, InvertedValue inverted,
-                        double kV, double supplyLimit, double statorLimit, boolean x60) {
+                        double kS, double kV, double kP, double supplyLimit, double statorLimit, boolean x60) {
         var talon = new TalonFX(id, bus);
         var config = new TalonFXConfiguration();
         config.MotorOutput.Inverted = inverted;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        config.Slot0.kS = kS;
         config.Slot0.kV = kV;
-        config.Slot0.kP = 0.05;
+        config.Slot0.kP = kP;
         config.MotionMagic.MotionMagicAcceleration = ShooterConstants.kFeedAcceleration;
         // A stalled stage under only a supply limit still draws ~100 A in the motor (X60).
         config.CurrentLimits.StatorCurrentLimit = statorLimit;

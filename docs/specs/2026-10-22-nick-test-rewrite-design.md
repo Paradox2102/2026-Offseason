@@ -766,6 +766,10 @@ From the review of the intake roller, feed path, turret, hood and flywheel.
   robot: indexer 96 (main: full duty), top belt 90, bottom belt 90 (main: Aligned follower of
   31), Scotty 90, vertical roller 90 motor rps. Inversions: 30 CCW, 31 CW, 32 CW, 45 CCW, 40 CW
   positive. Old directions were opposite on 30, 31, 45 and 40.
+  Control (2026-10-25): Motion Magic velocity per stage with its own kS/kV/kP (main's tuned
+  values for 31/32, 45, 40; start values for 30), FOC off (no Pro license), acceleration 1200
+  rps/s so an unjam reverses in 0.11 s. Indexer roller 85 rps (96 asked the full 12 V, so the
+  loop had no room). A unit test keeps each stage's feedforward at or under 11 V.
 - **Flywheel**: `getSpeed()` is 0 and `isReady()` false while Talon 42 does not answer (a silent
   Talon keeps its last reading; CAEL Q40).
 - **Turret**: soft limits 10 degrees inside the mechanical limit of +-270 (user, 2026-10-23; was +-360 wiring): +-260, aim +-255. After a Talon 44
