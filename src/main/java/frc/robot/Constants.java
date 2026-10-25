@@ -464,4 +464,15 @@ public class Constants {
             
         }
   }
+
+    /** Stall shutoff for every ParadoxTalon; see utils/ParadoxTalon.java */
+    public static class StallConstants {
+        /** Above this stator current while barely moving counts as a stall. */
+        public static final double k_stallCurrentAmps = 40;
+        public static final double k_stallVelocityRps = 0.5;
+        /** How long a stalled motor stays off before it tries again. */
+        public static final double k_cooldownSeconds = 2.0;
+        /** A PositionVoltage motor this close to its target is holding, not stalled. */
+        public static final double k_atSetpointToleranceRotations = 0.02;
+    }
 }

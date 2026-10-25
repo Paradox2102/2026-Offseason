@@ -11,6 +11,7 @@ import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.Subsystems;
 import frc.robot.utils.FuelSim;
 import frc.robot.utils.HealthMonitor;
+import frc.robot.utils.ParadoxTalon;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.networktables.NetworkTableInstance;
@@ -58,6 +59,8 @@ public class Robot extends TimedRobot {
         SignalLogger.writeDouble("PDH/Voltage", m_pdh.getVoltage(), "V");
         HealthMonitor.periodic();
         CommandScheduler.getInstance().run();
+        /* shut off any motor that has stalled too long; see utils/ParadoxTalon.java */
+        ParadoxTalon.updateAll();
 
         Pose2d robotPose = Subsystems.m_swerveSubsystem.getPose();
 

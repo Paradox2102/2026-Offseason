@@ -1,15 +1,33 @@
 package frc.robot.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
-import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.controls.ControlRequest;
-import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.NeutralOut;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import org.wpilib.math.filter.Debouncer;
+import org.wpilib.math.filter.Debouncer.DebounceType;
+import org.wpilib.system.Timer;
+
+import frc.robot.Constants.StallConstants;
+
 public class ParadoxTalon extends TalonFX {
+    private static final List<ParadoxTalon> s_all = new ArrayList<>();
+
+    private final BaseStatusSignal m_statorCurrent = getStatorCurrent();
+    private final BaseStatusSignal m_velocity = getVelocity();
+    private final BaseStatusSignal m_position = getPosition();
+    private final Debouncer m_stallDebounce;
+    private final Timer m_cooldown = new Timer();
+    private final NeutralOut m_neutral = new NeutralOut();
     private ControlRequest m_request;
-    private final double k_stallShutDownTime;
-    private boolean m_shutoff = false;
+    private boolean m_manualShutoff = false;
+    private boolean m_stallShutoff = false;
 
     /**
      * Constructs a TalonFX with a few extra utility things
@@ -22,24 +40,63 @@ public class ParadoxTalon extends TalonFX {
         super(deviceId, canbus);
 
         m_request = request;
-        k_stallShutDownTime = stallShutDownTime;
+        m_stallDebounce = new Debouncer(stallShutDownTime, DebounceType.RISING);
         setControl(request);
 
         // Alert on the dashboard if this motor drops off CAN or reboots
         HealthMonitor.register(this);
+        s_all.add(this);
+    }
+
+    public static void updateAll() {
+        for (ParadoxTalon talon : s_all) {
+            talon.updateStall();
+        }
+    }
+
+    private void updateStall() {
+        BaseStatusSignal.refreshAll(m_statorCurrent, m_velocity, m_position);
+
+        if (m_stallShutoff) {
+            if (m_cooldown.hasElapsed(StallConstants.k_cooldownSeconds)) {
+                m_stallShutoff = false;
+                m_stallDebounce.calculate(false); // reset, so it needs a fresh stall to trip again
+                applyRequest();
+            }
+            return;
+        }
+
+        boolean stalling = Math.abs(m_statorCurrent.getValueAsDouble()) > StallConstants.k_stallCurrentAmps
+            && Math.abs(m_velocity.getValueAsDouble()) < StallConstants.k_stallVelocityRps
+            && !isHoldingSetpoint();
+        if (m_stallDebounce.calculate(stalling)) {
+            m_stallShutoff = true;
+            m_cooldown.restart();
+            setControl(m_neutral); // actually stop the motor
+        }
+    }
+
+    private boolean isHoldingSetpoint() {
+        return m_request instanceof PositionVoltage position
+            && Math.abs(m_position.getValueAsDouble() - position.Position) < StallConstants.k_atSetpointToleranceRotations;
     }
 
     public void setShutoff(boolean shutoff) {
-        m_shutoff = shutoff;
+        m_manualShutoff = shutoff;
+        applyRequest();
     }
 
     public boolean getShutoff() {
-        return m_shutoff;
+        return m_manualShutoff || m_stallShutoff;
     }
- 
+
     public void setParadoxControl(ControlRequest request) {
-        if (!m_shutoff) {
-            setControl(request);
-        }
+        m_request = request; // remember it even while shut off, so the motor resumes it after.
+        applyRequest();
+    }
+
+    /** Send the last request, or neutral while shut off. */
+    private void applyRequest() {
+        setControl(getShutoff() ? m_neutral : m_request);
     }
 }
