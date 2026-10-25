@@ -19,7 +19,7 @@ import org.wpilib.util.Alert.Level;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicExpoTorqueCurrentFOC;
-import com.ctre.phoenix6.controls.NeutralOut;
+import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -49,7 +49,8 @@ import frc.robot.lib.util.AlertPublisher;
 public class Turret extends SubsystemBase {
     private final TalonFX m_talon = new TalonFX(CanIds.shooterAzimuth, CanIds.k_canBus3);
     private final MotionMagicExpoTorqueCurrentFOC m_request = new MotionMagicExpoTorqueCurrentFOC(0);
-    private final NeutralOut m_neutral = new NeutralOut();
+    /** Enabled with no trusted angle: brake (the config's neutral mode is coast). */
+    private final StaticBrake m_brake = new StaticBrake();
     private final Alert m_lostZeroAlert = AlertPublisher.create("Health", "shooter/turret/zero",
         "Turret Talon 44 rebooted: its zero is lost. Turret stopped: put it in the jig and press Pit > Zero turret", Level.HIGH);
     private final Alert m_restoredAlert = AlertPublisher.create("Health", "shooter/turret/restored", "", Level.MEDIUM);
@@ -70,13 +71,17 @@ public class Turret extends SubsystemBase {
     private DCMotorSim m_sim = null;
     private Notifier m_simNotifier = null;
 
-    public Turret() {
+    /** The Talon configuration (static: unit tested). */
+    static TalonFXConfiguration config() {
         var config = new TalonFXConfiguration();
         // A positive command turns the turret counterclockwise (seen from above). Checked on the
         // robot 2026-10-23: with CounterClockwise_Positive the 90 deg clockwise check turn went
         // counterclockwise, so the motor is Clockwise_Positive. The sim orientation below matches.
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        // Coast when neutral (user, 2026-10-25): disabled, the turret turns easily by hand. The
+        // Talon still counts a turn by hand while it has power, so the angle stays right. Enabled,
+        // the code never leaves it neutral: it holds a goal, or brakes (m_brake).
+        config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         config.Feedback.SensorToMechanismRatio = ShooterConstants.kTurretRatio;
         config.Slot0.kS = ShooterConstants.kTurretS;
         config.Slot0.kP = ShooterConstants.kTurretP;
@@ -89,6 +94,11 @@ public class Turret extends SubsystemBase {
         config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
         config.CurrentLimits.StatorCurrentLimit = ShooterConstants.kTurretStatorLimit;
         config.CurrentLimits.StatorCurrentLimitEnable = true;
+        return config;
+    }
+
+    public Turret() {
+        var config = config();
         PhoenixUtil.applyConfig("Turret (44)", () -> m_talon.getConfigurator().apply(config));
         // No setPosition(0) here. A Talon reads 0 when it powers on, and the turret is in its jig
         // at power-on, so 0 = jig. A robot code restart (a redeploy, a crash) does not restart
@@ -147,7 +157,7 @@ public class Turret extends SubsystemBase {
         } else if (m_zeroed && !restoring) {
             m_talon.setControl(m_request.withPosition(m_goal + m_trim));
         } else {
-            m_talon.setControl(m_neutral);
+            m_talon.setControl(m_brake);
         }
         Telemetry.log("Shooter/Turret/Goal deg", m_goal * 360);
         Telemetry.log("Shooter/Turret/Position deg", getPosition() * 360);

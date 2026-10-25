@@ -84,11 +84,19 @@ public class Hood extends SubsystemBase {
     }
 
     private void applyConfig() {
+        var config = config(m_ratio, m_stopAboveLevelRot);
+        PhoenixUtil.applyConfig("Hood (41)", () -> m_talon.getConfigurator().apply(config));
+    }
+
+    /** The Talon configuration (static: unit tested). */
+    static TalonFXConfiguration config(double ratio, double stopAboveLevelRot) {
         var config = new TalonFXConfiguration();
         // Check on the robot: a positive command must raise the hood.
         config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        config.Feedback.SensorToMechanismRatio = m_ratio;
+        // Coast when neutral (user, 2026-10-25): disabled, the hood moves easily by hand (it rests
+        // on its lower stop). Enabled, the code always drives it (homing push, goal or jog).
+        config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        config.Feedback.SensorToMechanismRatio = ratio;
         config.Slot0.kS = ShooterConstants.kHoodS;
         config.Slot0.kP = ShooterConstants.kHoodP;
         config.Slot0.kG = ShooterConstants.kHoodG;
@@ -97,13 +105,13 @@ public class Hood extends SubsystemBase {
         config.MotionMagic.MotionMagicAcceleration = ShooterConstants.kHoodAcceleration;
         // Gravity: Arm_Cosine takes position 0 as level. Set the hood's angle above level at its
         // lower stop here (rotations) before giving kG a value.
-        config.Slot0.GravityArmPositionOffset = m_stopAboveLevelRot;
+        config.Slot0.GravityArmPositionOffset = stopAboveLevelRot;
         // Upper limit in the Talon too (it scales with kHoodRatio, so it is only as right as that).
         config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = (ShooterConstants.kHoodMaxDeg + 1) / 360;
         config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
         config.CurrentLimits.StatorCurrentLimit = ShooterConstants.kHoodStatorLimit;
         config.CurrentLimits.StatorCurrentLimitEnable = true;
-        PhoenixUtil.applyConfig("Hood (41)", () -> m_talon.getConfigurator().apply(config));
+        return config;
     }
 
     @Override
