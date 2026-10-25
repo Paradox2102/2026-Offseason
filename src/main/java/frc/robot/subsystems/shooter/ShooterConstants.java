@@ -157,21 +157,23 @@ public final class ShooterConstants {
     // ---- Feed path, motor rps ----
 
     /*
-     * Speeds: what the code that ran at CAEL (7ba98388, testRun) gave each stage as duty cycle,
-     * as a speed: duty x 12 V / kV (the stage's speed at that duty with no load). The velocity
-     * loop then runs each stage at about the CAEL speed whatever the battery does. Measure the
-     * fire rate on the robot and tune from here. kV: V per motor rps (old code; X44 12 V / 125 rps).
+     * Speeds and directions: what main (8fd2c1a, 2026-10-25) shoots with, found on the robot by
+     * the students (commits 0f1d92a "Inverts" and cf364a5). Main feeds with: indexer roller 30 at
+     * full duty cycle (here as a speed: 12 V / kV), top belt 31 at 90 rps with bottom belt 32 as an
+     * Aligned follower (same turn direction, same speed), Scotty 45 at 90 rps, vertical roller 40
+     * at 90 rps. Main sets no mechanism ratio on these, so all are motor rps. The inversions in
+     * Feeder make each of these speeds positive. kV: V per motor rps (old code; X44 12 V / 125 rps).
      */
     public static final double kIndexerRollerKv = 0.125; // Talon 30, X60, CAN_S1
     public static final double kIndexerRollerRps = 1.0 * 12 / kIndexerRollerKv;
     public static final double kBeltTunnelKv = 0.096; // Talons 31 and 32, X44, CAN_S1
-    public static final double kTopBeltRps = 1.0 * 12 / kBeltTunnelKv;
-    public static final double kBottomBeltRps = 0.9 * 12 / kBeltTunnelKv;
+    public static final double kTopBeltRps = 90;
+    public static final double kBottomBeltRps = 90;
     public static final double kScottyKv = 0.1195; // Talon 45 (code name "goUp"), X60, CAN_S3
-    public static final double kScottyRps = 1.0 * 12 / kScottyKv;
+    public static final double kScottyRps = 90;
     public static final double kVerticalRollerKv = 0.118; // Talon 40 (code name "kicker"), X60, CAN_S3
-    public static final double kVerticalRollerRps = 0.9 * 12 / kVerticalRollerKv;
-    /** Motor rps per second: the fastest stage (125 rps) is at speed in about 0.2 s. */
+    public static final double kVerticalRollerRps = 90;
+    /** Motor rps per second: the fastest stage (96 rps) is at speed in about 0.16 s. */
     public static final double kFeedAcceleration = 600;
     /** Stator limits, amps. Start values: measure each stage's current, empty and loaded. */
     public static final double kFeedStatorLimitX60 = 60;

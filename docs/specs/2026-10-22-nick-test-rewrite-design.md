@@ -762,6 +762,10 @@ From the review of the intake roller, feed path, turret, hood and flywheel.
 - **Feed speeds** = the duty cycles the CAEL robot ran (7ba98388 `testRun`) as speeds, duty x 12 V
   / kV: indexer 96, top belt 125, bottom belt 112.5, Scotty 100.4, vertical roller 91.5 motor rps
   (were 25/90/90/30/30). Acceleration 600 rps/s. Per-stage speed and current are logged.
+  Changed 2026-10-25 to main's (8fd2c1a) directions and speeds, which the students found on the
+  robot: indexer 96 (main: full duty), top belt 90, bottom belt 90 (main: Aligned follower of
+  31), Scotty 90, vertical roller 90 motor rps. Inversions: 30 CCW, 31 CW, 32 CW, 45 CCW, 40 CW
+  positive. Old directions were opposite on 30, 31, 45 and 40.
 - **Flywheel**: `getSpeed()` is 0 and `isReady()` false while Talon 42 does not answer (a silent
   Talon keeps its last reading; CAEL Q40).
 - **Turret**: soft limits 10 degrees inside the mechanical limit of +-270 (user, 2026-10-23; was +-360 wiring): +-260, aim +-255. After a Talon 44

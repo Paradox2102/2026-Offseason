@@ -41,8 +41,8 @@ import frc.robot.subsystems.shooter.FeedLogic.Out;
  * is left at the turret entrance. A stage that jams makes them all run back for a moment
  * ({@link FeedLogic}).
  *
- * <p>Speeds are motor rps: the CAEL robot's duty cycles as speeds (ShooterConstants), or the ones
- * tuned on the robot (Calibration, "Feeder tuning"). Inversions are the old code's.
+ * <p>Speeds are motor rps: main's feed speeds (ShooterConstants), or the ones tuned on the robot
+ * (Calibration, "Feeder tuning"). Inversions are main's (2026-10-25).
  */
 public class Feeder extends SubsystemBase {
     /** One motor of the path. */
@@ -64,15 +64,18 @@ public class Feeder extends SubsystemBase {
         double x60 = ShooterConstants.kFeedStatorLimitX60;
         double x44 = ShooterConstants.kFeedStatorLimitX44;
         m_stages = List.of(
-            stage("Indexer roller (30)", CanIds.indexerRoller, CanIds.k_canBus1, InvertedValue.Clockwise_Positive,
+            // Inversions: main's directions (main config invert and sign of its feed speed).
+            // 30: CCW_Positive, +duty. 31: CW_Positive, +90. 32: follows 31 Aligned, so it turns
+            // as 31 does. 45: CCW_Positive, +90. 40: CCW_Positive, -90 (so CW here, +90).
+            stage("Indexer roller (30)", CanIds.indexerRoller, CanIds.k_canBus1, InvertedValue.CounterClockwise_Positive,
                 ShooterConstants.kIndexerRollerKv, 25, x60, true),
-            stage("Top belt tunnel (31)", CanIds.indexerConveyorLeader, CanIds.k_canBus1, InvertedValue.CounterClockwise_Positive,
+            stage("Top belt tunnel (31)", CanIds.indexerConveyorLeader, CanIds.k_canBus1, InvertedValue.Clockwise_Positive,
                 ShooterConstants.kBeltTunnelKv, 18, x44, false),
             stage("Bottom belt tunnel (32)", CanIds.indexerConveyorFollower, CanIds.k_canBus1, InvertedValue.Clockwise_Positive,
                 ShooterConstants.kBeltTunnelKv, 18, x44, false),
-            stage("Scotty rollers (45)", CanIds.goUp, CanIds.k_canBus3, InvertedValue.Clockwise_Positive,
+            stage("Scotty rollers (45)", CanIds.goUp, CanIds.k_canBus3, InvertedValue.CounterClockwise_Positive,
                 ShooterConstants.kScottyKv, 23, x60, true),
-            stage("Vertical roller (40)", CanIds.kicker, CanIds.k_canBus3, InvertedValue.CounterClockwise_Positive,
+            stage("Vertical roller (40)", CanIds.kicker, CanIds.k_canBus3, InvertedValue.Clockwise_Positive,
                 ShooterConstants.kVerticalRollerKv, 23, x60, true));
         m_speeds = new double[] {ShooterConstants.kIndexerRollerRps, ShooterConstants.kTopBeltRps,
             ShooterConstants.kBottomBeltRps, ShooterConstants.kScottyRps, ShooterConstants.kVerticalRollerRps};
