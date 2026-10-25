@@ -105,6 +105,10 @@ public class Superstructure extends SubsystemBase {
     private final ShotCalculator m_calculator = new ShotCalculator();
     private final Alert m_trenchAlert = AlertPublisher.create("Health", "trench",
         "Near a trench with the intake not fully out or the hood up: the robot does not fit under the arm", Level.HIGH);
+    private final AimGate m_aimGate = new AimGate();
+    private final Alert m_noPoseAlert = AlertPublisher.create("Health", "shooter/no-pose",
+        "No field position yet (no vision pose, no auto start): the turret holds still, the hood stays down, no shots",
+        Level.MEDIUM);
     private final Debouncer m_trenchAlertDebouncer = new Debouncer(kTrenchAlertDelay, DebounceType.RISING);
     private boolean m_nearTrench = false;
     /** Near enough a trench that the intake must not pack (it would not be out in time). */
@@ -151,7 +155,8 @@ public class Superstructure extends SubsystemBase {
         m_intakeRack.holdOutWhile("shooting", () -> m_shooting);
         m_intakeRack.packWhile(this::packGoal);
         m_intakeRoller.runInWhile(m_intakeRack::isPacking);
-        m_turret.setDefaultCommand(m_turret.track(() -> m_shot.turretRot()));
+        m_turret.setDefaultCommand(m_turret.track(
+            () -> m_aimGate.turretGoal(m_drive.hasFieldPose(), m_shot.turretRot(), m_turret.getPosition())));
         // Track all the time: hoodGoal() is 0 near a trench.
         m_hood.setDefaultCommand(m_hood.aim(this::hoodGoal).withName("Hood Track"));
     }
@@ -174,6 +179,8 @@ public class Superstructure extends SubsystemBase {
         m_turretOnTarget = m_turretSteady.calculate(
             m_turret.isOnTarget(m_shot.turretAimRot(), ShotCalculator.turretToleranceDeg(m_shot.distance())));
         m_wheelReady = m_wheelSteady.calculate(m_flywheel.isNear(flywheelNeed(), ShooterConstants.kFlywheelTolerance));
+        m_noPoseAlert.set(!m_drive.hasFieldPose());
+        Telemetry.log("Shooter/Field Pose", m_drive.hasFieldPose());
         Telemetry.log("Shooter/Scoring", m_shot.scoring());
         Telemetry.log("Shooter/Distance m", m_shot.distance());
         Telemetry.log("Shooter/Shot Flywheel rps", m_shot.flywheelRps());
@@ -281,6 +288,9 @@ public class Superstructure extends SubsystemBase {
         if (m_nearTrench) {
             return 0;
         }
+        if (m_hoodOverride == null && !m_drive.hasFieldPose()) {
+            return AimGate.hoodGoal(false, m_shot.hoodGoalDeg());
+        }
         return m_hoodOverride != null ? m_hoodOverride.getAsDouble() : m_shot.hoodGoalDeg();
     }
 
@@ -301,7 +311,7 @@ public class Superstructure extends SubsystemBase {
      */
     private boolean allowed() {
         boolean inZoneForHub = !m_shot.scoring() || ShotCalculator.inOurZone(m_drive.getPose(), Drive.isRedAlliance());
-        return !m_nearTrench && intakeOk() && inZoneForHub && slowEnough() && inTables();
+        return m_drive.hasFieldPose() && !m_nearTrench && intakeOk() && inZoneForHub && slowEnough() && inTables();
     }
 
     /** Slow enough to shoot: under the shoot-on-the-move limits, or the still ones if that is off. */
@@ -317,7 +327,9 @@ public class Superstructure extends SubsystemBase {
     /** What stops a shot now (the first check that fails), or "" when it is ready. For the dashboard. */
     public String blockedBy() {
         boolean inZoneForHub = !m_shot.scoring() || ShotCalculator.inOurZone(m_drive.getPose(), Drive.isRedAlliance());
-        if (m_nearTrench) {
+        if (!m_drive.hasFieldPose()) {
+            return "no field position (vision)";
+        } else if (m_nearTrench) {
             return "near a trench";
         } else if (!intakeOk()) {
             return "intake not out";

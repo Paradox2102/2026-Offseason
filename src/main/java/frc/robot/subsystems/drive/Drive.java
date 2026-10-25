@@ -58,6 +58,7 @@ public class Drive extends TunerSwerveDrivetrain implements Subsystem {
     private static final Rotation2d kBluePerspective = Rotation2d.ZERO;
     private static final Rotation2d kRedPerspective = Rotation2d.k180deg;
     private boolean m_hasAppliedOperatorPerspective = false;
+    private volatile boolean m_hasFieldPose = false; // set from the main loop and the sim thread
 
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
@@ -170,10 +171,25 @@ public class Drive extends TunerSwerveDrivetrain implements Subsystem {
         return state.Velocity.toFieldRelative(state.Pose.getRotation());
     }
 
+    /**
+     * True once the pose is a real field position: vision has given one, or the pose was set (an
+     * auto start). Before that it is the field corner (0, 0): the heading is good, the place is not.
+     */
+    public boolean hasFieldPose() {
+        return m_hasFieldPose;
+    }
+
+    @Override
+    public void addVisionMeasurement(Pose2d visionPose, double timestampSeconds, Matrix<N3, N1> stdDevs) {
+        super.addVisionMeasurement(visionPose, timestampSeconds, stdDevs);
+        m_hasFieldPose = true;
+    }
+
     /** Set the pose (auto start, driver button). In the sim, the simulated robot moves there too. */
     @Override
     public void resetPose(Pose2d pose) {
         super.resetPose(pose);
+        m_hasFieldPose = true;
         if (m_sim != null) {
             m_sim.resetTruth(pose);
         }
