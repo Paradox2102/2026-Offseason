@@ -5,6 +5,7 @@
 package frc.robot;
 
 import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.button.CommandGamepad;
@@ -54,31 +55,37 @@ public class RobotContainer {
 
     private void configureBindings() {
 
-        Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed());
+        Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed() && m_controller.rightTrigger().getAsBoolean());
+        Trigger m_noIntakeShoot = new Trigger(() -> isReadyToShoot.getAsBoolean() && !m_controller.leftTrigger().getAsBoolean());
+
+        isReadyToShoot.whileTrue(Commands.parallel(
+            Subsystems.m_indexerConveyor.run(true),
+            Subsystems.m_indexerRollerSubsystem.runPower(true),
+            Subsystems.m_kickerSubsystem.run(),
+            Subsystems.m_secondaryKicker.run(true)
+            ));
+        m_noIntakeShoot.whileTrue(Subsystems.m_intakeExtension.agitate());
 
         m_controller.leftTrigger().whileTrue(Commands.sequence(
             Subsystems.m_intakeExtension.extendIntake(),
             Subsystems.m_intakeRoller.run(true)
         ));
-        // m_controller.faceLeft().onTrue(
-        //     Subsystems.m_intakeExtension.extendIntake()
+        m_controller.faceUp().whileTrue(Commands.sequence(
+            Subsystems.m_intakeExtension.extendIntake(),
+            Subsystems.m_intakeRoller.run(false)));
+        // m_controller.faceLeft().whileTrue(
+        //     Subsystems.m_shooterSubsystem.staticShoot()
         // );
         //         m_controller.faceLeft().onTrue(
         //     Subsystems.m_intakeExtension.retractIntake()
         // );
 
-        m_controller.rightTrigger().whileTrue(Commands.parallel( // Shooter bindings not properly set-up, don't have shooter yet :P
+        m_controller.rightTrigger().whileTrue(Commands.parallel(
             Subsystems.m_shooterSubsystem.staticShoot(),
             Subsystems.m_hoodSubsystem.staticPitch()
             
         ));
-
-        isReadyToShoot.whileTrue(Commands.parallel(
-            Subsystems.m_indexerConveyor.run(true),
-            Subsystems.m_indexerRollerSubsystem.run(true),
-            Subsystems.m_kickerSubsystem.run(),
-            Subsystems.m_secondaryKicker.run(true)
-        ));
+            
         m_controller.faceDown().whileTrue(Commands.parallel( // Shooter override
             Subsystems.m_indexerConveyor.run(true),
             Subsystems.m_indexerRollerSubsystem.run(true),
@@ -101,12 +108,6 @@ public class RobotContainer {
 
         m_joystick.getHID().button(10).onTrue(Commands.run(() -> SalesAssociate.careAboutCustomerService(!SalesAssociate.getCareAboutCustomerService())));
 
-        isReadyToShoot.whileTrue(Commands.parallel(
-            Subsystems.m_indexerRollerSubsystem.run(true),
-            Subsystems.m_indexerConveyor.run(true),
-            Subsystems.m_kickerSubsystem.run(),
-            Subsystems.m_secondaryKicker.run(true)
-        ));
 
 
 

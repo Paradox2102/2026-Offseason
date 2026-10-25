@@ -4,6 +4,7 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
@@ -73,6 +74,11 @@ public class IndexerRollerSubsystem extends SubsystemBase {
         }, () -> {
             m_indexerRollerMotor.setParadoxControl(m_coastRequest);
         }, this);
+    }
+
+    @Override
+    public void periodic() {
+        Telemetry.log("Roller Floor Speed", m_indexerRollerMotor.getVelocity().getValueAsDouble());
     }
 
     @Override

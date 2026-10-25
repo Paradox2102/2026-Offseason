@@ -148,9 +148,9 @@ public class Constants {
   public static class ShooterConstants {
     public static final double k_shooterGearReduction = (67.86);
     
-    public static final double k_kickOutRPS = 50;
+    public static final double k_kickOutRPS = -90;
 
-    public static final double k_secondaryKickerInRPS = 50;
+    public static final double k_secondaryKickerInRPS = 90;
     public static final double k_secondaryKickerOutRPS = -30;
 
     public static final double k_upKickerMOI = 0.00000494 * 2;
@@ -168,17 +168,20 @@ public class Constants {
     public static final double k_hoodP = 0.1;
     public static final double k_hoodD = 0;
 
-    public static final double k_shooterP = 0.3;
-    public static final double k_shooterS = 0.01;
-    public static final double k_shooterV = 0.11966;
+    public static final double k_shooterP = 0.008;
+    public static final double k_shooterS = 0.33;
+    public static final double k_shooterV = 0.082;
+    public static final double k_shooterI = 0.0;
+    public static final double k_shooterD = 0.0;
 
-    public static final double k_kickerP = 0.01;
-    public static final double k_kickerS = 0.01;
+    public static final double k_kickerP = 0.09;
+    public static final double k_kickerS = 0.25;
     public static final double k_kickerV = 0.118;
 
-    public static final double k_secondaryKickerP = 0.0;
-    public static final double k_secondaryKickerS = 0.01;
-    public static final double k_secondaryKickerV = 0.1195;
+    public static final double k_secondaryKickerP = 0.06;
+    public static final double k_secondaryKickerS = 0.6;
+    public static final double k_secondaryKickerV = 0.115;
+    public static final double k_secondaryKickerI = 0.03;
 
     public static final double k_turretI = 0.0;
     public static final double k_turretP = 0.0;
@@ -279,6 +282,8 @@ public class Constants {
         k_shooterConfigs.Slot0.kP = k_shooterP;
         k_shooterConfigs.Slot0.kS = k_shooterS;
         k_shooterConfigs.Slot0.kV = k_shooterV;
+        k_shooterConfigs.Slot0.kI = k_shooterI;
+        k_shooterConfigs.Slot0.kD = k_shooterD;
 
         k_kickerConfig.withCurrentLimits(k_kickerLimitConfig);
         k_kickerConfig.Slot0.kP = k_kickerP;
@@ -289,6 +294,7 @@ public class Constants {
         k_secondaryKickerConfig.Slot0.kP = k_secondaryKickerP;
         k_secondaryKickerConfig.Slot0.kS = k_secondaryKickerS;
         k_secondaryKickerConfig.Slot0.kV = k_secondaryKickerV;
+        k_secondaryKickerConfig.Slot0.kI = k_secondaryKickerI;
 
         k_turretConfig.withCurrentLimits(k_aimingLimitConfig);
         //k_turretConfig.Slot0.kV = k_turretV;
@@ -351,15 +357,15 @@ public class Constants {
   
 
   public static class IntakeConstants {
-    public static final double k_inRPS = 40;
-    public static final double k_outRPS = -30;
+    public static final double k_inRPS = 90;
+    public static final double k_outRPS = -70;
 
     public static final TalonFXConfiguration m_intakeRollerConfigs = new TalonFXConfiguration();
     public static final TalonFXConfiguration m_intakeExtensionConfigs = new TalonFXConfiguration();
 
-    public static final double k_rollerP = 0.2;
+    public static final double k_rollerP = 0.0;
     public static final double k_rollerS = 0.0;
-    public static final double k_rollerV = 0.15;
+    public static final double k_rollerV = 0.12;
 
     public static final double k_intakeExtensionG = 0;
     public static final double k_intakeExtensionP = 0.1;
@@ -403,11 +409,11 @@ public class Constants {
     
     }
     public static class IndexerConstants {
-        public static final double k_rollerInRPS = 25;
-        public static final double k_rollerOutRPS = -10;
+        public static final double k_rollerInRPS = 40;
+        public static final double k_rollerOutRPS = -40;
 
-        public static final double k_conveyorInRPS = 20;
-        public static final double k_conveyorOutRPS = -15;
+        public static final double k_conveyorInRPS = 90;
+        public static final double k_conveyorOutRPS = -70;
 
         public static final int k_jamThreshold = 6; // should be tuned to not happen too much
 
@@ -416,13 +422,15 @@ public class Constants {
         public static final double k_indexerRollerMOI = 0.00045822;
         public static final double k_indexerConveyorMOI = 0.00001722;
 
-        public static final double k_rollerP = 0.0;
+        public static final double k_rollerP = 0.1;
         public static final double k_rollerS = 0.0;
-        public static final double k_rollerV = 0.125;
+        public static final double k_rollerV = 0.254;
+        public static final double k_rollerI = 0.1;
 
-        public static final double k_conveyorP = 0.0;
-        public static final double k_conveyorS = 0.0;
-        public static final double k_conveyorV = 0.1;
+        public static final double k_conveyorP = 0.05;
+        public static final double k_conveyorI = 0.1;
+
+        public static final double k_conveyorV = 0.097;
 
         public static final double k_conveyorMotionMagicAcceleration = 40.0;
         public static final double k_rollerMotionMagicAcceleration = 40.0;
@@ -444,13 +452,14 @@ public class Constants {
             m_indexerRollerConfigs.Slot0.kP = k_rollerP;
             m_indexerRollerConfigs.Slot0.kS = k_rollerS;
             m_indexerRollerConfigs.Slot0.kV = k_rollerV;
+            m_indexerRollerConfigs.Slot0.kI = k_rollerI;
 
             
             m_indexerConveyorMotionMagicConfig.withMotionMagicAcceleration(k_conveyorMotionMagicAcceleration);
             
             m_indexerConveyorConfigs.withCurrentLimits(m_conveyorLimitConfig);
             m_indexerConveyorConfigs.Slot0.kP = k_conveyorP;
-            m_indexerConveyorConfigs.Slot0.kS = k_conveyorS;
+            m_indexerConveyorConfigs.Slot0.kI = k_conveyorI;
             m_indexerConveyorConfigs.Slot0.kV = k_conveyorV;
             
         }

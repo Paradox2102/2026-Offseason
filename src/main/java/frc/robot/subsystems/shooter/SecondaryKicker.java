@@ -5,6 +5,7 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.StaticBrake;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
@@ -25,7 +26,7 @@ import org.wpilib.command2.SubsystemBase;
 public class SecondaryKicker extends SubsystemBase {
     private final CANBus k_CANBus = CANIDConstants.k_canBus3;
 
-    private final MotionMagicVelocityVoltage m_velocityRequest = new MotionMagicVelocityVoltage(0).withSlot(0);
+    private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withSlot(0).withEnableFOC(true);
     private final CoastOut m_coastRequest = new CoastOut();
     private final StaticBrake m_brakeRequest = new StaticBrake();
 
@@ -63,6 +64,12 @@ public class SecondaryKicker extends SubsystemBase {
     }
 
     @Override
+    public void periodic() {
+        Telemetry.log("Sushi Roller Speed", m_secondaryKickerMotor.getVelocity().getValueAsDouble());
+
+    }
+
+    @Override
     public void simulationPeriodic() {
     var talonFXSim = m_secondaryKickerMotor.getSimState();
 
@@ -84,7 +91,6 @@ public class SecondaryKicker extends SubsystemBase {
         talonFXSim.setRotorVelocity(Units.radiansToRotations(m_motorSimModel.getAngularVelocity()) * k_gearRatio);
             
         
-        Telemetry.log("Upward Kicker Motor Speed", Units.radiansToRotations(m_motorSimModel.getAngularVelocity()));
 
     }
 }

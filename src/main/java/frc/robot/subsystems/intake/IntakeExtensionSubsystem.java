@@ -22,10 +22,14 @@ import org.wpilib.telemetry.Telemetry;
 import org.wpilib.simulation.ElevatorSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
+import org.wpilib.command2.RepeatCommand;
+import org.wpilib.command2.SequentialCommandGroup;
 import org.wpilib.command2.SubsystemBase;
+import org.wpilib.command2.WaitCommand;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
     private static final double k_intakeMaxExtension = 3.95;
+    private static final double k_intakeCrushPosition = 2.54;
     private static final double k_elevatorDrimRadius = 0.038091; // If something is wrong then this is the first thing to check. Idk if I did this right
     private static final double k_elevatorMass = 5.401715051809;
     private final CANBus k_CANBus = CANIDConstants.k_canBus4;
@@ -38,7 +42,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     private final ParadoxTalon m_intakeExtensionFollower = new ParadoxTalon(CANIDConstants.intakeExtensionFollower, k_CANBus, m_brakeRequest, 0.1); 
 
     private final Timer m_crushTimer = new Timer();
-    private final double crushTimerTime = 1.0;
+    private final double k_maxCrushTime = 1.0;
 
     private final double k_gearRatio = 2.8;
     private final ElevatorSim m_motorSimModel = new ElevatorSim(
@@ -49,15 +53,20 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     
     public static enum TargetPosition {
         IN(0),
-        OUT(k_intakeMaxExtension);
-
+        OUT(k_intakeMaxExtension),
+        CRUSH(k_intakeCrushPosition);
         double position;
         TargetPosition(double target){
             position = target;
         }
     }
 
+    public RepeatCommand agitate(){
+        return new SequentialCommandGroup(retractIntakeCrush(), new WaitCommand(1), extendIntakeCrush(), new WaitCommand(0.5)).repeatedly();
+    }
+
     public IntakeExtensionSubsystem() {
+        m_crushTimer.start();
         m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.setParadoxControl(m_followRequest);
@@ -74,7 +83,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        Telemetry.log("Intake Extension at target", isIntakeAtTarget(TargetPosition.OUT));
+        Telemetry.log("Intake Extension at target", isIntakeAtTarget(TargetPosition.OUT, false));
 
         Telemetry.log("Intake Extension Position", (m_intakeExtensionLeader.getPosition().getValueAsDouble() + m_intakeExtensionFollower.getPosition().getValueAsDouble()) / 2);
     }
@@ -92,44 +101,54 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
             m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(-10));
             SalesAssociate.persuasion();
         }
-        ).until(() -> isIntakeAtTarget(TargetPosition.IN)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+        ).until(() -> isIntakeAtTarget(TargetPosition.IN, false)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
     public Command extendIntakeCrush() {
-        return Commands.run(() -> {
-            m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(10));
-        }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+        return Commands.startRun(() -> {
+            m_crushTimer.reset();
+        }, () -> {
+            m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(6));
+            
+        }, this).until(() -> (isIntakeAtTarget(TargetPosition.OUT, false) || m_crushTimer.get() > k_maxCrushTime)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
         public Command retractIntakeCrush() {
-        return Commands.run(() -> {
-            m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(-10));
+        return Commands.startRun(() -> {
+                m_crushTimer.reset();
+        }, () -> {
+            m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(-6));
             SalesAssociate.persuasion();
         }
-        ).until(() -> isIntakeAtTarget(TargetPosition.IN)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+        ).until(() -> isIntakeAtTarget(TargetPosition.CRUSH, true) || m_crushTimer.get() > k_maxCrushTime).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest));
     }
 
     public Command extendIntake() {
         return Commands.run(() -> {
             m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(10));
-        }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+        }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT, false)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
     
     public Command retractIntakePower() {
         return Commands.runOnce(() -> {
             m_intakeExtensionLeader.setThrottle(-0.5);
             m_intakeExtensionFollower.setThrottle(0.5);
-        }, this).until(() -> isIntakeAtTarget(TargetPosition.IN)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+        }, this).until(() -> isIntakeAtTarget(TargetPosition.IN, false)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
     public Command extendIntakePower() {
         return Commands.runOnce(() -> {
             m_intakeExtensionLeader.setThrottle(0.5);
-        }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+        }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT, false)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
     }
 
-    public boolean isIntakeAtTarget(TargetPosition target){
-        return Math.abs(((m_intakeExtensionLeader.getPosition().getValueAsDouble() + m_intakeExtensionFollower.getPosition().getValueAsDouble()) / 2) - target.position) < 0.08;
+    public boolean isIntakeAtTarget(TargetPosition target, boolean lessThan){
+        var intakePosition = Math.abs((m_intakeExtensionLeader.getPosition().getValueAsDouble() + m_intakeExtensionFollower.getPosition().getValueAsDouble()) / 2);
+        if (lessThan){
+            return intakePosition < target.position;
+        }
+        Telemetry.log("Intake psotion - target", (intakePosition - target.position));
+        return Math.abs(intakePosition - target.position) < 0.08;
 
     }
 

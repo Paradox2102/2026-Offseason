@@ -5,6 +5,7 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.StaticBrake;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
@@ -20,6 +21,7 @@ import org.wpilib.math.system.DCMotor;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.system.RobotController;
 import org.wpilib.telemetry.Telemetry;
+import org.wpilib.units.measure.Velocity;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
@@ -27,7 +29,7 @@ import org.wpilib.command2.SubsystemBase;
 public class IntakeRollerSubsystem extends SubsystemBase {
     private final StaticBrake m_brakeRequest = new StaticBrake();
     private final CoastOut m_coastRequest = new CoastOut(); 
-    private final MotionMagicVelocityVoltage m_velocityRequest = new MotionMagicVelocityVoltage(0);
+    private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0);
 
     private final CANBus k_CANBus = CANIDConstants.k_canBus4;
 
@@ -66,6 +68,11 @@ public class IntakeRollerSubsystem extends SubsystemBase {
     }
     public Command runPower(boolean in){
         return Commands.runEnd(() -> m_intakeRollerMotor.setThrottle(0.9 * (in ? 1 : -1)), () -> m_intakeRollerMotor.setParadoxControl(m_brakeRequest), this);
+    }
+
+    @Override
+    public void periodic() {
+        Telemetry.log("Intake Roller Spee", m_intakeRollerMotor.getVelocity().getValueAsDouble());
     }
     
     

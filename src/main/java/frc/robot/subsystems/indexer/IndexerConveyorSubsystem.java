@@ -6,6 +6,7 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityDutyCycle;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.StaticBrake;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -27,7 +28,7 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 public class IndexerConveyorSubsystem extends SubsystemBase {
-    private final MotionMagicVelocityVoltage m_velocityRequestTop = new MotionMagicVelocityVoltage(0);
+    private final VelocityVoltage m_velocityRequestTop = new VelocityVoltage(0);
     private final Follower m_followRequest = new Follower(CANIDConstants.indexerConveyorLeader, MotorAlignmentValue.Aligned);
     private final StaticBrake m_brakeRequest = new StaticBrake();
 
@@ -62,12 +63,17 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
     public Command runPower(){
         return Commands.runEnd(() -> {
             
-            m_indexerConveyorBottom.setThrottle(0.9);
+            m_indexerConveyorBottom.setThrottle(1.0);
             m_indexerConveyorTop.setThrottle(1.0);
         }, () -> {
             m_indexerConveyorTop.setParadoxControl(m_brakeRequest);
             m_indexerConveyorBottom.setParadoxControl(m_brakeRequest);
         }, this);
+    }
+
+    @Override
+    public void periodic() {
+        Telemetry.log("Ball Tuhneull Velocity", m_indexerConveyorTop.getVelocity().getValueAsDouble());
     }
 
     

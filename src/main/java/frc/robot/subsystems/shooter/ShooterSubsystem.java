@@ -7,6 +7,7 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -30,7 +31,7 @@ import org.wpilib.command2.SubsystemBase;
 
 public class ShooterSubsystem extends SubsystemBase{
 
-    private final MotionMagicVelocityVoltage m_velocityRequest = new MotionMagicVelocityVoltage(0).withSlot(0);
+    private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withSlot(0).withEnableFOC(true);
     private final Follower m_followRequest = new Follower(CANIDConstants.shooterLeader, MotorAlignmentValue.Opposed);
     private final CoastOut m_coastRequest = new CoastOut();
 
@@ -76,8 +77,10 @@ public class ShooterSubsystem extends SubsystemBase{
 
     public Command staticShoot(){
         return Commands.runEnd(() -> {
-            m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(47));
+
+            m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(49));
         }, () -> {
+            
             m_shooterLeader.setParadoxControl(m_coastRequest);
         }, this);
     }
@@ -88,6 +91,7 @@ public class ShooterSubsystem extends SubsystemBase{
 
     @Override
     public void periodic() {
+        Telemetry.log("Shooter Speed", (Math.abs(m_shooterLeader.getVelocity().getValueAsDouble()) + Math.abs(m_shooterFollower.getVelocity().getValueAsDouble())) / 2);
         Telemetry.log("Is Shooter At Speed", isAtSpeed());
     }
     @Override
