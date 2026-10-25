@@ -18,15 +18,15 @@ import org.wpilib.math.geometry.Rotation2d;
  * robot (2026-10-25, practice field) each camera saw one tag at a time, the gyro was 67 degrees
  * off, and no pose was ever accepted.
  *
- * <p>So, before the first pose: single-tag poses from two or more DIFFERENT cameras that agree in
- * place and heading, at about the same time, set the pose. A flipped single-tag solution repeats
+ * <p>So, before the first pose: poses (single-tag or multi-tag) from two or more DIFFERENT cameras
+ * that agree in place and heading, at about the same time, set the pose. A flipped single-tag solution repeats
  * frame after frame in one camera, but two cameras looking different ways do not flip to the same
  * wrong pose.
  */
 public final class FirstPoseSeed {
     private FirstPoseSeed() {}
 
-    /** A single-tag pose that passed every check but the gyro heading; {@code time} on the vision clock. */
+    /** A multi-tag pose, or a single-tag pose that passed every check but the gyro heading; {@code time} on the vision clock. */
     public record Candidate(String camera, Pose2d pose, double time) {}
 
     /** Poses agree within this distance, meters ... */

@@ -135,13 +135,21 @@ public class SimSmokeTest {
     private double m_teleopGuardTime = 0;
     private boolean m_teleopFedNearTrench = false;
     private double m_autoMinHeadroom = Double.POSITIVE_INFINITY;
+    private boolean m_firstPoseReported = false;
+    private double m_firstPoseError = Double.NaN;
+    private double m_firstPoseHeadingError = Double.NaN;
 
     public SimSmokeTest(RobotContainer container, Drive drive) {
         m_container = container;
         m_drive = drive;
         m_container.selectAuto(kAutoName);
-        // Start in the blue zone, where the cameras can see tags.
-        m_drive.resetPose(new Pose2d(3.0, 2.0, Rotation2d.ZERO));
+        // Start in the blue zone, where the cameras can see tags, with NO field pose: the robot is
+        // there, the drive does not know it (pose at the corner, gyro 67 degrees off the field, as
+        // on the practice field 2026-10-25). Vision must find the first pose (checked before step 2).
+        m_drive.getSim().placeTruthOnly(new Pose2d(3.0, 2.0, Rotation2d.fromDegrees(-67)));
+        // The sim trusts multi-tag headings; the robot does not yet (kCamerasChecked false), so
+        // there only cameras that agree can give the first pose. Test that path.
+        m_container.getVision().setMultiTagSeedForTest(false);
         DriverStationSim.setAllianceStationId(AllianceStationID.BLUE_1);
         DriverStationSim.setDsAttached(true);
         DriverStationSim.notifyNewData();
@@ -150,6 +158,7 @@ public class SimSmokeTest {
 
     public void periodic() {
         double t = m_timer.get();
+        watchFirstPose(t);
         if (t < 1) {
             step(0, "disabled", RobotMode.TELEOPERATED, false);
         } else if (t < 3) {
@@ -466,9 +475,38 @@ public class SimSmokeTest {
         DriverStationSim.notifyNewData();
     }
 
+    /** When the drive first has a field pose: how (vision seed or multi-tag), when, how good. */
+    private void watchFirstPose(double t) {
+        if (m_firstPoseReported || !m_drive.hasFieldPose()) {
+            return;
+        }
+        m_firstPoseReported = true;
+        var vision = m_container.getVision();
+        Pose2d pose = m_drive.getPose();
+        Pose2d truth = m_drive.getSim().truthPose();
+        m_firstPoseError = pose.getTranslation().getDistance(truth.getTranslation());
+        m_firstPoseHeadingError = Math.abs(pose.getRotation().minus(truth.getRotation()).getDegrees());
+        System.out.printf("SMOKE first field pose at t %.2f s: %d camera seeds, %d multi-tag seeds; pose (%.2f, %.2f, %.1f deg)"
+                + " truth (%.2f, %.2f, %.1f deg), error %.3f m, heading %.1f deg%n",
+            t, vision.seeds(), vision.seedsFromMultiTag(), pose.getX(), pose.getY(), pose.getRotation().getDegrees(),
+            truth.getX(), truth.getY(), truth.getRotation().getDegrees(), m_firstPoseError, m_firstPoseHeadingError);
+    }
+
+    /** Before the robot moves: vision must have found the first field pose, near the truth. */
+    private void checkFirstPose() {
+        if (!m_firstPoseReported) {
+            System.out.println("SMOKE FAIL: no field pose before the robot moves (vision did not seed it)");
+        } else if (m_firstPoseError > 0.3 || m_firstPoseHeadingError > 5) {
+            System.out.printf("SMOKE FAIL: first field pose off by %.3f m, %.1f deg%n", m_firstPoseError, m_firstPoseHeadingError);
+        }
+    }
+
     private void step(int step, String name, RobotMode mode, boolean enabled) {
         if (step == m_step) {
             return;
+        }
+        if (step == 2) {
+            checkFirstPose();
         }
         if (m_step >= 0) {
             report("end of step " + m_step);

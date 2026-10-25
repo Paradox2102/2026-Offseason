@@ -50,6 +50,9 @@ public class Vision extends SubsystemBase {
     private static final double kSeedMaxSpeed = 0.5; // m/s
     private static final double kSeedMaxTurn = 0.5; // rad/s
     private int m_seeds = 0;
+    private int m_seedsFromMultiTag = 0;
+    /** Sim test only: off, the first pose can come only from cameras that agree (as on the robot while kCamerasChecked is false). */
+    private boolean m_multiTagSeed = true;
     /*
      * A camera at 30 fps sends no frame in many 20 ms loops, so "accepted this loop" blinks.
      * Stay true for 0.2 s after the last accepted pose.
@@ -108,6 +111,14 @@ public class Vision extends SubsystemBase {
             DoubleFunction<Rotation2d> headingAt = capture -> m_headingReference.correct(capture, estimatorAt.apply(capture));
             var measurements = camera.process(frames, visionNow, headingAt);
             for (var m : measurements) {
+                if (m_multiTagSeed && !m_drive.hasFieldPose() && m.multiTag() && m.stdDevs().get(2, 0) < 1) {
+                    // No field pose yet, and a multi-tag frame with a trusted heading: set the pose
+                    // from it. Blended into the corner pose (0, 0) it would move the pose only
+                    // part of the way, and the turret would aim from there.
+                    m_drive.resetPose(m.pose());
+                    m_seedsFromMultiTag++;
+                    continue;
+                }
                 if (m.multiTag()) {
                     // Before the estimator takes this frame in, so the offset is the one it corrects.
                     m_headingReference.observe(m.timestamp(), m.pose().getRotation(), estimatorAt.apply(m.timestamp()));
@@ -146,6 +157,8 @@ public class Vision extends SubsystemBase {
      * After that the normal checks apply, against a heading that is now a field heading.
      */
     private void seedFirstPose(double visionNow) {
+        Telemetry.log("Vision/Seeds", m_seeds);
+        Telemetry.log("Vision/Seeds From Multi-Tag", m_seedsFromMultiTag);
         m_seedCandidates.removeIf(c -> visionNow - c.time() > FirstPoseSeed.kWindow);
         if (m_drive.hasFieldPose()) {
             m_seedCandidates.clear();
@@ -160,7 +173,21 @@ public class Vision extends SubsystemBase {
             m_seeds++;
         }
         Telemetry.log("Vision/Seed Candidates", m_seedCandidates.size());
-        Telemetry.log("Vision/Seeds", m_seeds);
+    }
+
+    /** Sim test only: allow the first pose from one multi-tag frame (default true). */
+    public void setMultiTagSeedForTest(boolean allowed) {
+        m_multiTagSeed = allowed;
+    }
+
+    /** First poses set from agreeing cameras ({@link FirstPoseSeed}) since boot. */
+    public int seeds() {
+        return m_seeds;
+    }
+
+    /** First poses set from one multi-tag frame since boot. */
+    public int seedsFromMultiTag() {
+        return m_seedsFromMultiTag;
     }
 
     /** Measurements sent with a usable heading since boot (the sim smoke test reads it). */

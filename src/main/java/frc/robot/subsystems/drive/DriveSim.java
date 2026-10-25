@@ -115,6 +115,14 @@ public class DriveSim {
     }
 
     /**
+     * Sim test only: put the simulated robot here and tell the drive nothing, like a robot that
+     * booted with no field pose (the estimate stays at the corner, heading 0).
+     */
+    public void placeTruthOnly(Pose2d pose) {
+        resetTruth(pose);
+    }
+
+    /**
      * Goes up by one each time the simulated robot is moved by a reset. The vision sim watches it:
      * it keeps a history of robot poses to make each frame at its capture time, and after a jump it
      * would make frames from poses between the old and new place.

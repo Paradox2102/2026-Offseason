@@ -172,17 +172,13 @@ public class Drive extends TunerSwerveDrivetrain implements Subsystem {
     }
 
     /**
-     * True once the pose is a real field position: vision has given one, or the pose was set (an
-     * auto start). Before that it is the field corner (0, 0): the heading is good, the place is not.
+     * True once the pose was set to a real field position: by vision's first pose (cameras that
+     * agree, or a multi-tag frame; see Vision) or an auto start. Before that it is the field corner
+     * (0, 0), and the gyro heading is only where the robot pointed at boot. A single vision
+     * measurement blended into the corner pose does not count: it moves the pose only part of the way.
      */
     public boolean hasFieldPose() {
         return m_hasFieldPose;
-    }
-
-    @Override
-    public void addVisionMeasurement(Pose2d visionPose, double timestampSeconds, Matrix<N3, N1> stdDevs) {
-        super.addVisionMeasurement(visionPose, timestampSeconds, stdDevs);
-        m_hasFieldPose = true;
     }
 
     /** Set the pose (auto start, driver button). In the sim, the simulated robot moves there too. */

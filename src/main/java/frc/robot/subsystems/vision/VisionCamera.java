@@ -45,7 +45,7 @@ public class VisionCamera {
 
     // For telemetry: what happened to the frames of the last loop.
     private final List<Pose2d> m_accepted = new ArrayList<>();
-    /** Single-tag poses that pass every check but the gyro heading ({@link FirstPoseSeed}). */
+    /** First-pose candidates ({@link FirstPoseSeed}): multi-tag poses, and single-tag poses that pass every check but the gyro heading. */
     private final List<FirstPoseSeed.Candidate> m_seedCandidates = new ArrayList<>();
     private final List<Pose2d> m_rejected = new ArrayList<>();
     private String m_lastRejectReason = "";
@@ -152,6 +152,11 @@ public class VisionCamera {
                 new VisionFilter.Observation(s.pose(), tagCount, s.distance(), s.ambiguity(), s.headingError()),
                 FieldConstants.kFieldLength, FieldConstants.kFieldWidth, m_trustHeading);
             Pose2d pose = s.pose().toPose2d();
+            if (verdict.accepted() && s.multiTag()) {
+                // A multi-tag pose is a first-pose candidate too (FirstPoseSeed): its heading is
+                // not trusted to correct the gyro, but two cameras that agree are.
+                m_seedCandidates.add(new FirstPoseSeed.Candidate(m_config.name(), pose, result.getTimestampSeconds()));
+            }
             if (verdict.accepted()) {
                 m_accepted.add(pose);
                 double factor = m_config.stdDevFactor();

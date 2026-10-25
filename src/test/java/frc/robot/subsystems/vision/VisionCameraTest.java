@@ -121,6 +121,36 @@ class VisionCameraTest {
     }
 
     @Test
+    void aMultiTagFrameIsAFirstPoseCandidate() {
+        // Sim 2026-10-25: every camera saw 2+ tags, so there were no single-tag candidates and the
+        // first pose was never seeded.
+        m_camera.process(List.of(multiTagAt(10.0, List.of((short) 9, (short) 10, (short) 11))), 10.03, t -> heading());
+        assertEquals(1, m_camera.seedCandidates().size());
+        var c = m_camera.seedCandidates().get(0);
+        assertEquals("test_cam", c.camera());
+        assertEquals(0, c.pose().getTranslation().getDistance(robotPose().toPose2d().getTranslation()), 1e-6);
+        assertEquals(10.0, c.time(), 1e-9);
+    }
+
+    @Test
+    void aSingleTagFarFromTheGyroIsRejectedButStillAFirstPoseCandidate() {
+        // Robot 2026-10-25: the gyro 67 degrees off the field; the best solution is the true pose.
+        Rotation2d gyro = heading().plus(Rotation2d.fromDegrees(67));
+        var m = m_camera.process(List.of(resultWith(robotPose(), flipped(), 0.05)), 10.03, t -> gyro);
+        assertTrue(m.isEmpty(), "the gyro check still rejects it as a measurement");
+        assertEquals(1, m_camera.seedCandidates().size());
+        var c = m_camera.seedCandidates().get(0);
+        assertEquals(0, c.pose().getTranslation().getDistance(robotPose().toPose2d().getTranslation()), 1e-6);
+        assertEquals(heading().getDegrees(), c.pose().getRotation().getDegrees(), 1e-6);
+    }
+
+    @Test
+    void anAmbiguousSingleTagIsNoCandidate() {
+        m_camera.process(List.of(resultWith(robotPose(), flipped(), 0.5)), 10.03, t -> heading());
+        assertTrue(m_camera.seedCandidates().isEmpty());
+    }
+
+    @Test
     void multiTagWithOneUsedTagFallsBackToSingleTag() {
         var m = m_camera.process(List.of(multiTagAt(10.0, List.of((short) 10))), 10.03, t -> heading());
         assertEquals(1, m.size());
