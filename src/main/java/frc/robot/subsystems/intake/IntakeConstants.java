@@ -44,9 +44,8 @@ public final class IntakeConstants {
     public static final double kRackPinionRadius = kRackGearRatio / (2 * Math.PI * kRotationsPerMeter);
     private static final DCMotor kX44 = DCMotor.getKrakenX44Foc(1);
     /**
-     * Motor current that balances gravity along the slope, per side, amps (about 8 A). Every
-     * torque request adds -kGravityAmps, so the push and rest currents below are the NET push
-     * into the stop. Without it, a 2 A "rest in" could not hold the rack against gravity.
+     * Motor current that balances gravity along the slope, per side, amps (about 8 A). Only for
+     * kGravityVolts: the rack never pushes or holds with a current (user, 2026-10-25).
      */
     public static final double kGravityAmps = kRackSideMass * 9.81 * Math.sin(Math.toRadians(kRackSlopeDeg))
         * kRackPinionRadius / (kRackGearRatio * kX44.Kt);
@@ -68,34 +67,14 @@ public final class IntakeConstants {
     public static final double kRackStatorLimit = 60; // A per side
     public static final double kRackSupplyLimit = 30; // A per side
 
-    /**
-     * Push into a hard stop with this much current, amps. It must be clearly more than the
-     * rack's friction (kS 0.25 V over the X44's ~0.043 ohm is ~6 A), or a push stalls before the
-     * stop. Check on the robot: from 3.5 cm away, the push must reach the stop (Intake tab).
-     */
-    public static final double kPushCurrent = 12;
-    /**
-     * The push into the in stop, amps (net, like kPushCurrent). More than out: the rack goes in up
-     * its slope, and on the robot (2026-10-23) a 12 A in push stalled short of the in stop.
-     */
-    public static final double kPushInCurrent = 20;
-    /**
-     * At rest the rack leans on its stop with this much current, amps. Low on purpose: a hit can
-     * push the intake in without the motors fighting it (and without wasting battery).
-     */
-    public static final double kRestCurrent = 2;
-    /** Pushed away from its stop, a side waits until it has been still this long, seconds, then goes back. */
+    /** At rest = still this long, seconds (homing, and resting on the out stop). */
     public static final double kSettleTime = 0.3;
     /** Stopped = slower than this, m/s ... */
     public static final double kStallSpeed = 0.005;
     /** ... for this long, seconds ... */
     public static final double kStallTime = 0.15;
-    /** ... ignoring the first part of the push, seconds. */
+    /** ... ignoring the first part of a move, seconds. */
     public static final double kStallIgnore = 0.2;
-    /** A push that finds no stop in this time gives up, seconds. */
-    public static final double kPushTimeout = 1.5;
-    /** After a blocked or timed-out push, wait this long before trying again, seconds. */
-    public static final double kRetryDelay = 2.0;
     /** Reboot flags in the first seconds after code start are the devices' own boot, seconds. */
     public static final double kStartupGrace = 3.0;
     /** A rack Talon that does not answer for this long counts as dead, seconds. */

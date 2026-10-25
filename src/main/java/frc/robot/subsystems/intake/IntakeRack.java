@@ -18,8 +18,9 @@ import org.wpilib.util.Alert;
 import org.wpilib.util.Alert.Level;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.TorqueCurrentFOC;
+import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -30,68 +31,46 @@ import frc.robot.constants.CanIds;
 import frc.robot.health.HealthMonitor;
 import frc.robot.lib.phoenix.PhoenixUtil;
 import frc.robot.lib.util.AlertPublisher;
-import frc.robot.lib.util.StallDetector;
 
 /**
  * The intake rack: two motors, one per side, with no shaft between them.
  *
- * <p>Each side works on its own, because a hit can make one side skip teeth and not the other:
+ * <p>Each side works on its own ({@link RackMover}), because a hit can make one side skip teeth
+ * and not the other. User, 2026-10-25: the motors never push into a stop (no stall) and never
+ * hold the rack in place. So:
  * <ol>
  *   <li>Homing: at code start the reading means nothing (the rack slides out while the robot is
- *       off). The first move of each side goes out, whatever the goal, and its out stall sets
- *       the position to that side's out stop; then the side goes to the goal.
- *   <li>MOTION: Motion Magic to 3.5 cm before the stop. (The old code made Talon 22 a Follower,
+ *       off). On the first enable each side coasts: gravity slides it onto its out stop, which
+ *       sets the reading. Then the side goes to the goal.
+ *   <li>A move is Motion Magic to just short of the stop. (The old code made Talon 22 a Follower,
  *       which copies the leader's output, not its position, so the sides drifted.)
- *   <li>PUSH: a push (12 A net out, 20 A net in) into the stop until the side stops moving. Then its position is
- *       set to the stop ({@link RackSide}): this corrects skipped teeth.
- *   <li>REST: a light push (2 A net) holds the side against the stop. A hit can push the intake in
- *       without the motors fighting it.
- *   <li>Pushed more than 2 cm away and still again: back to MOTION/PUSH.
+ *   <li>Then the side lets go: out, it coasts onto its out stop (that re-trues its reading once);
+ *       in, it brakes, and may creep out (no hold). A side that is not moving and not there gives
+ *       up at once, with an alert, and does not try again until the next move.
  * </ol>
- * One exception, while shooting ({@link #packWhile}): POSITION holds each side at a Motion Magic
- * goal inside its stroke, to pack the hopper. It has no push and no stall check, never sets the
- * Talon's position and never counts the side as at its stop: only a move back to a stop does.
- * Positions are meters of rack travel along its 20 degree slope, 0 = in. Gravity pulls the rack
- * out; every request includes a term against it, so the currents named here are the net push.
+ * One exception, while shooting ({@link #packWhile}): each side holds a Motion Magic goal inside
+ * its stroke, to pack the hopper. Positions are meters of rack travel along its 20 degree slope,
+ * 0 = in. Gravity pulls the rack out; Motion Magic includes a term against it.
  */
 public class IntakeRack extends SubsystemBase {
-    private enum Phase { MOTION, PUSH, REST, RESYNC, POSITION }
+    private final MotionMagicVoltage m_motionRequest = new MotionMagicVoltage(0).withEnableFOC(false);
+    private final CoastOut m_coastRequest = new CoastOut();
+    private final StaticBrake m_brakeRequest = new StaticBrake();
 
-    private final MotionMagicVoltage m_motionRequest = new MotionMagicVoltage(0);
-    private final TorqueCurrentFOC m_currentRequest = new TorqueCurrentFOC(0);
-
-    /** One side: its Talon, what it knows ({@link RackSide}) and what it is doing now. */
+    /** One side: its Talon, what it knows ({@link RackSide}) and what it asks for ({@link RackMover}). */
     private final class Side {
         final String m_label;
         final TalonFX m_talon;
         final RackSide m_state;
-        final StallDetector m_stall = new StallDetector(
-            IntakeConstants.kStallSpeed, IntakeConstants.kStallTime, IntakeConstants.kStallIgnore);
-        final StallDetector m_settled = new StallDetector(IntakeConstants.kStallSpeed, IntakeConstants.kSettleTime, 0);
-        /** MOTION that stops moving short of its target: blocked, or the stop is nearer than the reading says. */
-        final StallDetector m_motionStall = new StallDetector(
-            IntakeConstants.kStallSpeed, IntakeConstants.kStallTime, IntakeConstants.kStallIgnore);
+        final RackMover m_mover;
         final Alert m_rebootAlert;
         final Alert m_problemAlert;
         final Alert m_skipAlert;
-        Phase m_phase = Phase.REST;
-        /** The stop the side moves to now (out while homing). */
-        boolean m_out = false;
-        /** The stop asked for: after homing at the out stop, the side goes here. */
+        /** The stop asked for. */
         boolean m_goal = false;
-        double m_pushStart = 0;
         int m_resets = 0;
-        /** True after a push has put the side at its stop; false while moving or after a problem. */
-        boolean m_confirmed = false;
-        /** No new try before this time (after a blocked or timed-out push). */
-        double m_retryAfter = Double.NEGATIVE_INFINITY;
-        /** Position to give a rebooted Talon (RESYNC tries until the Talon takes it). */
+        /** Position to give a rebooted Talon (it tries until the Talon takes it; NaN = none). */
         double m_resyncValue = Double.NaN;
-        /** POSITION: the Motion Magic goal, meters. */
-        double m_holdGoal = 0;
-
-        /** The reading when the last push stalled, before any fix (to measure the out stops). */
-        double m_lastStall = Double.NaN;
         /** Simulator only: this Talon does not answer. */
         boolean m_simDead = false;
         final Debouncer m_deadDebounce = new Debouncer(IntakeConstants.kDeadTime, DebounceType.RISING);
@@ -101,6 +80,7 @@ public class IntakeRack extends SubsystemBase {
             m_label = label;
             m_talon = new TalonFX(canId, CanIds.k_canBus4);
             m_state = new RackSide(label, outStop);
+            m_mover = new RackMover(m_state);
             m_rebootAlert = AlertPublisher.create("Health", "intake/" + canId + "/reboot",
                 "Intake rack " + label + " rebooted: position copied from the other side until its next stop", Level.MEDIUM);
             m_problemAlert = AlertPublisher.create("Health", "intake/" + canId + "/stop", "", Level.MEDIUM);
@@ -142,147 +122,71 @@ public class IntakeRack extends SubsystemBase {
             return m_talon.getVelocity().getValueAsDouble();
         }
 
-        /** Go to a stop: Motion Magic first if far from it, then the push. */
+        /** Go to a stop (nothing to do if already let go there). */
         void start(boolean out, double now) {
-            start(out, now, position());
-        }
-
-        /** @param position where the side is (given, when the Talon's reading is not up to date yet) */
-        void start(boolean out, double now, double position) {
             m_goal = out;
-            if (m_phase == Phase.RESYNC) {
-                return; // RESYNC starts the move when the Talon has its position
-            }
-            if (!m_state.isHomed()) {
-                out = true; // home at the out stop first; then the goal
-            }
-            // Already resting at this stop: nothing to do (no delay for the rollers).
-            if (m_confirmed && out == m_out && m_phase == Phase.REST && !m_state.awayFromStop(out, position)) {
-                return;
-            }
-            m_out = out;
-            m_confirmed = false;
-            double distance = Math.abs(position - m_state.stopPosition(out));
-            if (distance > RackSide.kApproachDistance + IntakeConstants.kAtGoalTolerance) {
-                m_phase = Phase.MOTION;
-                m_motionStall.reset(now);
-            } else {
-                startPush(now);
+            if (Double.isNaN(m_resyncValue)) {
+                m_mover.start(out, now);
             }
         }
 
-        /** The Talon rebooted: give it this position, then go to the stop of the goal to confirm it. */
+        /** The Talon rebooted: give it this position, then go to the stop of the goal again. */
         void resync(double value, boolean out) {
             m_resets++;
             m_state.onReset();
             m_rebootAlert.set(true);
-            m_confirmed = false;
             m_goal = out;
             m_resyncValue = value;
-            m_phase = Phase.RESYNC;
         }
 
-        /** Hold this position (Motion Magic, no push). Not at a stop: a later move to a stop confirms it again. */
+        /** Hold this position (pack for a shot): Motion Magic, inside the stroke. */
         void hold(double goal) {
-            if (m_phase == Phase.RESYNC || !m_state.isHomed()) {
-                return; // the Talon gets its position first, or the side homes first
+            if (Double.isNaN(m_resyncValue)) {
+                m_mover.hold(goal);
             }
-            m_phase = Phase.POSITION;
-            m_confirmed = false;
-            m_holdGoal = goal;
-        }
-
-        private void startPush(double now) {
-            m_phase = Phase.PUSH;
-            m_pushStart = now;
-            m_stall.reset(now);
         }
 
         void update(double now) {
-            double sign = m_out ? 1 : -1;
-            switch (m_phase) {
-                case RESYNC -> {
-                    // Send nothing until the Talon has its position (it may still be booting).
-                    if (m_talon.setPosition(m_resyncValue).isOK()) {
-                        double value = m_resyncValue;
-                        m_resyncValue = Double.NaN;
-                        m_phase = Phase.REST;
-                        start(m_goal, now, value); // the reading may not show the new value yet
-                    }
+            if (!Double.isNaN(m_resyncValue)) {
+                // Send nothing until the Talon has its position (it may still be booting).
+                if (m_talon.setPosition(m_resyncValue).isOK()) {
+                    m_resyncValue = Double.NaN;
+                    m_mover.restart(m_goal, now);
                 }
-                case MOTION -> {
-                    double target = m_state.approachGoal(m_out);
-                    m_talon.setControl(m_motionRequest.withPosition(target));
-                    if (Math.abs(position() - target) < IntakeConstants.kAtGoalTolerance) {
-                        startPush(now);
-                    } else if (m_motionStall.update(now, velocity())) {
-                        // Not moving and not there: blocked, or the stop is nearer than the reading
-                        // says. Do not hold 40 A against it: the gentle push takes over.
-                        startPush(now);
-                    }
-                }
-                case PUSH -> {
-                    double push = m_out ? IntakeConstants.kPushCurrent : IntakeConstants.kPushInCurrent;
-                    m_talon.setControl(m_currentRequest.withOutput(sign * push - IntakeConstants.kGravityAmps));
-                    if (m_stall.update(now, velocity())) {
-                        m_lastStall = position();
-                        var result = m_state.stalledAt(m_out, m_lastStall);
-                        if (!Double.isNaN(result.setPosition())) {
-                            m_talon.setPosition(result.setPosition());
-                        }
-                        if (result.atStop()) {
-                            // At the stop: the position can be trusted again.
-                            m_confirmed = true;
-                            m_problemAlert.set(false);
-                            m_rebootAlert.set(false);
-                            if (result.alert() != null) {
-                                m_skipAlert.setText(result.alert());
-                                m_skipAlert.set(true);
-                            }
-                        } else {
-                            // Blocked: rest (do not fight it) and try again later.
-                            m_problemAlert.setText(result.alert());
-                            m_problemAlert.set(true);
-                            m_retryAfter = now + IntakeConstants.kRetryDelay;
-                        }
-                        rest(now);
-                        if (result.atStop() && m_out != m_goal) {
-                            start(m_goal, now); // homed at the out stop: now to the goal
-                        }
-                    } else if (now - m_pushStart > IntakeConstants.kPushTimeout) {
-                        m_problemAlert.setText(m_state.pushTimedOut(m_out));
-                        m_problemAlert.set(true);
-                        m_retryAfter = now + IntakeConstants.kRetryDelay;
-                        rest(now);
-                    }
-                }
-                case POSITION -> m_talon.setControl(m_motionRequest.withPosition(m_holdGoal));
-                case REST -> {
-                    m_talon.setControl(m_currentRequest.withOutput(sign * IntakeConstants.kRestCurrent - IntakeConstants.kGravityAmps));
-                    // Pushed away by a hit: do not fight it while it moves; once it is still, go back.
-                    // Not confirmed (a blocked or timed-out push): also try again, even if the side
-                    // has drifted onto its stop by itself, so a push confirms it there.
-                    boolean settled = m_settled.update(now, velocity());
-                    boolean needsMove = m_state.awayFromStop(m_out, position()) || !m_confirmed;
-                    if (needsMove && settled && now >= m_retryAfter) {
-                        m_confirmed = false;
-                        start(m_out, now);
-                    }
-                }
+                return;
+            }
+            var out = m_mover.update(now, position(), velocity());
+            double set = m_mover.takeSetPosition();
+            if (!Double.isNaN(set)) {
+                m_talon.setPosition(set);
+                m_rebootAlert.set(false);
+            }
+            switch (out.kind()) {
+                case COAST -> m_talon.setControl(m_coastRequest);
+                case BRAKE -> m_talon.setControl(m_brakeRequest);
+                case MOTION -> m_talon.setControl(m_motionRequest.withPosition(out.target()));
+            }
+            String problem = m_mover.alert();
+            if (problem != null) {
+                m_problemAlert.setText(problem);
+            }
+            m_problemAlert.set(problem != null);
+            if (m_mover.skipAlert() != null) {
+                m_skipAlert.setText(m_mover.skipAlert());
+                m_skipAlert.set(true);
             }
         }
 
-        private void rest(double now) {
-            m_phase = Phase.REST;
-            m_settled.reset(now);
-        }
-
         boolean atStop() {
-            return m_phase == Phase.REST;
+            return Double.isNaN(m_resyncValue) && m_mover.isIdle();
         }
 
         boolean homed() {
             return m_state.isHomed();
+        }
+
+        String phase() {
+            return Double.isNaN(m_resyncValue) ? m_mover.mode() : "RESYNC";
         }
     }
 
@@ -334,7 +238,7 @@ public class IntakeRack extends SubsystemBase {
         m_wasEnabled = enabled;
 
         // Only an alert: skipped teeth make the readings differ while the rack itself is straight.
-        boolean moving = m_left.m_phase == Phase.MOTION && m_right.m_phase == Phase.MOTION;
+        boolean moving = m_left.phase().equals("MOVE") && m_right.phase().equals("MOVE");
         if (moving && m_skewGuard.update(now, m_left.position(), m_right.position())) {
             m_skewAlert.set(true);
         }
@@ -518,9 +422,9 @@ public class IntakeRack extends SubsystemBase {
         return (left ? m_left : m_right).m_state.outStop();
     }
 
-    /** A side's reading at its last stall, before any fix, meters (NaN: none yet). */
+    /** A side's reading when it last came to rest on its out stop, before any fix, meters (NaN: none yet). */
     public double lastStall(boolean left) {
-        return (left ? m_left : m_right).m_lastStall;
+        return (left ? m_left : m_right).m_mover.lastRest();
     }
 
     /** Mean of the two sides, meters (0 = in). */
@@ -570,8 +474,8 @@ public class IntakeRack extends SubsystemBase {
     }
 
     private static String describe(Side side) {
-        return String.format("%s %.3f m, out stop %.3f, %s%s, %d reboots%s", side.m_label, side.position(),
-            side.m_state.outStop(), side.m_phase, side.m_confirmed ? " at stop" : "", side.m_resets,
+        return String.format("%s %.3f m, out stop %.3f, %s, %d reboots%s", side.m_label, side.position(),
+            side.m_state.outStop(), side.phase(), side.m_resets,
             side.m_dead ? ", NOT ANSWERING" : "");
     }
 
@@ -585,9 +489,9 @@ public class IntakeRack extends SubsystemBase {
         for (Side side : new Side[] {m_left, m_right}) {
             String prefix = "Intake/Rack/" + (side == m_left ? "Left" : "Right") + "/";
             Telemetry.log(prefix + "Position m", side.position());
-            Telemetry.log(prefix + "Phase", side.m_phase.name());
+            Telemetry.log(prefix + "Phase", side.phase());
             Telemetry.log(prefix + "Out Stop m", side.m_state.outStop());
-            Telemetry.log(prefix + "Last Stall m", side.m_lastStall);
+            Telemetry.log(prefix + "Last Stall m", side.m_mover.lastRest());
             Telemetry.log(prefix + "Connected", !side.m_dead);
             Telemetry.log(prefix + "Lost", side.m_state.isLost());
             Telemetry.log(prefix + "Homed", side.homed());

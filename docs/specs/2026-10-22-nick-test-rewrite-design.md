@@ -313,6 +313,17 @@ The robot is powered off in the pit and boots for the match with the intake in. 
   boot: that side's position is set to the CAD stroke at the stop, with the alert "Intake was not
   in at boot".
 
+### No push, no hold (user, 2026-10-25): replaces the push and rest rules below
+
+On the robot (2026-10-25 15:14) the first enable homed out, then drove in at 61-65 A (the stator
+limit) and both sides stalled 22-27 cm short of the in stop (binding), then held about 10 A. The
+user: never stall the rack motors, never hold the rack in place. `RackMover` (unit tested):
+homing coasts (gravity slides each side onto its out stop, which sets the reading); a move is
+Motion Magic to 1.5 cm short of the in stop or 0.5 cm short of the out stop, then the side lets go
+(out: coast, gravity lays it on the stop and re-trues the reading once; in: brake, it may creep
+out). Not moving and not there: let go at once with an alert, no retry. The in stop is never
+touched, so the reading is never re-trued at 0. The pack hold during a shot stays.
+
 ### Hits, skipped teeth, rest (user, 2026-10-22)
 
 The intake gets hit: it can be pushed in (the motors are backdriven) or skip rack teeth (the

@@ -15,9 +15,10 @@ package frc.robot.subsystems.intake;
  *       goes out (gravity helps), and the first out stall sets the reading to this side's out
  *       stop ("homed"). The first in stall after that within 3 cm of 0 sets the in stop (0) with
  *       no alert: the out stop constant may be a little off.
- *   <li>Every move ends with a push into its stop. A stall within 1 cm of the stop sets the
- *       reading to the stop: 0 for the in stop, the measured out stop of this side
- *       (IntakeConstants) for the out stop.
+ *   <li>The motors never push into a stop (user, 2026-10-25; {@link RackMover}): only the out
+ *       stop is ever reached, by gravity, with the motor coasting. Coming to rest there counts
+ *       as a "stall" here. Within 1 cm of the stop it sets the reading to this side's measured
+ *       out stop (IntakeConstants).
  *   <li>A stall 1 to 5 cm PAST the stop: a hard stop cannot be passed, so the reading is wrong
  *       (skipped teeth). Fixed, with an alert. More than 5 cm past: not trusted.
  *   <li>A stall more than 1 cm SHORT of the stop is never fixed: something may hold the side
@@ -30,7 +31,7 @@ package frc.robot.subsystems.intake;
  */
 public class RackSide {
     /**
-     * What to do after a push stopped.
+     * What to do after the side came to rest at a stop.
      *
      * @param setPosition the position to give the Talon (NaN = keep the reading)
      * @param alert an alert text, or null
@@ -38,14 +39,10 @@ public class RackSide {
      */
     public record StopResult(double setPosition, String alert, boolean atStop) {}
 
-    /** The push starts this far before the stop, meters. */
-    public static final double kApproachDistance = 0.035;
     /** A stall within this of the expected stop is normal, meters. */
     public static final double kSkipTolerance = 0.01;
     /** A stall further than this past the expected stop is not trusted, meters. */
     public static final double kMaxCorrection = 0.05;
-    /** Further than this from its stop at rest, the side was pushed away and goes back, meters. */
-    public static final double kPushedAway = 0.02;
     /** The first in stall after homing within this of 0 is the in stop, meters. */
     public static final double kFirstInTolerance = 0.03;
 
@@ -63,6 +60,11 @@ public class RackSide {
     public RackSide(String name, double outStop) {
         m_name = name;
         m_outStop = outStop;
+    }
+
+    /** For alerts, for example "Talon 22 (right)". */
+    public String name() {
+        return m_name;
     }
 
     public boolean isLost() {
@@ -89,25 +91,15 @@ public class RackSide {
         return out ? outStop() : 0.0;
     }
 
-    /** Where the Motion Magic part of a move ends and the push starts. */
-    public double approachGoal(boolean out) {
-        return out ? outStop() - kApproachDistance : kApproachDistance;
-    }
-
-    /** At rest against a stop: has the side been pushed away from it? */
-    public boolean awayFromStop(boolean out, double position) {
-        return Math.abs(position - stopPosition(out)) > kPushedAway;
-    }
-
     /** The Talon rebooted: the position it reads now is not true. */
     public void onReset() {
         m_lost = true;
     }
 
     /**
-     * A push stopped moving.
+     * The side came to rest at a stop (no longer a push: it coasts onto the out stop).
      *
-     * @param out true for a push toward the out stop
+     * @param out true for the out stop
      * @param position the position the side reads now
      */
     public StopResult stalledAt(boolean out, double position) {
@@ -126,7 +118,7 @@ public class RackSide {
         }
         double stop = stopPosition(out);
         String where = out ? "out" : "in";
-        // How far the reading is past the stop, in the direction of the push (negative = short).
+        // How far the reading is past the stop, in the direction of the move (negative = short).
         double past = out ? position - stop : stop - position;
         if (past < -kSkipTolerance) {
             return new StopResult(Double.NaN, String.format(
@@ -144,15 +136,5 @@ public class RackSide {
             : null;
         m_lost = false;
         return new StopResult(stop, alert, true);
-    }
-
-    /**
-     * A push did not stop in time (a motor problem, or the rack moves freely past where a stop
-     * should be).
-     *
-     * @return an alert text
-     */
-    public String pushTimedOut(boolean out) {
-        return "Intake " + m_name + " did not reach the " + (out ? "out" : "in") + " stop: check for something in the way";
     }
 }

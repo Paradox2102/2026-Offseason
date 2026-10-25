@@ -63,8 +63,6 @@ class RackSideTest {
     void startsAtTheGivenOutStop() {
         assertFalse(m_side.isLost());
         assertEquals(kOutStop, m_side.outStop(), 1e-9);
-        assertEquals(kOutStop - RackSide.kApproachDistance, m_side.approachGoal(true), 1e-9);
-        assertEquals(RackSide.kApproachDistance, m_side.approachGoal(false), 1e-9);
     }
 
     @Test
@@ -145,18 +143,5 @@ class RackSideTest {
         assertNull(past.alert());
         assertTrue(past.atStop());
         assertFalse(m_side.isLost());
-    }
-
-    @Test
-    void pushedAwayFromTheStop() {
-        assertTrue(m_side.awayFromStop(true, 0.30));
-        assertFalse(m_side.awayFromStop(true, 0.31));
-        assertTrue(m_side.awayFromStop(false, 0.025));
-        assertFalse(m_side.awayFromStop(false, 0.01));
-    }
-
-    @Test
-    void pushTimeoutGivesAnAlert() {
-        assertNotNull(m_side.pushTimedOut(true));
     }
 }
