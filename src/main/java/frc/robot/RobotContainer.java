@@ -48,6 +48,7 @@ public class RobotContainer {
         // configureFuelSim();
         configureDefaults();
         configureBindings();
+        // m_controller.faceDown().whileTrue(Subsystems.m_indexerRollerSubsystem.runPower(true));
         // m_controller.leftBumper().onTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
         // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
         configureAutos();
@@ -64,7 +65,7 @@ public class RobotContainer {
             Subsystems.m_kickerSubsystem.run(),
             Subsystems.m_secondaryKicker.run(true)
             ));
-        m_noIntakeShoot.whileTrue(Subsystems.m_intakeExtension.agitate());
+        m_noIntakeShoot.whileTrue(Commands.parallel(Subsystems.m_intakeExtension.agitate(), Subsystems.m_intakeRoller.run(true)));
 
         m_controller.leftTrigger().whileTrue(Commands.sequence(
             Subsystems.m_intakeExtension.extendIntake(),
@@ -153,6 +154,7 @@ public class RobotContainer {
                     .withRotationalRate(Math.pow(m_controller.getRightX(), 4) * Math.signum(-m_controller.getRightX()) * SwerveSubsystem.MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
+        Subsystems.m_turretAimSubsystem.setDefaultCommand(Subsystems.m_turretAimSubsystem.rotateToTarget());
         // SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
         // Subsystems.m_swerveSubsystem.setDefaultCommand(Subsystems.m_swerveSubsystem.applyRequest(() -> point.withModuleDirection(new Rotation2d(-m_controller.getLeftY(), -m_controller.getLeftX()))));

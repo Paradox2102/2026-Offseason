@@ -29,12 +29,13 @@ import org.wpilib.command2.SubsystemBase;
 
 public class IndexerConveyorSubsystem extends SubsystemBase {
     private final VelocityVoltage m_velocityRequestTop = new VelocityVoltage(0);
-    private final Follower m_followRequest = new Follower(CANIDConstants.indexerConveyorLeader, MotorAlignmentValue.Aligned);
+    private final VelocityVoltage m_velocityRequestBottom = m_velocityRequestTop;
+
     private final StaticBrake m_brakeRequest = new StaticBrake();
 
     private final CANBus k_CANBus = CANIDConstants.k_canBus1;
     private final ParadoxTalon m_indexerConveyorTop = new ParadoxTalon(CANIDConstants.indexerConveyorLeader, k_CANBus, m_brakeRequest, 0.1);
-    private final ParadoxTalon m_indexerConveyorBottom = new ParadoxTalon(CANIDConstants.indexerConveyorFollower, k_CANBus, m_followRequest, 0.1);
+    private final ParadoxTalon m_indexerConveyorBottom = new ParadoxTalon(CANIDConstants.indexerConveyorFollower, k_CANBus, m_brakeRequest, 0.1);
 
     private final double k_gearRatio = 1;
 
@@ -55,8 +56,10 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
     public Command run(boolean in) {
         return Commands.runEnd(() -> {
             m_indexerConveyorTop.setControl(m_velocityRequestTop.withVelocity(in ? IndexerConstants.k_conveyorInRPS : IndexerConstants.k_conveyorOutRPS));
-            }, () -> {
+            m_indexerConveyorBottom.setControl(m_velocityRequestBottom.withVelocity(in ? IndexerConstants.k_conveyorInRPS : IndexerConstants.k_conveyorOutRPS));    
+        }, () -> {
                 m_indexerConveyorTop.setControl(m_brakeRequest);
+                m_indexerConveyorBottom.setControl(m_brakeRequest);
             }, this); 
     }
 

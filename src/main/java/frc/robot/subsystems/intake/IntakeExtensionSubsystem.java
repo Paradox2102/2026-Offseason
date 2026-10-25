@@ -29,7 +29,7 @@ import org.wpilib.command2.WaitCommand;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
     private static final double k_intakeMaxExtension = 3.95;
-    private static final double k_intakeCrushPosition = 2.54;
+    private static final double k_intakeCrushPosition = 2.84;
     private static final double k_elevatorDrimRadius = 0.038091; // If something is wrong then this is the first thing to check. Idk if I did this right
     private static final double k_elevatorMass = 5.401715051809;
     private final CANBus k_CANBus = CANIDConstants.k_canBus4;
@@ -71,8 +71,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.setParadoxControl(m_followRequest);
 
-        // m_intakeExtensionLeader.setPosition(0);
-        // m_intakeExtensionFollower.setPosition(0);
+        m_intakeExtensionLeader.setPosition(k_intakeMaxExtension);
+        m_intakeExtensionFollower.setPosition(k_intakeMaxExtension);
 
         if (Utils.isSimulation()){
             var talonFXSim = m_intakeExtensionLeader.getSimState();

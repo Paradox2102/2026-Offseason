@@ -119,17 +119,32 @@ public class Constants {
      */
     public static class VisionConstants {
 
-		public static final Translation3d backLeftPosition = new Translation3d(-0.30970102548599, -0.24477368593216, 0.23230773210526);
-		public static final Rotation3d backLeftRotation = new Rotation3d(-0.97320371866226, -2.66518068313599, 1.57124507427216);
+		        // CAD cambrea 1: back left corner, looks back and right
+        public static final Rotation3d backLeftRotation = camRotation(-17.3, -30.0, -148.0);
+        public static final Translation3d backLeftPosition = camPosition(-11.53, 10.05, 8.69, backLeftRotation);
+        // CAD cambrea 2: back right corner, looks back and left
+        public static final Rotation3d backRightRotation = camRotation(-2.1, -25.0, 148.0);
+        public static final Translation3d backRightPosition = camPosition(-11.44, -9.09, 16.22, backRightRotation);
+        // CAD cambrea 4: left side, looks left
+        public static final Rotation3d sideLeftRotation = camRotation(-8.9, -30.0, 65.0);
+        public static final Translation3d sideLeftPosition = camPosition(-0.80, 13.01, 9.13, sideLeftRotation);
+        // CAD cambrea 3: right side, looks right
+        public static final Rotation3d sideRightRotation = camRotation(-11.1, -25.0, -65.0);
+        public static final Translation3d sideRightPosition = camPosition(-11.43, -12.73, 16.18, sideRightRotation);
 
-		public static final Translation3d backRightPosition = new Translation3d(-0.30812799930573, 0.21981756389141, 0.42163202166557);
-		public static final Rotation3d backRightRotation = new Rotation3d(-1.13306474685669, -3.06422424316406, 0.92690563201904);
+        /** CAD angles are in degrees; Rotation3d wants radians. */
+        private static Rotation3d camRotation(double rollDeg, double pitchDeg, double yawDeg) {
+            return new Rotation3d(Units.degreesToRadians(rollDeg), Units.degreesToRadians(pitchDeg), Units.degreesToRadians(yawDeg));
+        }
 
-		public static final Translation3d sideRightPosition = new Translation3d(-0.28139585256577, 0.3423268198967, 0.42079696059227);
-		public static final Rotation3d sideRightRotation = new Rotation3d(-1.0956050157547, -2.74852681159973, 3.14159274101257);
-
-		public static final Translation3d sideLeftPosition = new Translation3d(-0.0119677465409, -0.34862169623375, 0.24347171187401);
-		public static final Rotation3d sideLeftRotation = new Rotation3d(-1.02681541442871, -2.88045334815979, -0.73905700445175);
+        /**
+         * The CAD numbers (inches) are the camera part's origin, 0.98 in behind the lens front.
+         * Move half of that along the lens axis, close to where the lens takes its picture from.
+         */
+        private static Translation3d camPosition(double xIn, double yIn, double zIn, Rotation3d rotation) {
+            Translation3d alongLens = new Translation3d(Units.inchesToMeters(0.49), 0, 0).rotateBy(rotation);
+            return new Translation3d(Units.inchesToMeters(xIn), Units.inchesToMeters(yIn), Units.inchesToMeters(zIn)).plus(alongLens);
+        }
 
 
         public static final Vector<N3> k_visionBaseSDev = VecBuilder.fill(15, 15, 15);
@@ -178,7 +193,7 @@ public class Constants {
     public static final double k_secondaryKickerI = 0.03;
 
     public static final double k_turretI = 0.0;
-    public static final double k_turretP = 0.0;
+    public static final double k_turretP = 2.0;
     public static final double k_turretD = 0.0;
     public static final double k_turretV = 0.0;
     public static final double k_turretS = 0.0;
@@ -295,7 +310,7 @@ public class Constants {
         //k_turretConfig.Slot0.kI = k_turretI;
         k_turretConfig.Slot0.kP = k_turretP;
         k_turretConfig.Slot0.kD = k_turretD;
-        k_turretConfig.Slot0.kS = k_turretS;
+        // k_turretConfig.Slot0.kS = k_turretS;
 
         k_hoodConfig.withCurrentLimits(k_hoodLimitConfig);
         k_hoodConfig.withMotorOutput(k_hoodConfig.MotorOutput.clone().withInverted(InvertedValue.CounterClockwise_Positive));
@@ -416,20 +431,20 @@ public class Constants {
         public static final double k_indexerRollerMOI = 0.00045822;
         public static final double k_indexerConveyorMOI = 0.00001722;
 
-        public static final double k_rollerP = 0.1;
+        public static final double k_rollerP = 0.15;
         public static final double k_rollerS = 0.0;
         public static final double k_rollerV = 0.254;
-        public static final double k_rollerI = 0.1;
+        public static final double k_rollerI = 0.2;
 
-        public static final double k_conveyorP = 0.05;
-        public static final double k_conveyorI = 0.1;
+        public static final double k_conveyorP = 0.1;
+        public static final double k_conveyorI = 0.2;
 
         public static final double k_conveyorV = 0.097;
 
         public static final double k_conveyorMotionMagicAcceleration = 40.0;
         public static final double k_rollerMotionMagicAcceleration = 40.0;
 
-        public static final double k_conveyorSupplyLimit = 18;
+        public static final double k_conveyorSupplyLimit = 25;
         public static final double k_rollerSupplyLimit = 25;
 
         public static final CurrentLimitsConfigs m_conveyorLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_conveyorSupplyLimit);

@@ -117,6 +117,10 @@ public class Vision {
         swerveDrive.addVisionMeasurement(pose.estimatedPose.toPose2d(),
             pose.timestampSeconds,
             camera.curStdDevs);
+
+             if (camera.estimatedRobotPose.isPresent())
+               Telemetry.log(camera.name() + " estimated pose", camera.estimatedRobotPose.get().estimatedPose);
+            
       }
     }
 

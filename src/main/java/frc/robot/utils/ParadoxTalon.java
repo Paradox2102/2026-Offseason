@@ -2,6 +2,7 @@ package frc.robot.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
@@ -28,6 +29,7 @@ public class ParadoxTalon extends TalonFX {
     private ControlRequest m_request;
     private boolean m_manualShutoff = false;
     private boolean m_stallShutoff = false;
+
 
     /**
      * Constructs a TalonFX with a few extra utility things
