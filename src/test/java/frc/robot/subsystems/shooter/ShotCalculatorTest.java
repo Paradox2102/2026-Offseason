@@ -37,6 +37,23 @@ class ShotCalculatorTest {
     }
 
     @Test
+    void theAimMatchesMainsWorkingTurretFormula() {
+        // main fe41031 ("TURRET WORKS", 2026-10-25), checked on the robot: motor rotations =
+        // (-yaw - 90 deg) x 67.86 with the Talon's default direction (positive = clockwise from
+        // above), from the robot center. In our frame (counterclockwise, turret rotations) that is
+        // yaw + 90 deg. A far target, so main's missing turret offset changes the angle < 2 deg.
+        var target = new Translation2d(12, 4);
+        for (double headingDeg : new double[] {-67, 0, 45, 120, -150}) {
+            var robot = new Pose2d(2, 2, Rotation2d.fromDegrees(headingDeg));
+            double yaw = target.minus(robot.getTranslation()).getAngle().orElseThrow().minus(robot.getRotation()).getRadians();
+            double mainCcwRot = -((-yaw - Math.PI / 2) / (2 * Math.PI));
+            var aim = ShotCalculator.aim(robot, target, kStill, 0, kNoFlight, 0);
+            double diffDeg = Math.toDegrees(Rotation2d.fromRotations(aim.turretAimRot() - mainCcwRot).getRadians());
+            assertEquals(0, diffDeg, 2.0, "heading " + headingDeg);
+        }
+    }
+
+    @Test
     void targetStraightAheadIsAQuarterTurnLeft() {
         var target = new Translation2d(5, 5);
         var aim = ShotCalculator.aim(robotWithPivotAt(target.minus(new Translation2d(2, 0))), target, kStill, 0, kNoFlight, 0);
