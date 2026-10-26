@@ -174,8 +174,8 @@ public class Constants {
 
     public static final double k_hoodG = 0.0;
     public static final double k_hoodS = 0;
-    public static final double k_hoodP = 0.1;
-    public static final double k_hoodD = 0;
+    public static final double k_hoodP = 5.0;
+    public static final double k_hoodD = 0.5;
 
     public static final double k_shooterP = 0.008;
     public static final double k_shooterS = 0.33;
@@ -202,32 +202,17 @@ public class Constants {
 
     public static final DoubleNumber k_turretBounds = new DoubleNumber(-250, 250);
     public static final double[][] k_scoreHoodAngle = {
-        {1.125, 0},
-      {1.25, 0},
-      {1.5, 10},
-      {1.75, 12.5},
-      {2, 15},
-      {2.25, 17.5},
-      {2.5, 19},
-      {2.75, 21},
-      {3, 22},
-      {4, 22},
-      {4.5, 23},
-      {5, 25},
-      {10, 35}
+        {0.8, 0},
+        {1.31, 0}
     };
 
     public static final double[][] k_scoreShotSpeeds = {
-        {1.125, 40},
-      {2.25, 45},
-      {2.75, 47},
-      {3.25, 50},
-      {4, 55},
-      {4.75, 60}
+        {0.8, 49},
+        {1.31, 53}
     };
 
     public static final double[][] k_scoreShotTimes = {
-        {0, 0}
+        {0.8, 0}
     };
     public static final double[][] k_passHoodAngle = {
       {1.125, 0},
@@ -259,10 +244,10 @@ public class Constants {
     };
 
     public static final double k_staticShotSpeed = 40;
-    public static final double k_staticShotAngle = 0;
+    public static final double k_staticShotAngle = 6.0;
     public static final double k_hoodMOI = 0.02635296; 
     public static final double k_hoodArmLength = 0.20860766;
-    public static final double k_hoodMaxAngle = 90;
+    public static final double k_hoodMaxAngle = 8.310546875;
     
     public static final double k_hoodSupplyLimit = 26;
     public static final double k_kickerSupplyLimit = 23;

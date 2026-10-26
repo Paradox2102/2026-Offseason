@@ -78,7 +78,7 @@ public class ShooterSubsystem extends SubsystemBase{
     public Command staticShoot(){
         return Commands.runEnd(() -> {
 
-            m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(49));
+            m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(62));
         }, () -> {
             
             m_shooterLeader.setParadoxControl(m_coastRequest);

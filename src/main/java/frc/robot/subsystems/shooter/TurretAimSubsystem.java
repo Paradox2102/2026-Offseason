@@ -40,9 +40,10 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     private final ParadoxTalon m_shooterAzimuth = new ParadoxTalon(CANIDConstants.shooterAzimuth, k_CANBus, m_coastRequest, 0.1);
     
+    public Pose3d turretPose = new Pose3d();
 
     public boolean isOnTarget() {
-        return Math.abs(m_shooterAzimuth.getPosition().getValueAsDouble() - getTargetRotation()) < 0.5;
+        return Math.abs(m_shooterAzimuth.getPosition().getValueAsDouble() - m_positionRequest.Position) < 0.5;
     }
 
  private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(Models.singleJointedArmFromPhysicalConstants(DCMotor.getKrakenX60(1), 0.04969116, ShooterConstants.k_shooterGearReduction), DCMotor.getKrakenX60(1), ShooterConstants.k_shooterGearReduction, 0.1, Units.degreesToRadians(ShooterConstants.k_turretBounds.getMinBound()), Units.degreesToRadians(ShooterConstants.k_turretBounds.getMaxBound()), false, 0);   
@@ -75,13 +76,16 @@ public class TurretAimSubsystem extends SubsystemBase{
         var rotatedPose = new Pose3d(ShooterConstants.k_turretOffset, new Rotation3d()).rotateBy(new Rotation3d(0, 0, hubPose.getRotation().getAngle()));
         hubPose.plus(new Transform3d(hubPose.getX() + rotatedPose.getX(), hubPose.getY() + rotatedPose.getY(), hubPose.getZ() + rotatedPose.getZ(), hubPose.getRotation()));
 
-        Telemetry.log("Turret position", hubPose);
+        turretPose = hubPose;
 
         var hub = SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueDepot;
         /**
          * This is the X and Y component of the triangle constructed from the robot to the hub
          */
         var rotationTriangle = new Translation2d(hubPose.getX() - hub.getX(), hubPose.getY() - hub.getY());
+        
+        Telemetry.log("Turret Distance To Hub", hubPose.getTranslation().toTranslation2d().getDistance(hub));
+
         /**
          * Uses arctangent to calculate the angle in radians
          */

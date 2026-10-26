@@ -71,8 +71,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.setParadoxControl(m_followRequest);
 
-        m_intakeExtensionLeader.setPosition(k_intakeMaxExtension);
-        m_intakeExtensionFollower.setPosition(k_intakeMaxExtension);
+        // m_intakeExtensionLeader.setPosition(k_intakeMaxExtension);
+        // m_intakeExtensionFollower.setPosition(k_intakeMaxExtension);
 
         if (Utils.isSimulation()){
             var talonFXSim = m_intakeExtensionLeader.getSimState();
@@ -155,7 +155,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
             return intakePosition < target.position;
         }
         Telemetry.log("Intake psotion - target", (intakePosition - target.position));
-        return Math.abs(intakePosition - target.position) < 0.08;
+        return Math.abs(intakePosition - target.position) < 0.1;
 
     }
 

@@ -48,6 +48,7 @@ public class RobotContainer {
         // configureFuelSim();
         configureDefaults();
         configureBindings();
+        m_controller.faceLeft().whileTrue(Subsystems.m_hoodSubsystem.staticPitch()).whileFalse(Subsystems.m_hoodSubsystem.returnHood());
         // m_controller.faceDown().whileTrue(Subsystems.m_indexerRollerSubsystem.runPower(true));
         // m_controller.leftBumper().onTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
         // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
@@ -56,7 +57,7 @@ public class RobotContainer {
 
     private void configureBindings() {
 
-        Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed() && m_controller.rightTrigger().getAsBoolean());
+        Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed() && m_controller.rightTrigger().getAsBoolean() && Subsystems.m_turretAimSubsystem.isOnTarget());
         Trigger m_noIntakeShoot = new Trigger(() -> isReadyToShoot.getAsBoolean() && !m_controller.leftTrigger().getAsBoolean());
 
         isReadyToShoot.whileTrue(Commands.parallel(
@@ -98,7 +99,7 @@ public class RobotContainer {
         ));
 
         m_joystick.getHID().button(0).whileTrue(Commands.parallel(Subsystems.m_intakeExtension.retractIntake(), Subsystems.m_intakeRoller.run(true)));
-        m_joystick.getHID().button(7).onTrue(Subsystems.m_intakeExtension.extendIntakeAndReset());
+        // m_joystick.getHID().button(7).onTrue(Subsystems.m_intakeExtension.extendIntakeAndReset());
         m_joystick.getHID().button(1).whileTrue(Commands.parallel(
                 Subsystems.m_secondaryKicker.run(false),
                 Subsystems.m_indexerConveyor.run(false)

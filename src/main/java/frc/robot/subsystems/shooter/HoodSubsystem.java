@@ -33,9 +33,8 @@ public class HoodSubsystem extends SubsystemBase{
     public final InterpolatingDoubleTreeMap m_hoodLerpTable = new InterpolatingDoubleTreeMap();
 
     private final double k_gearRatio = 1;
-
     private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(DCMotor.getKrakenX44(1),
-    k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, Math.toRadians(0), Math.toRadians(42), true, 0.1);
+    k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, Math.toRadians(0), 8.310546875, true, 0.1);
     
     public boolean isOnTarget() {
         // System.out.println("My target: " + String.valueOf(m_positionRequest.Position));
@@ -82,15 +81,22 @@ public class HoodSubsystem extends SubsystemBase{
     public Command staticPitch(){
         return Commands.runEnd(
             () -> {
-                m_hoodMotor.setParadoxControl(m_positionRequest.withPosition(Units.degreesToRotations(ShooterConstants.k_staticShotAngle)));
+                m_hoodMotor.setParadoxControl(m_positionRequest.withPosition(0.9));
             }, () -> {
                 m_hoodMotor.setParadoxControl(m_brakeRequest);
             }, this);
     }
 
+    public Command runPower(){
+        return Commands.run(() -> {
+            m_hoodMotor.setThrottle(0.5);
+        }, this);
+    }
+
     @Override
     public void periodic() {
-        Telemetry.log("Is hood at position", isOnTarget());
+        Telemetry.log("Hood Output", m_hoodMotor.getClosedLoopOutput().getValueAsDouble());
+        
     }
 
     @Override
