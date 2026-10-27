@@ -72,7 +72,7 @@ public class TurretAimSubsystem extends SubsystemBase{
          */
         var hubPose = Subsystems.m_swerveSubsystem.getPose();
         var rotatedPose = new Pose2d(ShooterConstants.k_turretOffset, new Rotation2d()).rotateBy(hubPose.getRotation());
-        hubPose = hubPose.plus(new Transform2d(rotatedPose.getX(), rotatedPose.getY(), rotatedPose.getRotation()));
+        hubPose = hubPose.plus(new Transform2d(rotatedPose.getX(), rotatedPose.getY(), new Rotation2d()));
 
         turretPose = hubPose;
         
