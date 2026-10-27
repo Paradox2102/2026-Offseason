@@ -51,7 +51,7 @@ public class Vision extends SubsystemBase {
     private static final double kSeedMaxTurn = 0.5; // rad/s
     private int m_seeds = 0;
     private int m_seedsFromMultiTag = 0;
-    /** Sim test only: off, the first pose can come only from cameras that agree (as on the robot while kCamerasChecked is false). */
+    /** Sim test only: off, the first pose can come only from FirstPoseSeed (as on the robot while kCamerasChecked is false). */
     private boolean m_multiTagSeed = true;
     /*
      * A camera at 30 fps sends no frame in many 20 ms loops, so "accepted this loop" blinks.
@@ -153,7 +153,8 @@ public class Vision extends SubsystemBase {
     }
 
     /**
-     * No field pose yet: two or more cameras that agree set it, heading too ({@link FirstPoseSeed}).
+     * No field pose yet: poses that agree set it, heading too ({@link FirstPoseSeed}): two or more
+     * cameras, or three frames of one camera that sees a tag.
      * After that the normal checks apply, against a heading that is now a field heading.
      */
     private void seedFirstPose(double visionNow) {
@@ -180,7 +181,7 @@ public class Vision extends SubsystemBase {
         m_multiTagSeed = allowed;
     }
 
-    /** First poses set from agreeing cameras ({@link FirstPoseSeed}) since boot. */
+    /** First poses set by {@link FirstPoseSeed} since boot. */
     public int seeds() {
         return m_seeds;
     }

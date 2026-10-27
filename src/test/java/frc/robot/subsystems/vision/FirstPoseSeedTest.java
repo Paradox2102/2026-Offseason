@@ -27,11 +27,26 @@ class FirstPoseSeedTest {
     }
 
     @Test
-    void oneCameraAloneIsNeverEnoughHoweverManyFrames() {
-        // A flipped single-tag solution repeats frame after frame in the same camera.
-        var seed = FirstPoseSeed.find(List.of(c("side_left", 14.2, 4.1, -67, 10.00), c("side_left", 14.2, 4.1, -67, 10.03),
-            c("side_left", 14.2, 4.1, -67, 10.06)));
-        assertTrue(seed.isEmpty());
+    void oneCameraWithThreeFramesThatAgreeIsEnough() {
+        // User, 2026-10-27: one camera that sees one tag is enough for the first pose.
+        var seed = FirstPoseSeed.find(List.of(c("side_left", 14.2, 4.1, -67, 10.00), c("side_left", 14.22, 4.1, -66, 10.03),
+            c("side_left", 14.18, 4.1, -68, 10.06)));
+        assertTrue(seed.isPresent());
+        assertEquals(14.2, seed.get().getX(), 1e-9);
+        assertEquals(-67, seed.get().getRotation().getDegrees(), 1e-6);
+    }
+
+    @Test
+    void oneFrameOfOneCameraIsNotEnough() {
+        // A single glitch frame must not set the pose.
+        assertTrue(FirstPoseSeed.find(List.of(c("side_left", 14.2, 4.1, -67, 10.0))).isEmpty());
+        assertTrue(FirstPoseSeed.find(List.of(c("side_left", 14.2, 4.1, -67, 10.0), c("side_left", 14.2, 4.1, -67, 10.03))).isEmpty());
+    }
+
+    @Test
+    void oneCameraWhoseFramesJumpIsNotEnough() {
+        assertTrue(FirstPoseSeed.find(List.of(c("side_left", 14.2, 4.1, -67, 10.00), c("side_left", 13.0, 4.1, -67, 10.03),
+            c("side_left", 14.2, 4.1, -20, 10.06))).isEmpty());
     }
 
     @Test

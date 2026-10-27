@@ -1,9 +1,7 @@
 package frc.robot.subsystems.vision;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.wpilib.math.geometry.Pose2d;
@@ -18,10 +16,11 @@ import org.wpilib.math.geometry.Rotation2d;
  * robot (2026-10-25, practice field) each camera saw one tag at a time, the gyro was 67 degrees
  * off, and no pose was ever accepted.
  *
- * <p>So, before the first pose: poses (single-tag or multi-tag) from two or more DIFFERENT cameras
- * that agree in place and heading, at about the same time, set the pose. A flipped single-tag solution repeats
- * frame after frame in one camera, but two cameras looking different ways do not flip to the same
- * wrong pose.
+ * <p>So, before the first pose: poses (single-tag or multi-tag) that agree in place and heading,
+ * at about the same time, set the pose: from two or more cameras, or from three frames of one
+ * camera (user, 2026-10-27: one camera that sees one tag is enough). The single-tag ambiguity
+ * check (VisionFilter) still applies. A flipped solution can repeat in one camera, so two
+ * cameras are preferred when both are there.
  */
 public final class FirstPoseSeed {
     private FirstPoseSeed() {}
@@ -35,36 +34,47 @@ public final class FirstPoseSeed {
     public static final double kMaxAngle = Math.toRadians(10);
     /** ... captured within this time of each other, seconds. */
     public static final double kWindow = 0.15;
-    /** Cameras that must agree. */
+    /** Cameras that agree are enough ... */
     public static final int kMinCameras = 2;
+    /**
+     * ... or this many frames of ONE camera that agree (user, 2026-10-27: one camera that sees one
+     * tag is enough). Three frames (0.1 s at 30 fps), so one glitch frame cannot set the pose.
+     */
+    public static final int kMinSingleCameraFrames = 3;
 
-    /** The mean pose of the largest set of agreeing cameras (at least {@link #kMinCameras}), or empty. */
+    /**
+     * The mean pose of the best set of agreeing candidates, or empty: more cameras first, then
+     * more frames, then the tighter set. A set counts with {@link #kMinCameras} cameras, or with
+     * {@link #kMinSingleCameraFrames} frames of one camera.
+     */
     public static Optional<Pose2d> find(List<Candidate> candidates) {
         List<Candidate> bestGroup = List.of();
+        int bestCameras = 0;
         double bestSpread = Double.POSITIVE_INFINITY;
         for (var anchor : candidates) {
-            // For each other camera, its candidate nearest the anchor that agrees with it.
-            Map<String, Candidate> nearest = new HashMap<>();
-            Map<String, Double> nearestDistance = new HashMap<>();
+            List<Candidate> group = new ArrayList<>();
+            double spread = 0;
             for (var other : candidates) {
-                if (other.camera().equals(anchor.camera()) || !agree(anchor, other)) {
-                    continue;
-                }
-                double d = distance(anchor, other);
-                if (d < nearestDistance.getOrDefault(other.camera(), Double.POSITIVE_INFINITY)) {
-                    nearest.put(other.camera(), other);
-                    nearestDistance.put(other.camera(), d);
+                if (other == anchor || agree(anchor, other)) {
+                    group.add(other);
+                    spread += distance(anchor, other);
                 }
             }
-            List<Candidate> group = new ArrayList<>(nearest.values());
-            group.add(anchor);
-            double spread = nearestDistance.values().stream().mapToDouble(Double::doubleValue).sum();
-            if (group.size() > bestGroup.size() || (group.size() == bestGroup.size() && spread < bestSpread)) {
+            int cameras = (int) group.stream().map(Candidate::camera).distinct().count();
+            boolean enough = cameras >= kMinCameras || group.size() >= kMinSingleCameraFrames;
+            if (!enough) {
+                continue;
+            }
+            boolean better = cameras > bestCameras
+                || (cameras == bestCameras && group.size() > bestGroup.size())
+                || (cameras == bestCameras && group.size() == bestGroup.size() && spread < bestSpread);
+            if (better) {
                 bestGroup = group;
+                bestCameras = cameras;
                 bestSpread = spread;
             }
         }
-        if (bestGroup.size() < kMinCameras) {
+        if (bestGroup.isEmpty()) {
             return Optional.empty();
         }
         double x = 0, y = 0, sin = 0, cos = 0;

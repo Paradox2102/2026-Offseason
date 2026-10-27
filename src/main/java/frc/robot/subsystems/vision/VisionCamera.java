@@ -154,7 +154,7 @@ public class VisionCamera {
             Pose2d pose = s.pose().toPose2d();
             if (verdict.accepted() && s.multiTag()) {
                 // A multi-tag pose is a first-pose candidate too (FirstPoseSeed): its heading is
-                // not trusted to correct the gyro, but two cameras that agree are.
+                // not trusted to correct the gyro, but poses that agree are.
                 m_seedCandidates.add(new FirstPoseSeed.Candidate(m_config.name(), pose, result.getTimestampSeconds()));
             }
             if (verdict.accepted()) {
