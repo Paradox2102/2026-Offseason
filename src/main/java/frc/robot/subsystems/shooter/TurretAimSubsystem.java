@@ -70,26 +70,20 @@ public class TurretAimSubsystem extends SubsystemBase{
          * Position of the robot's turret
          * Created through the Shoot On the Move position and is offset by the turret's offset. Done through a transform3d in order to keep it's offset in the correct rotation if the robot is rotated
          */
-        var hubPose = Subsystems.m_swerveSubsystem.getPose();
-        var rotatedPose = new Pose2d(ShooterConstants.k_turretOffset, new Rotation2d()).rotateBy(hubPose.getRotation());
-        hubPose = hubPose.plus(new Transform2d(rotatedPose.getX(), rotatedPose.getY(), new Rotation2d()));
+        var robotPose = Subsystems.m_swerveSubsystem.getPose();
+        
+        var rotatedPose = new Pose2d(ShooterConstants.k_turretOffset, new Rotation2d()).rotateBy(robotPose.getRotation());
 
-        turretPose = hubPose;
+        robotPose = new Pose2d(robotPose.getX() + rotatedPose.getX(), robotPose.getY() + rotatedPose.getY(), robotPose.getRotation());
+
+        turretPose = robotPose;
         
         var hub = SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub;
-        /**
-         * This is the X and Y component of the triangle constructed from the robot to the hub
-         */
-        var rotationTriangle = new Translation2d(hubPose.getX() - hub.getX(), hubPose.getY() - hub.getY());
         
-        Telemetry.log("Turret Distance To Hub", hubPose.getTranslation().getDistance(hub));
+        Telemetry.log("Turret Distance To Hub", robotPose.getTranslation().getDistance(hub));
         Telemetry.log("Robot Distance To Hub", Subsystems.m_swerveSubsystem.getPose().getTranslation().getDistance(hub));
 
-        /**
-         * Uses arctangent to calculate the angle in radians
-         */
-        // var targetRotation = Math.tan(rotationTriangle.getY() / rotationTriangle.getX());
-        var targetRotation = PhotonUtils.getYawToPose(hubPose, new Pose2d(hub, new Rotation2d()));
+        var targetRotation = PhotonUtils.getYawToPose(robotPose, new Pose2d(hub, new Rotation2d()));
         // Checks the 3 coterminal angles to see if any of them are closer to our current position
         // double bestRotation = targetRotation;
         // // checks the rotation with -360, 0, and 360 added to it.
