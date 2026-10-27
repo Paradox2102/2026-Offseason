@@ -17,6 +17,9 @@ import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.util.Units;
 import org.wpilib.system.RobotController;
 import org.wpilib.telemetry.Telemetry;
+import org.wpilib.tunable.TunableConfig;
+import org.wpilib.tunable.TunableDouble;
+import org.wpilib.tunable.Tunables;
 import org.wpilib.simulation.SingleJointedArmSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
@@ -35,11 +38,11 @@ public class HoodSubsystem extends SubsystemBase{
     private final double k_gearRatio = 1;
     private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(DCMotor.getKrakenX44(1),
     k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, Math.toRadians(0), 8.310546875, true, 0.1);
-    
+    private final TunableDouble m_shotAngle = Tunables.addDouble("Hood Angle", 0);
     public boolean isOnTarget() {
         // System.out.println("My target: " + String.valueOf(m_positionRequest.Position));
         // System.out.println("My Position: " + String.valueOf(m_hoodMotor.getPosition().getValueAsDouble()));
-        return Math.abs(m_hoodMotor.getPosition().getValueAsDouble() - m_positionRequest.Position) < 0.01;
+        return Math.abs(m_hoodMotor.getPosition().getValueAsDouble() - m_positionRequest.Position) < 0.02;
     }
 
     public HoodSubsystem() {
@@ -48,7 +51,7 @@ public class HoodSubsystem extends SubsystemBase{
             m_hoodLerpTable.put(shotAngle[0], shotAngle[1]);
         }
         m_hoodMotor.getConfigurator().apply(ShooterConstants.k_hoodConfig);
-        m_hoodMotor.setPosition(0);
+        // m_hoodMotor.setPosition(0);
         if (Utils.isSimulation()){
             var talonFXSim = m_hoodMotor.getSimState();
             talonFXSim.Orientation = ChassisReference.CounterClockwise_Positive;
@@ -81,7 +84,7 @@ public class HoodSubsystem extends SubsystemBase{
     public Command staticPitch(){
         return Commands.runEnd(
             () -> {
-                m_hoodMotor.setParadoxControl(m_positionRequest.withPosition(0.9));
+                m_hoodMotor.setParadoxControl(m_positionRequest.withPosition(m_shotAngle.get()));
             }, () -> {
                 m_hoodMotor.setParadoxControl(m_brakeRequest);
             }, this);
@@ -96,7 +99,8 @@ public class HoodSubsystem extends SubsystemBase{
     @Override
     public void periodic() {
         Telemetry.log("Hood Output", m_hoodMotor.getClosedLoopOutput().getValueAsDouble());
-        
+        Telemetry.log("Hood Position", m_hoodMotor.getPosition().getValueAsDouble());
+        Telemetry.log("Hood Target", m_shotAngle);
     }
 
     @Override

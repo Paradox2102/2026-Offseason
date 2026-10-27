@@ -8,6 +8,7 @@ import org.wpilib.hardware.bus.CANPort;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
 
@@ -173,8 +174,8 @@ public class Constants {
     public static final TalonFXConfiguration k_secondaryKickerConfig = new TalonFXConfiguration();
 
     public static final double k_hoodG = 0.0;
-    public static final double k_hoodS = 0;
-    public static final double k_hoodP = 5.0;
+    public static final double k_hoodS = 1.2;
+    public static final double k_hoodP = 50.0;
     public static final double k_hoodD = 0.5;
 
     public static final double k_shooterP = 0.008;
@@ -203,12 +204,16 @@ public class Constants {
     public static final DoubleNumber k_turretBounds = new DoubleNumber(-250, 250);
     public static final double[][] k_scoreHoodAngle = {
         {0.8, 0},
-        {1.31, 0}
+        {1.31, 0},
+        {1.8, 0.1},
+        {2.3, 1.8}
     };
 
     public static final double[][] k_scoreShotSpeeds = {
         {0.8, 49},
-        {1.31, 53}
+        {1.31, 53},
+        {1.8, 65},
+        {2.3, 68}
     };
 
     public static final double[][] k_scoreShotTimes = {
@@ -298,9 +303,9 @@ public class Constants {
         // k_turretConfig.Slot0.kS = k_turretS;
 
         k_hoodConfig.withCurrentLimits(k_hoodLimitConfig);
-        k_hoodConfig.withMotorOutput(k_hoodConfig.MotorOutput.clone().withInverted(InvertedValue.CounterClockwise_Positive));
+        k_hoodConfig.withMotorOutput(k_hoodConfig.MotorOutput.clone().withInverted(InvertedValue.CounterClockwise_Positive)).withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs().withForwardSoftLimitThreshold(k_hoodMaxAngle).withForwardSoftLimitEnable(true).withReverseSoftLimitThreshold(0).withReverseSoftLimitEnable(true));
         // k_hoodConfig.Slot0.kG = k_hoodG;
-        // k_hoodConfig.Slot0.kS = k_hoodS;
+        k_hoodConfig.Slot0.kS = k_hoodS;
         k_hoodConfig.Slot0.kP = k_hoodP;
         // k_hoodConfig.Slot0.kD = k_hoodD;
     }

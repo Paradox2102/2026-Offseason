@@ -49,6 +49,7 @@ public class TurretAimSubsystem extends SubsystemBase{
  private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(Models.singleJointedArmFromPhysicalConstants(DCMotor.getKrakenX60(1), 0.04969116, ShooterConstants.k_shooterGearReduction), DCMotor.getKrakenX60(1), ShooterConstants.k_shooterGearReduction, 0.1, Units.degreesToRadians(ShooterConstants.k_turretBounds.getMinBound()), Units.degreesToRadians(ShooterConstants.k_turretBounds.getMaxBound()), false, 0);   
  public TurretAimSubsystem() {
         m_shooterAzimuth.getConfigurator().apply(ShooterConstants.k_turretConfig);
+        // m_shooterAzimuth.setPosition(0.0);
     }
 
     public Command rotateToTarget() {
@@ -74,17 +75,18 @@ public class TurretAimSubsystem extends SubsystemBase{
          */
         Pose3d hubPose = new Pose3d(Subsystems.m_swerveSubsystem.getPose());
         var rotatedPose = new Pose3d(ShooterConstants.k_turretOffset, new Rotation3d()).rotateBy(new Rotation3d(0, 0, hubPose.getRotation().getAngle()));
-        hubPose.plus(new Transform3d(hubPose.getX() + rotatedPose.getX(), hubPose.getY() + rotatedPose.getY(), hubPose.getZ() + rotatedPose.getZ(), hubPose.getRotation()));
+        hubPose = new Pose3d(new Transform3d(rotatedPose.getX(), rotatedPose.getY(), rotatedPose.getZ(), new Rotation3d()).getTranslation(), new Rotation3d());
 
         turretPose = hubPose;
 
-        var hub = SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueDepot;
+        var hub = SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub;
         /**
          * This is the X and Y component of the triangle constructed from the robot to the hub
          */
         var rotationTriangle = new Translation2d(hubPose.getX() - hub.getX(), hubPose.getY() - hub.getY());
         
         Telemetry.log("Turret Distance To Hub", hubPose.getTranslation().toTranslation2d().getDistance(hub));
+        Telemetry.log("Robot Distance To Hub", Subsystems.m_swerveSubsystem.getPose().getTranslation().getDistance(hub));
 
         /**
          * Uses arctangent to calculate the angle in radians

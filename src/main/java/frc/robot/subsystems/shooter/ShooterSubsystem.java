@@ -24,6 +24,8 @@ import org.wpilib.math.system.Models;
 import org.wpilib.math.util.Units;
 import org.wpilib.system.RobotController;
 import org.wpilib.telemetry.Telemetry;
+import org.wpilib.tunable.TunableDouble;
+import org.wpilib.tunable.Tunables;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
@@ -46,6 +48,7 @@ public class ShooterSubsystem extends SubsystemBase{
     private final FlywheelSim m_motorSimModel = new FlywheelSim(
         Models.flywheelFromPhysicalConstants(DCMotor.getKrakenX60(1), ShooterConstants.k_shooterMOI, k_gearRatio), DCMotor.getKrakenX60(1));
 
+    private final TunableDouble m_shotSpeed = Tunables.addDouble("Shoot Speed", 0);
 
     public boolean isAtSpeed() {
         return Math.abs((Math.abs(m_shooterLeader.getVelocity().getValueAsDouble()) + Math.abs(m_shooterFollower.getVelocity().getValueAsDouble())) / 2 - m_velocityRequest.Velocity) < 3;
@@ -78,7 +81,7 @@ public class ShooterSubsystem extends SubsystemBase{
     public Command staticShoot(){
         return Commands.runEnd(() -> {
 
-            m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(62));
+            m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(m_shotSpeed.get()));
         }, () -> {
             
             m_shooterLeader.setParadoxControl(m_coastRequest);
