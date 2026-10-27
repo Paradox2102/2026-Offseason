@@ -5,12 +5,9 @@ import org.photonvision.PhotonUtils;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import org.wpilib.fields.Fields;
 import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.geometry.Rotation3d;
-import org.wpilib.math.geometry.Transform3d;
+import org.wpilib.math.geometry.Transform2d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
@@ -40,7 +37,7 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     private final ParadoxTalon m_shooterAzimuth = new ParadoxTalon(CANIDConstants.shooterAzimuth, k_CANBus, m_coastRequest, 0.1);
     
-    public Pose3d turretPose = new Pose3d();
+    public Pose2d turretPose = new Pose2d();
 
     public boolean isOnTarget() {
         return Math.abs(m_shooterAzimuth.getPosition().getValueAsDouble() - m_positionRequest.Position) < 0.5;
@@ -73,26 +70,26 @@ public class TurretAimSubsystem extends SubsystemBase{
          * Position of the robot's turret
          * Created through the Shoot On the Move position and is offset by the turret's offset. Done through a transform3d in order to keep it's offset in the correct rotation if the robot is rotated
          */
-        Pose3d hubPose = new Pose3d(Subsystems.m_swerveSubsystem.getPose());
-        var rotatedPose = new Pose3d(ShooterConstants.k_turretOffset, new Rotation3d()).rotateBy(new Rotation3d(0, 0, hubPose.getRotation().getAngle()));
-        hubPose = new Pose3d(new Transform3d(rotatedPose.getX(), rotatedPose.getY(), rotatedPose.getZ(), new Rotation3d()).getTranslation(), new Rotation3d());
+        var hubPose = Subsystems.m_swerveSubsystem.getPose();
+        var rotatedPose = new Pose2d(ShooterConstants.k_turretOffset, new Rotation2d()).rotateBy(hubPose.getRotation());
+        hubPose = hubPose.plus(new Transform2d(rotatedPose.getX(), rotatedPose.getY(), rotatedPose.getRotation()));
 
         turretPose = hubPose;
-
+        
         var hub = SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub;
         /**
          * This is the X and Y component of the triangle constructed from the robot to the hub
          */
         var rotationTriangle = new Translation2d(hubPose.getX() - hub.getX(), hubPose.getY() - hub.getY());
         
-        Telemetry.log("Turret Distance To Hub", hubPose.getTranslation().toTranslation2d().getDistance(hub));
+        Telemetry.log("Turret Distance To Hub", hubPose.getTranslation().getDistance(hub));
         Telemetry.log("Robot Distance To Hub", Subsystems.m_swerveSubsystem.getPose().getTranslation().getDistance(hub));
 
         /**
          * Uses arctangent to calculate the angle in radians
          */
         // var targetRotation = Math.tan(rotationTriangle.getY() / rotationTriangle.getX());
-        var targetRotation = PhotonUtils.getYawToPose(hubPose.toPose2d(), new Pose2d(hub, new Rotation2d()));
+        var targetRotation = PhotonUtils.getYawToPose(hubPose, new Pose2d(hub, new Rotation2d()));
         // Checks the 3 coterminal angles to see if any of them are closer to our current position
         // double bestRotation = targetRotation;
         // // checks the rotation with -360, 0, and 360 added to it.

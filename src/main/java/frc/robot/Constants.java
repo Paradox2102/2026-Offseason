@@ -199,7 +199,7 @@ public class Constants {
     public static final double k_turretV = 0.0;
     public static final double k_turretS = 0.0;
     
-    public static final Translation3d k_turretOffset = new Translation3d(-0.152400, 0.1905, 0.378082);
+    public static final Translation2d k_turretOffset = new Translation2d(-0.152400, 0.1905);
 
     public static final DoubleNumber k_turretBounds = new DoubleNumber(-250, 250);
     public static final double[][] k_scoreHoodAngle = {
