@@ -67,6 +67,15 @@ public class IndexerRollerSubsystem extends SubsystemBase {
             m_indexerRollerMotor.setParadoxControl(m_coastRequest);
             // m_runningDirection = targetDirection.STILL;
         }, this); }
+
+    public Command runSlow(boolean in) {
+        return Commands.runEnd(() -> {   
+            // m_runningDirection = in ? targetDirection.IN : targetDirection.OUT;
+            m_indexerRollerMotor.setParadoxControl(m_velocityRequest.withVelocity(in ? IndexerConstants.k_rollerSlowInRPS : IndexerConstants.k_rollerSlowOutRPS));
+        }, () -> {
+            m_indexerRollerMotor.setParadoxControl(m_coastRequest);
+            // m_runningDirection = targetDirection.STILL;
+        }, this); }
     
     public Command runPower(boolean in){
         return Commands.runEnd(() -> {

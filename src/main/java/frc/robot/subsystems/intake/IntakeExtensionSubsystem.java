@@ -62,7 +62,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     }
 
     public RepeatCommand agitate(){
-        return new SequentialCommandGroup(retractIntakeCrush(), new WaitCommand(1), extendIntakeCrush(), new WaitCommand(0.5)).repeatedly();
+        return new SequentialCommandGroup(retractIntakeCrush(), new WaitCommand(0.15), extendIntakeCrush()).repeatedly();
     }
 
     public IntakeExtensionSubsystem() {

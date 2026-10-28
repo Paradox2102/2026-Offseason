@@ -52,6 +52,14 @@ public class SecondaryKicker extends SubsystemBase {
         }, () -> {
             m_secondaryKickerMotor.setParadoxControl(m_coastRequest);
         }, this); }
+
+    public Command runSlow(boolean in) {
+        return Commands.runEnd(() -> {
+                   
+            m_secondaryKickerMotor.setParadoxControl(m_velocityRequest.withVelocity(in ? ShooterConstants.k_secondarySlowKickerInRPS : ShooterConstants.k_secondarySlowKickerOutRPS));
+        }, () -> {
+            m_secondaryKickerMotor.setParadoxControl(m_coastRequest);
+        }, this); }
     
     public Command runPower(){
         return Commands.runEnd(() -> {

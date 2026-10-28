@@ -51,6 +51,13 @@ public class KickerSubsystem extends SubsystemBase {
             m_kickerMotor.setParadoxControl(m_coastRequest);
         }, this); }
 
+   public Command runSlow() {
+        return Commands.runEnd(() -> {
+            m_kickerMotor.setParadoxControl(m_velocityRequest.withVelocity(ShooterConstants.k_kickOutRPS));
+        }, () -> {
+            m_kickerMotor.setParadoxControl(m_coastRequest);
+        }, this); }
+
         public Command runPower(){
         return Commands.runEnd(() -> {
             
@@ -59,6 +66,8 @@ public class KickerSubsystem extends SubsystemBase {
             m_kickerMotor.setParadoxControl(m_coastRequest);
         }, this);
     }
+
+    
 
     @Override
     public void periodic() {

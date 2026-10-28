@@ -59,13 +59,16 @@ public class RobotContainer {
 
         Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed() && m_controller.rightTrigger().getAsBoolean() && Subsystems.m_turretAimSubsystem.isOnTarget());
         Trigger m_noIntakeShoot = new Trigger(() -> isReadyToShoot.getAsBoolean() && !m_controller.leftTrigger().getAsBoolean());
-
+        Trigger m_isConveyorAtSpeed = new Trigger(() -> m_noIntakeShoot.getAsBoolean() && Subsystems.m_indexerConveyor.getVelocity() > 20);
         isReadyToShoot.whileTrue(Commands.parallel(
             Subsystems.m_indexerConveyor.run(true),
-            Subsystems.m_indexerRollerSubsystem.runPower(true),
+            
             Subsystems.m_kickerSubsystem.run(),
             Subsystems.m_secondaryKicker.run(true)
             ));
+            m_isConveyorAtSpeed.whileTrue(
+               Subsystems.m_indexerRollerSubsystem.runPower(true)
+            );
         m_noIntakeShoot.whileTrue(Commands.parallel(Subsystems.m_intakeExtension.agitate(), Subsystems.m_intakeRoller.run(true)));
 
         m_controller.leftTrigger().whileTrue(Commands.sequence(
@@ -86,7 +89,12 @@ public class RobotContainer {
             Subsystems.m_shooterSubsystem.staticShoot(),
             Subsystems.m_hoodSubsystem.staticPitch()
             
-        ));
+        )).onFalse(Commands.parallel(
+        Subsystems.m_indexerConveyor.runSlow(false),
+        Subsystems.m_indexerRollerSubsystem.runSlow(false),
+       Subsystems.m_kickerSubsystem.runSlow(),
+        Subsystems.m_secondaryKicker.runSlow(false)
+        ).withTimeout(0.5));
             
         m_controller.faceDown().whileTrue(Commands.parallel( // Shooter override
             Subsystems.m_indexerConveyor.run(true),
@@ -152,24 +160,18 @@ public class RobotContainer {
             Subsystems.m_swerveSubsystem.applyRequest(() ->
                 Subsystems.m_swerveSubsystem.getDrive().withVelocityX(-(m_controller.getLeftY() * Math.abs(m_controller.getLeftY())) * SwerveSubsystem.MaxSpeed) // Drive forward with negative Y (forward)
                     .withVelocityY(-(m_controller.getLeftX() * Math.abs(m_controller.getLeftX())) * SwerveSubsystem.MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-Math.pow(m_controller.getRightX(), 4) * Math.signum(-m_controller.getRightX()) * SwerveSubsystem.MaxAngularRate) // Drive counterclockwise with negative X (left)
+                    .withRotationalRate(Math.pow(m_controller.getRightX(), 4) * Math.signum(-m_controller.getRightX()) * SwerveSubsystem.MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
         Subsystems.m_turretAimSubsystem.setDefaultCommand(Subsystems.m_turretAimSubsystem.rotateToTarget());
-        // SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
-        // Subsystems.m_swerveSubsystem.setDefaultCommand(Subsystems.m_swerveSubsystem.applyRequest(() -> point.withModuleDirection(new Rotation2d(-m_controller.getLeftY(), -m_controller.getLeftX()))));
 
-        // Subsystems.m_indexerConveyor.setDefaultCommand(Subsystems.m_indexerConveyor.run(true));
-        // Subsystems.m_indexerRollerSubsystem.setDefaultCommand(Subsystems.m_indexerRollerSubsystem.testRun(true));
-        // Subsystems.m_kickerSubsystem.setDefaultCommand(Subsystems.m_kickerSubsystem.run(false));
-        // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.returnHood());
-        // Idle while the robot is disabled. This ensures the configured
-        // neutral mode is applied to the drive motors while disabled.
-        // final var idle = new SwerveRequest.Idle();
-        // RobotModeTriggers.disabled().whileTrue(
-        //     Subsystems.m_swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true)
-        // );
+        // Subsystems.m_indexerConveyor.setDefaultCommand(Subsystems.m_indexerConveyor.runSlow(false));
+        // Subsystems.m_indexerRollerSubsystem.setDefaultCommand(Subsystems.m_indexerRollerSubsystem.runSlow(false));
+        // Subsystems.m_kickerSubsystem.setDefaultCommand(Subsystems.m_kickerSubsystem.runSlow());
+        // Subsystems.m_secondaryKicker.setDefaultCommand(Subsystems.m_secondaryKicker.runSlow(false));
+        Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.returnHood());
+       
     }
 
     

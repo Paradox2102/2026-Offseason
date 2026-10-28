@@ -159,9 +159,13 @@ public class Constants {
     public static final double k_shooterGearReduction = (67.86);
     
     public static final double k_kickOutRPS = -90;
-
+    public static final double k_kickSlowOutRPS = -40;
+    
     public static final double k_secondaryKickerInRPS = 90;
     public static final double k_secondaryKickerOutRPS = -30;
+
+public static final double k_secondarySlowKickerInRPS = 20;
+    public static final double k_secondarySlowKickerOutRPS = -20;
 
     public static final double k_upKickerMOI = 0.00000494 * 2;
     public static final double k_kickerMOI = 0.0000356;
@@ -202,18 +206,14 @@ public class Constants {
     public static final Translation2d k_turretOffset = new Translation2d(-0.151554, 0.190500);
 
     public static final DoubleNumber k_turretBounds = new DoubleNumber(-250, 250);
-    public static final double[][] k_scoreHoodAngle = {
-        {0.8, 0},
-        {1.31, 0},
-        {1.8, 0.1},
-        {2.3, 1.8}
+    public static final double[][] k_scoreHoodAngle = { // need to redo values, made before turret corrected
+        {1.26, 0},
+        {1.7, 0}
     };
 
     public static final double[][] k_scoreShotSpeeds = {
-        {0.8, 49},
-        {1.31, 53},
-        {1.8, 65},
-        {2.3, 68}
+        {1.26, 58},
+        {1.7, 64}
     };
 
     public static final double[][] k_scoreShotTimes = {
@@ -410,9 +410,13 @@ public class Constants {
     public static class IndexerConstants {
         public static final double k_rollerInRPS = 40;
         public static final double k_rollerOutRPS = -40;
+        public static final double k_rollerSlowInRPS = 20;
+        public static final double k_rollerSlowOutRPS = -20;
 
         public static final double k_conveyorInRPS = 90;
         public static final double k_conveyorOutRPS = -70;
+        public static final double k_conveyorSlowInRPS = 30;
+        public static final double k_conveyorSlowOutRPS = -20;
 
         public static final int k_jamThreshold = 6; // should be tuned to not happen too much
 

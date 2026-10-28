@@ -63,6 +63,16 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
             }, this); 
     }
 
+        public Command runSlow(boolean in) {
+        return Commands.runEnd(() -> {
+            m_indexerConveyorTop.setControl(m_velocityRequestTop.withVelocity(in ? IndexerConstants.k_conveyorSlowInRPS : IndexerConstants.k_conveyorSlowOutRPS));
+            m_indexerConveyorBottom.setControl(m_velocityRequestBottom.withVelocity(in ? IndexerConstants.k_conveyorSlowInRPS : IndexerConstants.k_conveyorSlowOutRPS));    
+        }, () -> {
+                m_indexerConveyorTop.setControl(m_brakeRequest);
+                m_indexerConveyorBottom.setControl(m_brakeRequest);
+            }, this); 
+    }
+
     public Command runPower(){
         return Commands.runEnd(() -> {
             
@@ -72,6 +82,10 @@ public class IndexerConveyorSubsystem extends SubsystemBase {
             m_indexerConveyorTop.setParadoxControl(m_brakeRequest);
             m_indexerConveyorBottom.setParadoxControl(m_brakeRequest);
         }, this);
+    }
+
+    public double getVelocity() {
+        return (m_indexerConveyorTop.getVelocity().getValueAsDouble() + m_indexerConveyorBottom.getVelocity().getValueAsDouble()) / 2;
     }
 
     @Override
