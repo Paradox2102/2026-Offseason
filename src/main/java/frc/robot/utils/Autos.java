@@ -2,6 +2,7 @@ package frc.robot.utils;
 
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
+import org.wpilib.command2.Subsystem;
 import org.wpilib.math.controller.PIDController;
 
 import bline.commands.FollowPathV2;
@@ -24,16 +25,33 @@ public class Autos {
         new PIDController(6.0, 0.0, 0.0) // cross-track PID. If tuned, set it here.
     );
 
-    private static Path firstStraight = new Path("first-straight");
+    private static final Path doubleAuto1 = new Path("DoubleAuto1");
+    private static final Path doubleAuto2 = new Path("DoubleAuto2");
 
-
-    public static Command testBLine(){
+    public static Command doubleSwipe(){
         return Commands.sequence(
-            pathBuilder.build(firstStraight).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset()
+            Commands.race(
+                pathBuilder.build(doubleAuto1).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset(),
+                Commands.sequence(
+                    Subsystems.m_intakeExtension.extendIntake(),
+                    Subsystems.m_intakeRoller.run(true) 
+                )
+            ),
+            Commands.parallel(
+                Subsystems.m_hoodSubsystem.pitchHood(),
+                Subsystems.m_shooterSubsystem.shoot()
+            ).withTimeout(6),
+            Commands.race(
+                pathBuilder.build(doubleAuto2).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset(),
+                Commands.sequence(
+                    Subsystems.m_intakeExtension.extendIntake(),
+                    Subsystems.m_intakeRoller.run(true) 
+                )
+            ),
+            Commands.parallel(
+                Subsystems.m_hoodSubsystem.pitchHood(),
+                Subsystems.m_shooterSubsystem.shoot()
+            ).withTimeout(6)
         );
-    }
-
-    public static Command itsNotYouItsBLineIThink(){
-        return Commands.run(() -> System.out.println("Is it an auto issue?"));
     }
 }

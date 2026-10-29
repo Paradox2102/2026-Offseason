@@ -176,7 +176,7 @@ public class RobotContainer {
     
     private void configureAutos(){
         // SelectAuto.addCommand("RightDoubleSweep", Autos.doubleSwipe(true));
-        SelectAuto.addCommand("B-Line Test", Autos.testBLine());
+        SelectAuto.addCommand("Double Swipe", Autos.doubleSwipe());
 
         Tunables.publish("Auto Selection", SelectAuto.m_autoSelection);
     }
