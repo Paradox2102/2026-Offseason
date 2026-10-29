@@ -39,13 +39,16 @@ public class HoodSubsystem extends SubsystemBase{
     private final SingleJointedArmSim m_motorSimModel = new SingleJointedArmSim(DCMotor.getKrakenX44(1),
     k_gearRatio, ShooterConstants.k_hoodMOI, ShooterConstants.k_hoodArmLength, Math.toRadians(0), 8.310546875, true, 0.1);
     private final TunableDouble m_shotAngle = Tunables.addDouble("Hood Angle", 0);
+
+    private DoubleSupplier m_hoodTargetDistance;
+
     public boolean isOnTarget() {
         // System.out.println("My target: " + String.valueOf(m_positionRequest.Position));
         // System.out.println("My Position: " + String.valueOf(m_hoodMotor.getPosition().getValueAsDouble()));
         return Math.abs(m_hoodMotor.getPosition().getValueAsDouble() - m_positionRequest.Position) < 0.02;
     }
 
-    public HoodSubsystem() {
+    public HoodSubsystem(DoubleSupplier targetDistance) {
         
         for (double[] shotAngle : ShooterConstants.k_scoreHoodAngle){
             m_hoodLerpTable.put(shotAngle[0], shotAngle[1]);
@@ -57,6 +60,7 @@ public class HoodSubsystem extends SubsystemBase{
             talonFXSim.Orientation = ChassisReference.CounterClockwise_Positive;
             talonFXSim.setMotorType(MotorType.KrakenX60);
         }
+        m_hoodTargetDistance = targetDistance;
     }
     /**
      * Gets turret angle
@@ -66,9 +70,10 @@ public class HoodSubsystem extends SubsystemBase{
         return m_motorSimModel.getAngle() * k_gearRatio;
     }
 
-    public Command pitchHood(DoubleSupplier distanceToTarget) {
+    public Command pitchHood() {
         return Commands.run(() -> {
-            m_hoodMotor.setParadoxControl(m_positionRequest.withPosition(Units.degreesToRotations(m_hoodLerpTable.get(distanceToTarget.getAsDouble()))));
+            m_hoodMotor.setParadoxControl(m_positionRequest.withPosition(Units.degreesToRotations(m_hoodLerpTable.get(m_hoodTargetDistance.getAsDouble()))));
+            
         }, this);
     }
 
@@ -81,10 +86,19 @@ public class HoodSubsystem extends SubsystemBase{
             }, this);
     }
 
-    public Command staticPitch(){
+    public Command shotTuning(){
         return Commands.runEnd(
             () -> {
                 m_hoodMotor.setParadoxControl(m_positionRequest.withPosition(m_shotAngle.get()));
+            }, () -> {
+                m_hoodMotor.setParadoxControl(m_brakeRequest);
+            }, this);
+    }
+
+    public Command staticPitch(){
+        return Commands.runEnd(
+            () -> {
+                m_hoodMotor.setParadoxControl(m_positionRequest.withPosition(ShooterConstants.k_staticShotAngle));
             }, () -> {
                 m_hoodMotor.setParadoxControl(m_brakeRequest);
             }, this);
@@ -101,6 +115,7 @@ public class HoodSubsystem extends SubsystemBase{
         Telemetry.log("Hood Output", m_hoodMotor.getClosedLoopOutput().getValueAsDouble());
         Telemetry.log("Hood Position", m_hoodMotor.getPosition().getValueAsDouble());
         Telemetry.log("Hood Target", m_shotAngle);
+        Telemetry.log("Hood Target Angle", m_hoodLerpTable.get(m_hoodTargetDistance.getAsDouble()));
     }
 
     @Override

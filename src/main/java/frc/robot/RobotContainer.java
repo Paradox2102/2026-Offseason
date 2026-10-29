@@ -48,10 +48,7 @@ public class RobotContainer {
         // configureFuelSim();
         configureDefaults();
         configureBindings();
-        m_controller.faceLeft().whileTrue(Subsystems.m_hoodSubsystem.staticPitch()).whileFalse(Subsystems.m_hoodSubsystem.returnHood());
-        // m_controller.faceDown().whileTrue(Subsystems.m_indexerRollerSubsystem.runPower(true));
-        // m_controller.leftBumper().onTrue(Subsystems.m_turretAimSubsystem.rotateToTarget());
-        // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.staticShoot());
+        m_controller.faceLeft().whileTrue(Subsystems.m_hoodSubsystem.staticPitch());
         configureAutos();
     }
 
@@ -86,8 +83,8 @@ public class RobotContainer {
         // );
 
         m_controller.rightTrigger().whileTrue(Commands.parallel(
-            Subsystems.m_shooterSubsystem.staticShoot(),
-            Subsystems.m_hoodSubsystem.staticPitch()
+            Subsystems.m_shooterSubsystem.shoot(),
+            Subsystems.m_hoodSubsystem.pitchHood()
             
         )).onFalse(Commands.parallel(
         Subsystems.m_indexerConveyor.runSlow(false),
@@ -113,11 +110,13 @@ public class RobotContainer {
                 Subsystems.m_indexerConveyor.run(false)
         ));
         m_joystick.getHID().button(6).whileTrue(Commands.run(
-            () -> {Subsystems.m_turretAimSubsystem.setShutoff(true);}
+            () -> {Subsystems.m_turretAimSubsystem.setShutoff(!Subsystems.m_turretAimSubsystem.getShutoff());}
         ));
 
         m_joystick.getHID().button(10).onTrue(Commands.run(() -> SalesAssociate.careAboutCustomerService(!SalesAssociate.getCareAboutCustomerService())));
-
+        m_joystick.getHID().button(9).onTrue(Commands.run(() -> {
+            CommandScheduler.getInstance().cancelAll();
+        }).ignoringDisable(true));
 
 
 
@@ -170,7 +169,7 @@ public class RobotContainer {
         // Subsystems.m_indexerRollerSubsystem.setDefaultCommand(Subsystems.m_indexerRollerSubsystem.runSlow(false));
         // Subsystems.m_kickerSubsystem.setDefaultCommand(Subsystems.m_kickerSubsystem.runSlow());
         // Subsystems.m_secondaryKicker.setDefaultCommand(Subsystems.m_secondaryKicker.runSlow(false));
-        Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.returnHood());
+        // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.returnHood());
        
     }
 

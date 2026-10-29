@@ -468,8 +468,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     //     }, this);
     // }
 
-    public static double distanceToTarget() {
-        return m_sotmPose.getTranslation().getDistance(isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
+    public double distanceToTarget() {
+        return cachedPose.getTranslation().getDistance(isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
     }
 
     public Translation2d targetTranslation() {

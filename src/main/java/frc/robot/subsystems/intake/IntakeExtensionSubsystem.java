@@ -29,7 +29,7 @@ import org.wpilib.command2.WaitCommand;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
     private static final double k_intakeMaxExtension = 3.95;
-    private static final double k_intakeCrushPosition = 2.84;
+    private static final double k_intakeCrushPosition = 3.2;
     private static final double k_elevatorDrimRadius = 0.038091; // If something is wrong then this is the first thing to check. Idk if I did this right
     private static final double k_elevatorMass = 5.401715051809;
     private final CANBus k_CANBus = CANIDConstants.k_canBus4;
@@ -52,7 +52,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     
     public static enum TargetPosition {
-        IN(0),
+        IN(0.2),
         OUT(k_intakeMaxExtension),
         CRUSH(k_intakeCrushPosition);
         double position;
@@ -86,6 +86,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         Telemetry.log("Intake Extension at target", isIntakeAtTarget(TargetPosition.OUT, false));
 
         Telemetry.log("Intake Extension Position", (m_intakeExtensionLeader.getPosition().getValueAsDouble() + m_intakeExtensionFollower.getPosition().getValueAsDouble()) / 2);
+        Telemetry.log("BothIntakesMoving", Math.abs(m_intakeExtensionLeader.getVelocity().getValueAsDouble()) > 0.1 && Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.1);
     }
 
     // public Command moveIntake(TargetPosition position){
@@ -100,8 +101,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         return Commands.run(() -> {
             m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(-10));
             SalesAssociate.persuasion();
-        }
-        ).until(() -> isIntakeAtTarget(TargetPosition.IN, false)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+        }, this
+        ).until(() -> isIntakeAtTarget(TargetPosition.IN, false)).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest));
     }
 
     public Command extendIntakeCrush() {
@@ -110,7 +111,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         }, () -> {
             m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(6));
             
-        }, this).until(() -> (isIntakeAtTarget(TargetPosition.OUT, false) || m_crushTimer.get() > k_maxCrushTime)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+        }, this).until(() -> (isIntakeAtTarget(TargetPosition.OUT, false) || m_crushTimer.get() > k_maxCrushTime)).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest));
     }
 
         public Command retractIntakeCrush() {
@@ -126,7 +127,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     public Command extendIntake() {
         return Commands.run(() -> {
             m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(10));
-        }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT, false)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
+        }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT, false)).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest));
     }
 
     public Command extendIntakeAndReset() {
@@ -136,18 +137,6 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         });
     }
     
-    public Command retractIntakePower() {
-        return Commands.runOnce(() -> {
-            m_intakeExtensionLeader.setThrottle(-0.5);
-            m_intakeExtensionFollower.setThrottle(0.5);
-        }, this).until(() -> isIntakeAtTarget(TargetPosition.IN, false)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
-    }
-
-    public Command extendIntakePower() {
-        return Commands.runOnce(() -> {
-            m_intakeExtensionLeader.setThrottle(0.5);
-        }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT, false)).finallyDo(() -> m_intakeExtensionLeader.setThrottle(0));
-    }
 
     public boolean isIntakeAtTarget(TargetPosition target, boolean lessThan){
         var intakePosition = Math.abs((m_intakeExtensionLeader.getPosition().getValueAsDouble() + m_intakeExtensionFollower.getPosition().getValueAsDouble()) / 2);

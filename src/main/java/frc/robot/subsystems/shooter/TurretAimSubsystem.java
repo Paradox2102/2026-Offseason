@@ -61,6 +61,13 @@ public class TurretAimSubsystem extends SubsystemBase{
         }, this);
     }
 
+    public double getTargetDistance(){
+
+        var hub = SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub;
+
+        return turretPose.getTranslation().getDistance(hub);
+    }
+
     /**
      * Calculates the target rotation for the turret in rotations
      * @return the turret rotation that reaches the target

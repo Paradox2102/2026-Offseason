@@ -85,8 +85,8 @@ public class Constants {
         public static final SwerveSubsystem m_swerveSubsystem;
         public static final IntakeExtensionSubsystem m_intakeExtension = new IntakeExtensionSubsystem();
         public static final IntakeRollerSubsystem m_intakeRoller = new IntakeRollerSubsystem();
-        public static final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
-        public static final HoodSubsystem m_hoodSubsystem = new HoodSubsystem();
+        public static final ShooterSubsystem m_shooterSubsystem;
+        public static final HoodSubsystem m_hoodSubsystem;
         public static final TurretAimSubsystem m_turretAimSubsystem = new TurretAimSubsystem();
         public static final KickerSubsystem m_kickerSubsystem = new KickerSubsystem();
         public static final SecondaryKicker m_secondaryKicker = new SecondaryKicker();
@@ -95,6 +95,8 @@ public class Constants {
         public static final LightSubsystem m_lightSubsystem = new LightSubsystem();
         static {
             m_swerveSubsystem = TunerConstants.createDrivetrain();
+            m_hoodSubsystem  = new HoodSubsystem(Subsystems.m_turretAimSubsystem::getTargetDistance);
+            m_shooterSubsystem = new ShooterSubsystem(Subsystems.m_turretAimSubsystem::getTargetDistance);
         }
     }
 
@@ -206,14 +208,30 @@ public static final double k_secondarySlowKickerInRPS = 20;
     public static final Translation2d k_turretOffset = new Translation2d(-0.151554, 0.190500);
 
     public static final DoubleNumber k_turretBounds = new DoubleNumber(-250, 250);
-    public static final double[][] k_scoreHoodAngle = { // need to redo values, made before turret corrected
+    public static final double[][] k_scoreHoodAngle = {
         {1.26, 0},
-        {1.7, 0}
+        {1.7, 0},
+        {2.2, 0.6},
+        {2.7, 0.8},
+        {3.2, 1.2},
+        {3.7, 2.2},
+        {4.2, 3.0},
+        {4.7, 4.0},
+        {5.2, 4.5},
+        {5.5, 5.7}
     };
 
     public static final double[][] k_scoreShotSpeeds = {
         {1.26, 58},
-        {1.7, 64}
+        {1.7, 64},
+        {2.2, 65},
+        {2.7, 67},
+        {3.2, 70},
+        {3.7, 72},
+        {4.2, 76},
+        {4.7, 78},
+        {5.2, 82},
+        {5.5, 85}
     };
 
     public static final double[][] k_scoreShotTimes = {
