@@ -72,7 +72,7 @@ public class HoodSubsystem extends SubsystemBase{
 
     public Command pitchHood() {
         return Commands.run(() -> {
-            m_hoodMotor.setParadoxControl(m_positionRequest.withPosition(Units.degreesToRotations(m_hoodLerpTable.get(m_hoodTargetDistance.getAsDouble()))));
+            m_hoodMotor.setParadoxControl(m_positionRequest.withPosition(m_hoodLerpTable.get(m_hoodTargetDistance.getAsDouble())));
             
         }, this);
     }
