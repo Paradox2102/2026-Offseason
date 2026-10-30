@@ -17,10 +17,14 @@ import org.wpilib.math.util.Units;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.tunable.Tunables;
 
+import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.Subsystems;
 import frc.robot.PathPlanningThing.SelectAuto;
 import frc.robot.Sales_because_if_6328_does_if_it_must_be_good.SalesAssociate;
+import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.subsystems.shooter.FuelLaunchSim;
 import frc.robot.utils.Autos;
@@ -48,7 +52,7 @@ public class RobotContainer {
         // configureFuelSim();
         configureDefaults();
         configureBindings();
-        m_controller.faceLeft().whileTrue(Subsystems.m_hoodSubsystem.staticPitch());
+        // m_controller.faceLeft().whileTrue(Commands.run(() -> Subsystems.m_swerveSubsystem.getModule(3).getSteerMotor().setControl(new PositionVoltage(0.25)), Subsystems.m_swerveSubsystem)).onFalse(Commands.run(() -> Subsystems.m_swerveSubsystem.getModule(3).getSteerMotor().setControl(new PositionVoltage(0)), Subsystems.m_swerveSubsystem));
         configureAutos();
     }
 
@@ -104,7 +108,7 @@ public class RobotContainer {
         ));
 
         m_joystick.getHID().button(0).whileTrue(Commands.parallel(Subsystems.m_intakeExtension.retractIntake(), Subsystems.m_intakeRoller.run(true)));
-        // m_joystick.getHID().button(7).onTrue(Subsystems.m_intakeExtension.extendIntakeAndReset());
+        m_joystick.getHID().button(7).onTrue(Subsystems.m_intakeExtension.extendIntakeAndReset());
         m_joystick.getHID().button(1).whileTrue(Commands.parallel(
                 Subsystems.m_secondaryKicker.run(false),
                 Subsystems.m_indexerConveyor.run(false)

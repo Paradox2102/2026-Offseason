@@ -81,9 +81,9 @@ public class ParadoxTalon extends TalonFX {
 
         if (m_stallShutoff) {
             if (
-                (m_removeStallCondition.getAsBoolean())
+                (m_removeStallCondition == null && m_cooldown.hasElapsed(StallConstants.k_cooldownSeconds))
                 ||
-                (m_removeStallCondition == null && m_cooldown.hasElapsed(StallConstants.k_cooldownSeconds))) {
+                (m_removeStallCondition != null && m_removeStallCondition.getAsBoolean())) {
                 m_stallShutoff = false;
                 m_stallDebounce.calculate(false); // reset, so it needs a fresh stall to trip again
                 applyRequest();

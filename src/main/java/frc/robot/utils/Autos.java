@@ -25,8 +25,8 @@ public class Autos {
         new PIDController(6.0, 0.0, 0.0) // cross-track PID. If tuned, set it here.
     );
 
-    private static final Path doubleAuto1 = new Path("DoubleAuto1");
-    private static final Path doubleAuto2 = new Path("DoubleAuto2");
+    private static final Path doubleAuto1 = new Path("DoubleSwipe1");
+    private static final Path doubleAuto2 = new Path("DoubleSwipe2");
 
     public static Command doubleSwipe(){
         return Commands.sequence(

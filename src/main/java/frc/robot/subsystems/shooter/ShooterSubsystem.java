@@ -51,7 +51,7 @@ public class ShooterSubsystem extends SubsystemBase{
     private final TunableDouble m_shotSpeed = Tunables.addDouble("Shoot Speed", 0);
 
     public boolean isAtSpeed() {
-        return Math.abs((Math.abs(m_shooterLeader.getVelocity().getValueAsDouble()) + Math.abs(m_shooterFollower.getVelocity().getValueAsDouble())) / 2 - m_velocityRequest.Velocity) < 3;
+        return Math.abs(((Math.abs(m_shooterLeader.getVelocity().getValueAsDouble()) + Math.abs(m_shooterFollower.getVelocity().getValueAsDouble())) / 2) - m_velocityRequest.Velocity) < 3;
     }
 
     private DoubleSupplier m_shooterTargetDistance;
