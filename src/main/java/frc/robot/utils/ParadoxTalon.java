@@ -30,6 +30,9 @@ public class ParadoxTalon extends TalonFX {
     private boolean m_manualShutoff = false;
     private boolean m_stallShutoff = false;
 
+    private Runnable m_callback;
+    private BooleanSupplier m_removeStallCondition;
+
 
     /**
      * Constructs a TalonFX with a few extra utility things
@@ -50,6 +53,23 @@ public class ParadoxTalon extends TalonFX {
         s_all.add(this);
     }
 
+    public ParadoxTalon(int deviceId, CANBus canbus, ControlRequest request, double stallShutDownTime, BooleanSupplier removeStallCondition) {
+        super(deviceId, canbus);
+
+        m_request = request;
+        m_stallDebounce = new Debouncer(stallShutDownTime, DebounceType.RISING);
+        setControl(request);
+
+        // Alert on the dashboard if this motor drops off CAN or reboots
+        HealthMonitor.register(this);
+        s_all.add(this);
+        m_removeStallCondition = removeStallCondition;
+    }
+
+    public void setShutoffCallback(Runnable callback) {
+        m_callback = callback;
+    }
+
     public static void updateAll() {
         for (ParadoxTalon talon : s_all) {
             talon.updateStall();
@@ -60,7 +80,10 @@ public class ParadoxTalon extends TalonFX {
         BaseStatusSignal.refreshAll(m_statorCurrent, m_velocity, m_position);
 
         if (m_stallShutoff) {
-            if (m_cooldown.hasElapsed(StallConstants.k_cooldownSeconds)) {
+            if (
+                (m_removeStallCondition.getAsBoolean())
+                ||
+                (m_removeStallCondition == null && m_cooldown.hasElapsed(StallConstants.k_cooldownSeconds))) {
                 m_stallShutoff = false;
                 m_stallDebounce.calculate(false); // reset, so it needs a fresh stall to trip again
                 applyRequest();
@@ -74,7 +97,11 @@ public class ParadoxTalon extends TalonFX {
         if (m_stallDebounce.calculate(stalling)) {
             m_stallShutoff = true;
             m_cooldown.restart();
-            setControl(m_neutral); // actually stop the motor
+            if (m_callback != null) {
+                m_callback.run();
+            } else {
+                setControl(m_neutral); // actually stop the motor
+            }
         }
     }
 
