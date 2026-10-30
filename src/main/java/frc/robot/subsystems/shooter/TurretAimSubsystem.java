@@ -136,6 +136,16 @@ public class TurretAimSubsystem extends SubsystemBase{
         return m_shooterAzimuth.getShutoff();
     }
 
+    public Translation2d getTarget(){
+        if (Subsystems.m_swerveSubsystem.inTeamAlliance())
+            return SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub;
+        else
+            if (Subsystems.m_swerveSubsystem.getPose().getY() > FieldConstants.k_yCenterline)
+                return SwerveSubsystem.isRedAlliance() ? FieldConstants.k_fullPassRedDepot : FieldConstants.k_fullPassBlueOutpost;
+            else
+                return SwerveSubsystem.isRedAlliance() ? FieldConstants.k_fullPassRedOutpost : FieldConstants.k_fullPassBlueDepot;
+    }
+
     @Override
     public void simulationPeriodic() {
     var talonFXSim = m_shooterAzimuth.getSimState();

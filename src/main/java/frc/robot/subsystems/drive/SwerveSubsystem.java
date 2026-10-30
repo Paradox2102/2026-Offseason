@@ -655,4 +655,8 @@ public double[] getWheelRadiusCharacterizationPositions() {
                               + " inches");
                     })));
   }
+
+  public final void killCameras(){
+    vision.disableAllCameras();
+  }
 }

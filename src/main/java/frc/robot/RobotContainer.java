@@ -52,7 +52,6 @@ public class RobotContainer {
         // configureFuelSim();
         configureDefaults();
         configureBindings();
-        // m_controller.faceLeft().whileTrue(Commands.run(() -> Subsystems.m_swerveSubsystem.getModule(3).getSteerMotor().setControl(new PositionVoltage(0.25)), Subsystems.m_swerveSubsystem)).onFalse(Commands.run(() -> Subsystems.m_swerveSubsystem.getModule(3).getSteerMotor().setControl(new PositionVoltage(0)), Subsystems.m_swerveSubsystem));
         configureAutos();
     }
 
@@ -139,7 +138,10 @@ public class RobotContainer {
 
         // m_controller.rightTrigger().whileTrue(Commands.parallel(Subsystems.m_intakeRoller.testRun(false), Subsystems.m_indexerRollerSubsystem.testRun(false)));
         // m_controller.faceLeft().whileTrue(Subsystems.m_indexerRollerSubsystem.testRun(true));
-        m_joystick.getHID().button(5).onTrue(Commands.runOnce(() -> Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(Units.degreesToRadians(SwerveSubsystem.isRedAlliance() ? 180 : 0))))));
+        m_joystick.getHID().button(5).onTrue(Commands.runOnce(() -> {
+            Subsystems.m_swerveSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(Units.degreesToRadians(SwerveSubsystem.isRedAlliance() ? 180 : 0))));
+            Subsystems.m_swerveSubsystem.killCameras();
+        }, Subsystems.m_swerveSubsystem));
         
         // m_controller.dpadUp().onTrue(Subsystems.m_intakeExtension.retractIntake());
         // m_controller.faceDown().whileTrue(Commands.parallel(
@@ -173,7 +175,7 @@ public class RobotContainer {
         // Subsystems.m_indexerRollerSubsystem.setDefaultCommand(Subsystems.m_indexerRollerSubsystem.runSlow(false));
         // Subsystems.m_kickerSubsystem.setDefaultCommand(Subsystems.m_kickerSubsystem.runSlow());
         // Subsystems.m_secondaryKicker.setDefaultCommand(Subsystems.m_secondaryKicker.runSlow(false));
-        // Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.returnHood());
+        Subsystems.m_hoodSubsystem.setDefaultCommand(Subsystems.m_hoodSubsystem.returnHood());
        
     }
 
