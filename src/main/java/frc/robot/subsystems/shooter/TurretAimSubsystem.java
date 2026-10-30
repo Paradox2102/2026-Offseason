@@ -1,14 +1,9 @@
 package frc.robot.subsystems.shooter;
 
 
-import org.photonvision.PhotonUtils;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.geometry.Transform2d;
-import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.Models;
 import org.wpilib.math.util.Units;
@@ -17,6 +12,7 @@ import org.wpilib.system.RobotController;
 import org.wpilib.telemetry.Telemetry;
 
 import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -28,6 +24,7 @@ import frc.robot.Constants.Subsystems;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.utils.DoubleNumber;
 import frc.robot.utils.ParadoxTalon;
+import frc.robot.utils.ShotCalculator;
 
 public class TurretAimSubsystem extends SubsystemBase{
     private final CANBus k_CANBus = CANIDConstants.k_canBus3;
@@ -37,7 +34,10 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     private final ParadoxTalon m_shooterAzimuth = new ParadoxTalon(CANIDConstants.shooterAzimuth, k_CANBus, m_coastRequest, 0.1);
     
-    public Pose2d turretPose = new Pose2d();
+    private final ShotCalculator m_shotCalculator;
+    /** Last valid shot, held if the solver fails so the turret doesn't snap to 0 */
+    private ShotCalculator.LaunchParameters m_shot = ShotCalculator.LaunchParameters.INVALID;
+    private boolean m_shotValid = false;
 
     public boolean isOnTarget() {
         return Math.abs(m_shooterAzimuth.getPosition().getValueAsDouble() - m_positionRequest.Position) < 0.5;
@@ -47,50 +47,74 @@ public class TurretAimSubsystem extends SubsystemBase{
  public TurretAimSubsystem() {
         m_shooterAzimuth.getConfigurator().apply(ShooterConstants.k_turretConfig);
         // m_shooterAzimuth.setPosition(0.0);
+
+        m_shotCalculator = new ShotCalculator(ShooterConstants.k_scoreShotTimes, "Score");
+    }
+
+    @Override
+    public void periodic() {
+        var swerve = Subsystems.m_swerveSubsystem;
+        var robotPose = swerve.getPose();
+        var fieldVelocity = swerve.getChassisVelocities().toFieldRelative(robotPose.getRotation());
+        var hub = SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub;
+
+        var shot = m_shotCalculator.calculate(robotPose, fieldVelocity, hub);
+        m_shotValid = shot.isValid();
+        if (m_shotValid) {
+            m_shot = shot;
+        }
+
+        Telemetry.log("Turret Distance To Hub", m_shot.projectedDistance());
+        Telemetry.log("Robot Distance To Hub", robotPose.getTranslation().getDistance(hub));
+        Telemetry.log("Turret Shot Valid", m_shotValid);
+        Telemetry.log("SOTM Latency", m_shotCalculator.getLatency());
+        // Also in the hoot log so we can review it after a match and update k_sotmLatency
+        SignalLogger.writeDouble("SOTM/Latency", m_shotCalculator.getLatency(), "s");
     }
 
     public Command rotateToTarget() {
         return Commands.run(() -> {
-            m_shooterAzimuth.setParadoxControl(m_positionRequest.withPosition(getTargetRotation()));
+            m_shooterAzimuth.setParadoxControl(m_positionRequest
+                .withPosition(getTargetRotation())
+                .withVelocity(getTargetVelocity()));
         }, this);
+    }
+
+    /**
+     * Changes the shoot on the move latency mid-match.
+     * @param delta seconds to add, negative to decrease
+     */
+    public Command adjustLatency(double delta) {
+        return Commands.runOnce(() -> m_shotCalculator.adjustLatency(delta));
     }
 
     public Command staticAim() {
         return Commands.run(() -> {
-            m_shooterAzimuth.setParadoxControl(m_positionRequest.withPosition(0.1 * ShooterConstants.k_shooterGearReduction)); 
+            m_shooterAzimuth.setParadoxControl(m_positionRequest.withPosition(0.1 * ShooterConstants.k_shooterGearReduction).withVelocity(0)); 
         }, this);
     }
 
+    /**
+     * Distance from the turret to the hub, adjusted for shoot on the move.
+     * @return meters
+     */
     public double getTargetDistance(){
-
-        var hub = SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub;
-
-        return turretPose.getTranslation().getDistance(hub);
+        return m_shot.projectedDistance();
     }
 
     /**
-     * Calculates the target rotation for the turret in rotations
-     * @return the turret rotation that reaches the target
+     * @return false if the shoot on the move solver couldn't find a shot, so we shouldn't fire
+     */
+    public boolean isShotValid() {
+        return m_shotValid;
+    }
+
+    /**
+     * Converts the shot's robot relative turret angle into the motor position
+     * @return the turret rotation that reaches the target, in motor rotations
      */
     private double getTargetRotation(){ 
-        /**
-         * Position of the robot's turret
-         * Created through the Shoot On the Move position and is offset by the turret's offset. Done through a transform3d in order to keep it's offset in the correct rotation if the robot is rotated
-         */
-        var robotPose = Subsystems.m_swerveSubsystem.getPose();
-        
-        var rotatedPose = new Pose2d(ShooterConstants.k_turretOffset, new Rotation2d()).rotateBy(robotPose.getRotation());
-
-        robotPose = new Pose2d(robotPose.getX() + rotatedPose.getX(), robotPose.getY() + rotatedPose.getY(), robotPose.getRotation());
-
-        turretPose = robotPose;
-        
-        var hub = SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub;
-        
-        Telemetry.log("Turret Distance To Hub", robotPose.getTranslation().getDistance(hub));
-        Telemetry.log("Robot Distance To Hub", Subsystems.m_swerveSubsystem.getPose().getTranslation().getDistance(hub));
-
-        var targetRotation = PhotonUtils.getYawToPose(robotPose, new Pose2d(hub, new Rotation2d()));
+        var targetRotation = m_shot.turretAngle();
         // Checks the 3 coterminal angles to see if any of them are closer to our current position
         // double bestRotation = targetRotation;
         // // checks the rotation with -360, 0, and 360 added to it.
@@ -100,6 +124,14 @@ public class TurretAimSubsystem extends SubsystemBase{
         // System.out.println(targetRotation * ShooterConstants.k_shooterGearReduction);
         return Units.radiansToRotations(((-targetRotation.getRadians()) - Units.degreesToRadians(90)) * ShooterConstants.k_shooterGearReduction);
     }
+
+    /**
+     * @return motor rotations per second
+     */
+    private double getTargetVelocity() {
+        return Units.radiansToRotations(-m_shot.turretVelocityRadPerSec() * ShooterConstants.k_shooterGearReduction);
+    }
+
     /**
      * checks the coterminal angles and finds whihc one is closer to our current position
      * @param bestRotation The current closest rotation

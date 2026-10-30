@@ -208,6 +208,16 @@ public static final double k_secondarySlowKickerInRPS = 20;
     public static final Translation2d k_turretOffset = new Translation2d(-0.151554, 0.190500);
 
     public static final DoubleNumber k_turretBounds = new DoubleNumber(-250, 250);
+
+    /** Time from the pose being measured to the fuel leaving the shooter in seconds */
+    public static final double k_sotmLatency = 1.00; // PLEASE TUNE ME
+    /** How much each operator latency button press changes the latency, seconds */
+    public static final double k_sotmLatencyStep = 0.01;
+    /** Weird math stuff. Stolen from 4322 who stole it from 5962 */
+    public static final double k_sotmDragCoeff = 0.24;
+    
+    public static final double k_sotmMinSpeed = 0.1;
+    public static final double k_sotmMaxSpeed = 100;
     public static final double[][] k_scoreHoodAngle = {
         {1.26, 0},
         {1.7, 0},

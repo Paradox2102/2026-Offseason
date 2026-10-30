@@ -24,7 +24,6 @@ import org.wpilib.math.geometry.Pose2d;
 // import org.wpilib.math.geometry.Rectangle2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
-import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
 import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.math.numbers.N1;
 import org.wpilib.math.numbers.N3;
@@ -47,7 +46,6 @@ import org.wpilib.command2.sysid.SysIdRoutine;
 import frc.robot.Constants.DrivebaseConstants;
 // import frc.robot.RobotContainer;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.Constants.ShooterConstants;
 import frc.robot.Sales_because_if_6328_does_if_it_must_be_good.SalesAssociate;
 // import frc.robot.Constants.Subsystems;
 import frc.robot.generated.TunerConstants;
@@ -168,8 +166,6 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     
     private Vision vision;
     
-    private InterpolatingDoubleTreeMap m_shotTimeInt = new InterpolatingDoubleTreeMap();
-    private static Pose2d m_sotmPose = new Pose2d();
 
     /**
      * Constructs a CTRE SwerveDrivetrain using the specified constants.
@@ -190,9 +186,6 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
             startSimThread();
         }
         setupPhotonVision();
-        for(double[] values : ShooterConstants.k_scoreShotTimes){
-            m_shotTimeInt.put(values[0], values[1]);
-        }
         resetPose(new Pose2d(0, 0,new Rotation2d(Math.PI)));
     }
 
@@ -219,9 +212,6 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
             startSimThread();
         }
         setupPhotonVision();
-        for(double[] values : ShooterConstants.k_scoreShotTimes){
-            m_shotTimeInt.put(values[0], values[1]);
-        }
         resetPose(new Pose2d(0, 0, new Rotation2d(Math.PI)));
         
     }
@@ -257,9 +247,6 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
             startSimThread();
         }
         setupPhotonVision();
-        for(double[] values : ShooterConstants.k_scoreShotTimes){
-            m_shotTimeInt.put(values[0], values[1]);
-        }
         resetPose(new Pose2d(0, 0,new Rotation2d((3/4.0) * Math.PI)));
     }
 
@@ -331,8 +318,6 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         // alignToTrench();
 
         SalesAssociate.driving(getChassisVelocities());
-    
-        m_sotmPose = sotmLookAhead(5, isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
     }
 
     // private void alignToTrench() {
@@ -501,24 +486,6 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
 
     public Pose2d getPose() {
         return cachedPose;
-    }
-    public Pose2d getSotmHubAimPos(){
-        return m_sotmPose;
-    }
-    public Pose2d getFuturePos(double lookAhead) {
-        double xDist = cachedPose.getX() + (getState().Velocity.vx * lookAhead);    // TODO - pretty sure this is correct. Verify
-        double yDist = cachedPose.getY() + (getState().Velocity.vy * lookAhead);    // TODO - pretty sure this is correct. Verify
-        return new Pose2d(xDist, yDist, cachedPose.getRotation());
-    }
-
-    //iteratively look forward in time to find aiming pose for shoot on the move
-    public Pose2d sotmLookAhead(int iterations, Translation2d targetTranslation){
-        Pose2d futurePos = getFuturePos(m_shotTimeInt.get(distanceToTarget()));
-        for(int i = 0; i < iterations; i++){
-            double futureShotTime = m_shotTimeInt.get(targetTranslation.getDistance(futurePos.getTranslation()));
-            futurePos = getFuturePos(futureShotTime);
-        }
-        return futurePos;
     }
     /**
      * Drives the robot!

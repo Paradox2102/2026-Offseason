@@ -45,7 +45,7 @@ public class RobotContainer {
     @SuppressWarnings("unused")
     private final CommandJoystick m_joystick = new CommandJoystick(1);
 
-    private final FuelLaunchSim launchSim = new FuelLaunchSim(Subsystems.m_swerveSubsystem::getSotmHubAimPos, Subsystems.m_swerveSubsystem::getChassisVelocities);
+    private final FuelLaunchSim launchSim = new FuelLaunchSim(Subsystems.m_swerveSubsystem::getPose, () -> Subsystems.m_swerveSubsystem.getChassisVelocities().toFieldRelative(Subsystems.m_swerveSubsystem.getPose().getRotation()));
 
 
     public RobotContainer() {
@@ -58,7 +58,7 @@ public class RobotContainer {
 
     private void configureBindings() {
 
-        Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed() && m_controller.rightTrigger().getAsBoolean() && Subsystems.m_turretAimSubsystem.isOnTarget());
+        Trigger isReadyToShoot = new Trigger(() -> Subsystems.m_hoodSubsystem.isOnTarget() && Subsystems.m_shooterSubsystem.isAtSpeed() && m_controller.rightTrigger().getAsBoolean() && Subsystems.m_turretAimSubsystem.isOnTarget() && Subsystems.m_turretAimSubsystem.isShotValid());
         Trigger m_noIntakeShoot = new Trigger(() -> isReadyToShoot.getAsBoolean() && !m_controller.leftTrigger().getAsBoolean());
         Trigger m_isConveyorAtSpeed = new Trigger(() -> m_noIntakeShoot.getAsBoolean() && Subsystems.m_indexerConveyor.getVelocity() > 20);
         isReadyToShoot.whileTrue(Commands.parallel(
@@ -116,6 +116,10 @@ public class RobotContainer {
         m_joystick.getHID().button(6).whileTrue(Commands.run(
             () -> {Subsystems.m_turretAimSubsystem.setShutoff(!Subsystems.m_turretAimSubsystem.getShutoff());}
         ));
+
+        // Shoot on the move latency, in case something's different mid-match
+        m_joystick.getHID().button(4).onTrue(Subsystems.m_turretAimSubsystem.adjustLatency(ShooterConstants.k_sotmLatencyStep));
+        m_joystick.getHID().button(2).onTrue(Subsystems.m_turretAimSubsystem.adjustLatency(-ShooterConstants.k_sotmLatencyStep));
 
         m_joystick.getHID().button(10).onTrue(Commands.run(() -> SalesAssociate.careAboutCustomerService(!SalesAssociate.getCareAboutCustomerService())));
         m_joystick.getHID().button(9).onTrue(Commands.run(() -> {
@@ -193,7 +197,7 @@ public class RobotContainer {
     private void configureFuelSim() {
     FuelSim instance = FuelSim.getInstance();
     instance.spawnStartingFuel();
-    instance.registerRobot(0.876, 0.826, 0.4, Subsystems.m_swerveSubsystem::getSotmHubAimPos, () ->  Subsystems.m_swerveSubsystem.getChassisVelocities().toFieldRelative(Subsystems.m_swerveSubsystem.getPigeon2().getRotation2d()));
+    instance.registerRobot(0.876, 0.826, 0.4, Subsystems.m_swerveSubsystem::getPose, () ->  Subsystems.m_swerveSubsystem.getChassisVelocities().toFieldRelative(Subsystems.m_swerveSubsystem.getPigeon2().getRotation2d()));
 
     instance.start();
     // instance.clearFuel();
