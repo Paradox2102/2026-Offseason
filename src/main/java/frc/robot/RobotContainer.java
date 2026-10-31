@@ -10,9 +10,7 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.Subsystem;
 import org.wpilib.command2.button.CommandGamepad;
 import org.wpilib.command2.button.CommandJoystick;
-import org.wpilib.command2.button.CommandNiDsXboxController;
 import org.wpilib.command2.button.Trigger;
-import org.wpilib.driverstation.NiDsXboxController;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.util.Units;
@@ -43,7 +41,7 @@ public class RobotContainer {
 
     // private final Telemetry logger = new Telemetry(SwerveSubsystem.MaxSpeed);
 
-    public static final CommandNiDsXboxController m_controller = new CommandNiDsXboxController(0);
+    public static final CommandGamepad m_controller = new CommandGamepad(0);
     @SuppressWarnings("unused")
     private final CommandJoystick m_joystick = new CommandJoystick(1);
 
@@ -77,7 +75,7 @@ public class RobotContainer {
             Subsystems.m_intakeExtension.extendIntake(),
             Subsystems.m_intakeRoller.run(true)
         ));
-        m_controller.y().whileTrue(Commands.sequence(
+        m_controller.faceUp().whileTrue(Commands.sequence(
             Subsystems.m_intakeExtension.extendIntake(),
             Subsystems.m_intakeRoller.run(false)));
         // m_controller.faceLeft().whileTrue(
@@ -98,7 +96,7 @@ public class RobotContainer {
         Subsystems.m_secondaryKicker.runSlow(false)
         ).withTimeout(0.5));
             
-        m_controller.a().whileTrue(Commands.parallel( // Shooter override
+        m_controller.faceDown().whileTrue(Commands.parallel( // Shooter override
             Subsystems.m_indexerConveyor.run(true),
             Subsystems.m_indexerRollerSubsystem.run(true),
             Subsystems.m_kickerSubsystem.run(),
