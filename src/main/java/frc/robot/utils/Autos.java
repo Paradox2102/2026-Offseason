@@ -1,5 +1,7 @@
 package frc.robot.utils;
 
+import java.util.function.BooleanSupplier;
+
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.Subsystem;
@@ -28,10 +30,10 @@ public class Autos {
     private static final Path doubleAuto1 = new Path("DoubleSwipe1");
     private static final Path doubleAuto2 = new Path("DoubleSwipe2");
 
-    public static Command doubleSwipe(){
+    public static Command doubleSwipe(BooleanSupplier isRight){
         return Commands.sequence(
             Commands.race(
-                pathBuilder.build(doubleAuto1).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset(),
+                pathBuilder.build(doubleAuto1).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset().withShouldMirror(isRight),
                 Commands.sequence(
                     Subsystems.m_intakeExtension.extendIntake(),
                     Subsystems.m_intakeRoller.run(true) 
@@ -42,7 +44,7 @@ public class Autos {
                 Subsystems.m_shooterSubsystem.shoot()
             ).withTimeout(6),
             Commands.race(
-                pathBuilder.build(doubleAuto2).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset(),
+                pathBuilder.build(doubleAuto2).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset().withShouldMirror(isRight),
                 Commands.sequence(
                     Subsystems.m_intakeExtension.extendIntake(),
                     Subsystems.m_intakeRoller.run(true) 
