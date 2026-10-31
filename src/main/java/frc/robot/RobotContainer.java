@@ -70,7 +70,7 @@ public class RobotContainer {
             m_isConveyorAtSpeed.whileTrue(
                Subsystems.m_indexerRollerSubsystem.runPower(true)
             );
-        // m_noIntakeShoot.whileTrue(Commands.parallel(Subsystems.m_intakeExtension.agitate(), Subsystems.m_intakeRoller.run(true)));
+        m_noIntakeShoot.whileTrue(Commands.parallel(Subsystems.m_intakeExtension.agitate(), Subsystems.m_intakeRoller.run(true)));
 
         m_controller.leftTrigger().whileTrue(Commands.sequence(
             Subsystems.m_intakeExtension.extendIntake(),

@@ -20,6 +20,9 @@ import org.wpilib.system.RobotController;
 import org.wpilib.system.Timer;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.simulation.ElevatorSim;
+
+import java.io.File;
+
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.RepeatCommand;
@@ -38,8 +41,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     private final Follower m_followRequest = new Follower(CANIDConstants.intakeExtensionLeader, MotorAlignmentValue.Opposed);
     private final StaticBrake m_brakeRequest = new StaticBrake();
     
-    private final ParadoxTalon m_intakeExtensionLeader = new ParadoxTalon(CANIDConstants.intakeExtensionLeader, k_CANBus, m_brakeRequest, 0.1, () -> !getExpectExtended());
-    private final ParadoxTalon m_intakeExtensionFollower = new ParadoxTalon(CANIDConstants.intakeExtensionFollower, k_CANBus, m_brakeRequest, 0.1, () -> !getExpectExtended()); 
+    private final ParadoxTalon m_intakeExtensionLeader = new ParadoxTalon(CANIDConstants.intakeExtensionLeader, k_CANBus, m_brakeRequest);
+    private final ParadoxTalon m_intakeExtensionFollower = new ParadoxTalon(CANIDConstants.intakeExtensionFollower, k_CANBus, m_brakeRequest); 
 
     private final Timer m_crushTimer = new Timer();
     private final double k_maxCrushTime = 1.0;
@@ -54,6 +57,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
        DCMotor.getKrakenX60Foc(2), 0.0, k_intakeMaxExtension, false, 0);
 
     
+       
     public static enum TargetPosition {
         IN(0.2),
         OUT(k_intakeMaxExtension),
@@ -86,6 +90,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        Telemetry.log("Intake Extension Stalling :(", m_intakeExtensionLeader.getMotorStallCurrent().isNear(m_intakeExtensionLeader.getSupplyCurrent().getValueAsDouble(), 1) || m_intakeExtensionFollower.getMotorStallCurrent().isNear(m_intakeExtensionFollower.getSupplyCurrent().getValueAsDouble(), 1));
+            
         Telemetry.log("Intake Extension at target", isIntakeAtTarget(TargetPosition.OUT, false));
 
         Telemetry.log("Intake Extension Position", (m_intakeExtensionLeader.getPosition().getValueAsDouble() + m_intakeExtensionFollower.getPosition().getValueAsDouble()) / 2);
