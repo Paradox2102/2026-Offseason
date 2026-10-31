@@ -123,7 +123,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         }, () -> {
             m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(-6));
             SalesAssociate.persuasion();
-        }
+        }, this
         ).until(() -> isIntakeAtTarget(TargetPosition.CRUSH, true) || m_crushTimer.get() > k_maxCrushTime).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest));
     }
 
@@ -137,7 +137,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         return Commands.sequence(extendIntake()).andThen(() -> {
             m_intakeExtensionLeader.setPosition(k_intakeMaxExtension);
             m_intakeExtensionFollower.setPosition(k_intakeMaxExtension);
-        });
+        }, this);
     }
     
 

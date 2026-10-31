@@ -3,10 +3,9 @@
     {
       "type": "waypoint",
       "translation_target": {
-        "x_meters": 3.32006,
-        "y_meters": 7.32599,
-        "intermediate_handoff_radius_meters": 0.45,
-        "handoff_radius_source": "auto"
+        "x_meters": 2.74381,
+        "y_meters": 7.42883,
+        "intermediate_handoff_radius_meters": 0.45
       },
       "rotation_target": {
         "rotation_radians": 0.0,
@@ -16,9 +15,21 @@
     {
       "type": "waypoint",
       "translation_target": {
-        "x_meters": 7.71403,
-        "y_meters": 7.07491,
-        "intermediate_handoff_radius_meters": 0.9
+        "x_meters": 6.38936,
+        "y_meters": 7.27072,
+        "intermediate_handoff_radius_meters": 0.45
+      },
+      "rotation_target": {
+        "rotation_radians": 0.0,
+        "profiled_rotation": true
+      }
+    },
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 8.13703,
+        "y_meters": 6.87813,
+        "intermediate_handoff_radius_meters": 0.6
       },
       "rotation_target": {
         "rotation_radians": -1.1157,
@@ -28,9 +39,9 @@
     {
       "type": "waypoint",
       "translation_target": {
-        "x_meters": 7.71403,
-        "y_meters": 4.34885,
-        "intermediate_handoff_radius_meters": 0.9
+        "x_meters": 8.08637,
+        "y_meters": 4.5859,
+        "intermediate_handoff_radius_meters": 0.6
       },
       "rotation_target": {
         "rotation_radians": -1.16079,
@@ -40,22 +51,33 @@
     {
       "type": "waypoint",
       "translation_target": {
-        "x_meters": 6.31513,
-        "y_meters": 4.56407,
+        "x_meters": 6.41469,
+        "y_meters": 4.3706,
         "intermediate_handoff_radius_meters": 0.0
       },
       "rotation_target": {
-        "rotation_radians": 3.08343,
+        "rotation_radians": -2.64093,
         "profiled_rotation": true
       }
     },
     {
       "type": "waypoint",
       "translation_target": {
-        "x_meters": 5.27493,
-        "y_meters": 5.4608,
-        "intermediate_handoff_radius_meters": 0.263,
-        "handoff_radius_source": "auto"
+        "x_meters": 6.50334,
+        "y_meters": 5.51039,
+        "intermediate_handoff_radius_meters": 0.263
+      },
+      "rotation_target": {
+        "rotation_radians": 2.48817,
+        "profiled_rotation": true
+      }
+    },
+    {
+      "type": "waypoint",
+      "translation_target": {
+        "x_meters": 2.28035,
+        "y_meters": 5.41575,
+        "intermediate_handoff_radius_meters": 0.355
       },
       "rotation_target": {
         "rotation_radians": 2.34799,
@@ -63,25 +85,17 @@
       }
     },
     {
-      "type": "waypoint",
-      "translation_target": {
-        "x_meters": 3.15865,
-        "y_meters": 5.42493,
-        "intermediate_handoff_radius_meters": 0.355,
-        "handoff_radius_source": "auto"
-      },
-      "rotation_target": {
-        "rotation_radians": 2.34799,
-        "profiled_rotation": true
-      }
+      "type": "rotation",
+      "rotation_radians": 0.00441,
+      "t_ratio": 0.50337,
+      "profiled_rotation": true
     },
     {
       "type": "waypoint",
       "translation_target": {
-        "x_meters": 3.32,
-        "y_meters": 7.33,
-        "intermediate_handoff_radius_meters": 0.45,
-        "handoff_radius_source": "auto"
+        "x_meters": 2.83634,
+        "y_meters": 7.37582,
+        "intermediate_handoff_radius_meters": 0.45
       },
       "rotation_target": {
         "rotation_radians": 0.0,
@@ -92,14 +106,24 @@
   "constraints": {
     "max_velocity_meters_per_sec": [
       {
-        "value": 2.8,
+        "value": 3.0,
+        "start_ordinal": 6,
+        "end_ordinal": 6
+      },
+      {
+        "value": 2.5,
         "start_ordinal": 0,
+        "end_ordinal": 2
+      },
+      {
+        "value": 1.25,
+        "start_ordinal": 3,
         "end_ordinal": 5
       },
       {
-        "value": 0.8,
-        "start_ordinal": 6,
-        "end_ordinal": 6
+        "value": 1.25,
+        "start_ordinal": 7,
+        "end_ordinal": 7
       }
     ]
   }
