@@ -39,6 +39,8 @@ public class TurretAimSubsystem extends SubsystemBase{
     
     public Pose2d turretPose = new Pose2d();
 
+    public static boolean isPass = false;
+
     public boolean isOnTarget() {
         return Math.abs(m_shooterAzimuth.getPosition().getValueAsDouble() - m_positionRequest.Position) < 0.5;
     }
@@ -63,9 +65,9 @@ public class TurretAimSubsystem extends SubsystemBase{
 
     public double getTargetDistance(){
 
-        var hub = SwerveSubsystem.isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub;
+        var target = Subsystems.m_swerveSubsystem.targetTranslation(isPass);
 
-        return turretPose.getTranslation().getDistance(hub);
+        return turretPose.getTranslation().getDistance(target);
     }
 
     /**

@@ -5,6 +5,7 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.StaticBrake;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
@@ -21,6 +22,8 @@ import org.wpilib.system.Timer;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.simulation.ElevatorSim;
 
+import static org.wpilib.units.Units.Seconds;
+
 import java.io.File;
 
 import org.wpilib.command2.Command;
@@ -32,7 +35,7 @@ import org.wpilib.command2.WaitCommand;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
     private static final double k_intakeMaxExtension = 3.95;
-    private static final double k_intakeCrushPosition = 3.2;
+    private static final double k_intakeCrushPosition = 3.0;
     private static final double k_elevatorDrimRadius = 0.038091; // If something is wrong then this is the first thing to check. Idk if I did this right
     private static final double k_elevatorMass = 5.401715051809;
     private final CANBus k_CANBus = CANIDConstants.k_canBus4;
@@ -41,8 +44,8 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     private final Follower m_followRequest = new Follower(CANIDConstants.intakeExtensionLeader, MotorAlignmentValue.Opposed);
     private final StaticBrake m_brakeRequest = new StaticBrake();
     
-    private final ParadoxTalon m_intakeExtensionLeader = new ParadoxTalon(CANIDConstants.intakeExtensionLeader, k_CANBus, m_brakeRequest);
-    private final ParadoxTalon m_intakeExtensionFollower = new ParadoxTalon(CANIDConstants.intakeExtensionFollower, k_CANBus, m_brakeRequest); 
+    private final TalonFX m_intakeExtensionLeader = new TalonFX(CANIDConstants.intakeExtensionLeader, k_CANBus);
+    private final TalonFX m_intakeExtensionFollower = new TalonFX(CANIDConstants.intakeExtensionFollower, k_CANBus); 
 
     private final Timer m_crushTimer = new Timer();
     private final double k_maxCrushTime = 1.0;
@@ -76,7 +79,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         m_crushTimer.start();
         m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
-        m_intakeExtensionFollower.setParadoxControl(m_followRequest);
+        m_intakeExtensionFollower.setControl(m_followRequest);
 
         // m_intakeExtensionLeader.setPosition(k_intakeMaxExtension);
         // m_intakeExtensionFollower.setPosition(k_intakeMaxExtension);
@@ -100,49 +103,52 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     // public Command moveIntake(TargetPosition position){
     //     return Commands.run(() -> {
-    //         m_intakeExtensionLeader.setParadoxControl(m_positionRequest.withPosition(position.position));
-    //     }, this).until(() -> isIntakeAtTarget(position)).finallyDo(() -> m_intakeExtensionLeader.setParadoxControl(m_brakeRequest));
+    //         m_intakeExtensionLeader.setControl(m_positionRequest.withPosition(position.position));
+    //     }, this).until(() -> isIntakeAtTarget(position)).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest));
     // }
 
 
 
     public Command retractIntake() {
         return Commands.run(() -> {
-            m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(-10));
+            m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(-10));
             SalesAssociate.persuasion();
         }, this
-        ).until(() -> isIntakeAtTarget(TargetPosition.IN, false)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = false;});
+        ).until(() -> isIntakeAtTarget(TargetPosition.IN, false)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = false;}).withTimeout(Seconds.of(1.0));
     }
 
     public Command extendIntakeCrush() {
         return Commands.startRun(() -> {
             m_crushTimer.reset();
         }, () -> {
-            m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(6));
+            m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(6));
             
-        }, this).until(() -> (isIntakeAtTarget(TargetPosition.OUT, false) || m_crushTimer.get() > k_maxCrushTime)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = true;});
+        }, this).until(() -> (isIntakeAtTarget(TargetPosition.OUT, false) || m_crushTimer.get() > k_maxCrushTime)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = true;}).withTimeout(Seconds.of(1.0));
     }
 
         public Command retractIntakeCrush() {
         return Commands.startRun(() -> {
                 m_crushTimer.reset();
         }, () -> {
-            m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(-6));
+            m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(-10));
             SalesAssociate.persuasion();
         }, this
-        ).until(() -> isIntakeAtTarget(TargetPosition.CRUSH, true) || m_crushTimer.get() > k_maxCrushTime).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest));
+        ).until(() -> isIntakeAtTarget(TargetPosition.CRUSH, true) || m_crushTimer.get() > k_maxCrushTime).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest)).withTimeout(Seconds.of(1.0));
     }
 
     public Command extendIntake() {
         return Commands.run(() -> {
-            m_intakeExtensionLeader.setParadoxControl(m_velocityRequest.withVelocity(10));
+            m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(10));
         }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT, false)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = true;});
     }
 
     public Command extendIntakeAndReset() {
-        return Commands.sequence(extendIntake()).andThen(() -> {
+        return Commands.runEnd(() ->{
+            m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(5));
+        }, ()->{
+            m_intakeExtensionLeader.setControl(m_brakeRequest);
             m_intakeExtensionLeader.setPosition(k_intakeMaxExtension);
-            m_intakeExtensionFollower.setPosition(k_intakeMaxExtension);
+            m_intakeExtensionLeader.setPosition(k_intakeMaxExtension);
         }, this);
     }
     

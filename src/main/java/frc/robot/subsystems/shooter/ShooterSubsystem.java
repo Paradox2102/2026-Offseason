@@ -71,7 +71,16 @@ public class ShooterSubsystem extends SubsystemBase{
         }
     }
 
-    public Command shoot() {
+    public Command score() {
+        return Commands.runEnd(() -> {               
+            m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(m_shooterLerpTable.get(m_shooterTargetDistance.getAsDouble())));
+            SalesAssociate.sayByeToFuel();
+        }, () -> {
+            m_shooterLeader.setParadoxControl(m_coastRequest);
+        }, this);
+    }
+    
+    public Command pass() {
         return Commands.runEnd(() -> {               
             m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(m_shooterLerpTable.get(m_shooterTargetDistance.getAsDouble())));
             SalesAssociate.sayByeToFuel();

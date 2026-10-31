@@ -472,8 +472,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         return cachedPose.getTranslation().getDistance(isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub);
     }
 
-    public Translation2d targetTranslation() {
-        if (inTeamAlliance())
+    public Translation2d targetTranslation(boolean isPass) {
+        if (!isPass)
             return isRedAlliance() ? FieldConstants.k_redHub : FieldConstants.k_blueHub;
         else
             if (isRedAlliance())

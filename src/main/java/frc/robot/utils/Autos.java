@@ -41,7 +41,7 @@ public class Autos {
             ),
             Commands.parallel(
                 Subsystems.m_hoodSubsystem.pitchHood(),
-                Subsystems.m_shooterSubsystem.shoot()
+                Subsystems.m_shooterSubsystem.score()
             ).withTimeout(6),
             Commands.race(
                 pathBuilder.build(doubleAuto2).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset().withShouldMirror(isRight),
@@ -52,7 +52,7 @@ public class Autos {
             ),
             Commands.parallel(
                 Subsystems.m_hoodSubsystem.pitchHood(),
-                Subsystems.m_shooterSubsystem.shoot()
+                Subsystems.m_shooterSubsystem.score()
             ).withTimeout(6)
         );
     }

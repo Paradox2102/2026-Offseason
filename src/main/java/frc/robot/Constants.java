@@ -271,8 +271,8 @@ public static final double k_secondarySlowKickerInRPS = 20;
         {0, 0}
     };
 
-    public static final double k_staticShotSpeed = 40;
-    public static final double k_staticShotAngle = 6.0;
+    public static final double k_staticShotSpeed = 58;
+    public static final double k_staticShotAngle = 0.0;
     public static final double k_hoodMOI = 0.02635296; 
     public static final double k_hoodArmLength = 0.20860766;
     public static final double k_hoodMaxAngle = 8.310546875;

@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import static org.wpilib.units.Units.Degrees;
+
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
 import org.wpilib.command2.Commands;
@@ -28,6 +30,7 @@ import frc.robot.Sales_because_if_6328_does_if_it_must_be_good.SalesAssociate;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.subsystems.shooter.FuelLaunchSim;
+import frc.robot.subsystems.shooter.TurretAimSubsystem;
 import frc.robot.utils.Autos;
 import frc.robot.utils.FuelSim;
 public class RobotContainer {
@@ -87,7 +90,8 @@ public class RobotContainer {
         // );
 
         m_controller.rightTrigger().whileTrue(Commands.parallel(
-            Subsystems.m_shooterSubsystem.shoot(),
+            Commands.run(() -> TurretAimSubsystem.isPass = false),
+            Subsystems.m_shooterSubsystem.score(),
             Subsystems.m_hoodSubsystem.pitchHood()
             
         )).onFalse(Commands.parallel(
@@ -96,7 +100,19 @@ public class RobotContainer {
        Subsystems.m_kickerSubsystem.runSlow(),
         Subsystems.m_secondaryKicker.runSlow(false)
         ).withTimeout(0.5));
+
+         m_controller.rightBumper().whileTrue(Commands.parallel(
+            Commands.run(() -> TurretAimSubsystem.isPass = true),
+            Subsystems.m_shooterSubsystem.score(),
+            Subsystems.m_hoodSubsystem.pitchHood()
             
+        )).onFalse(Commands.parallel(
+        Subsystems.m_indexerConveyor.runSlow(false),
+        Subsystems.m_indexerRollerSubsystem.runSlow(false),
+       Subsystems.m_kickerSubsystem.runSlow(),
+        Subsystems.m_secondaryKicker.runSlow(false)
+        ).withTimeout(0.5));
+
         m_controller.a().whileTrue(Commands.parallel( // Shooter override
             Subsystems.m_indexerConveyor.run(true),
             Subsystems.m_indexerRollerSubsystem.run(true),
@@ -184,6 +200,21 @@ public class RobotContainer {
     private void configureAutos(){
         SelectAuto.addCommand("Right Double Swipe", Autos.doubleSwipe(() -> true));
         SelectAuto.addCommand("Left Double Swipe", Autos.doubleSwipe(() -> true));
+        SelectAuto.addCommand("Shoot from Hub", 
+        Commands.sequence(
+            Subsystems.m_intakeExtension.extendIntake(),
+            Commands.parallel(
+            Subsystems.m_shooterSubsystem.staticShoot(),
+            Subsystems.m_hoodSubsystem.staticPitch(),
+            Subsystems.m_intakeExtension.agitate(),
+            Subsystems.m_intakeRoller.run(true),
+            Subsystems.m_indexerRollerSubsystem.run(true),
+            Subsystems.m_kickerSubsystem.run(),
+            Subsystems.m_secondaryKicker.run(true),
+            Commands.run(() -> {
+                Subsystems.m_swerveSubsystem.resetPose(SwerveSubsystem.isRedAlliance() ? new Pose2d() : new Pose2d(3.58, 4.0, new Rotation2d(Units.degreesToRadians(90))));
+            })
+        ).withTimeout(8)));
 
         Tunables.publish("Auto Selection", SelectAuto.m_autoSelection);
     }
