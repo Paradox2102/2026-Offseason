@@ -401,6 +401,10 @@ public static final double k_secondarySlowKickerInRPS = 20;
     public static final CurrentLimitsConfigs k_rollerLimitConfig = new CurrentLimitsConfigs().withSupplyCurrentLimit(k_rollerSupplyLimit);
 
     public static final double m_intakeExtensionAcceleration = 20.0;
+    /** extendIntake() stops after this even if the encoder never reads OUT, so the rollers after it still start */
+    public static final double k_maxExtendSeconds = 1.5;
+    /** How long the extension can stall before the command moving it ends */
+    public static final double k_extensionStallSeconds = 0.1;
     public static final double m_rollerMotionMagicAcceleration = 40.0;
 
     public static final MotionMagicConfigs m_intakeExtensionMotionMagicConfig = m_intakeExtensionConfigs.MotionMagic.withMotionMagicAcceleration(m_intakeExtensionAcceleration);

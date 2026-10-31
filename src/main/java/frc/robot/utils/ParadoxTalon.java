@@ -3,7 +3,6 @@ package frc.robot.utils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BooleanSupplier;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
@@ -32,7 +31,6 @@ public class ParadoxTalon extends TalonFX {
     private boolean m_stallShutoff = false;
 
     private Runnable m_callback;
-    private BooleanSupplier m_removeStallCondition;
 
 
     /**
@@ -52,19 +50,6 @@ public class ParadoxTalon extends TalonFX {
         // Alert on the dashboard if this motor drops off CAN or reboots
         HealthMonitor.register(this);
         s_all.add(this);
-    }
-
-    public ParadoxTalon(int deviceId, CANBus canbus, ControlRequest request, double stallShutDownTime, BooleanSupplier removeStallCondition) {
-        super(deviceId, canbus);
-
-        m_request = request;
-        m_stallDebounce = Optional.of(new Debouncer(stallShutDownTime, DebounceType.RISING));
-        setControl(request);
-
-        // Alert on the dashboard if this motor drops off CAN or reboots
-        HealthMonitor.register(this);
-        s_all.add(this);
-        m_removeStallCondition = removeStallCondition;
     }
 
     /**
@@ -100,13 +85,8 @@ public class ParadoxTalon extends TalonFX {
             BaseStatusSignal.refreshAll(m_statorCurrent, m_velocity, m_position);
         
             if (m_stallShutoff) {
-                if (
-                    (m_removeStallCondition == null && m_cooldown.hasElapsed(StallConstants.k_cooldownSeconds))
-                    ||
-                    (m_removeStallCondition != null && m_removeStallCondition.getAsBoolean())) {
-                    m_stallShutoff = false;
-                    m_stallDebounce.get().calculate(false); // reset, so it needs a fresh stall to trip again
-                    applyRequest();
+                if (m_cooldown.hasElapsed(StallConstants.k_cooldownSeconds)) {
+                    clearStall();
                 }
                 return;
             }
@@ -139,6 +119,18 @@ public class ParadoxTalon extends TalonFX {
 
     public boolean getShutoff() {
         return m_manualShutoff || m_stallShutoff;
+    }
+
+    public boolean isStallShutoff() {
+        return m_stallShutoff;
+    }
+
+    public void clearStall() {
+        m_stallDebounce.ifPresent(debounce -> debounce.calculate(false)); // reset, so it needs a fresh stall to trip again
+        if (m_stallShutoff) {
+            m_stallShutoff = false;
+            applyRequest();
+        }
     }
 
     public void setParadoxControl(ControlRequest request) {
