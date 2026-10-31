@@ -12,6 +12,7 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
+import com.ctre.phoenix6.swerve.ffi.SwerveNative.pose_t;
 
 import frc.robot.Constants.CANIDConstants;
 import frc.robot.Constants.ShooterConstants;
@@ -50,6 +51,8 @@ public class ShooterSubsystem extends SubsystemBase{
 
     private final TunableDouble m_shotSpeed = Tunables.addDouble("Shoot Speed", 0);
 
+    private static double shotTrim = 0;
+
     public boolean isAtSpeed() {
         return Math.abs(((Math.abs(m_shooterLeader.getVelocity().getValueAsDouble()) + Math.abs(m_shooterFollower.getVelocity().getValueAsDouble())) / 2) - m_velocityRequest.Velocity) < 3;
     }
@@ -73,7 +76,7 @@ public class ShooterSubsystem extends SubsystemBase{
 
     public Command score() {
         return Commands.runEnd(() -> {               
-            m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(m_shooterLerpTable.get(m_shooterTargetDistance.getAsDouble())));
+            m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(m_shooterLerpTable.get(m_shooterTargetDistance.getAsDouble()) + shotTrim));
             SalesAssociate.sayByeToFuel();
         }, () -> {
             m_shooterLeader.setParadoxControl(m_coastRequest);
@@ -82,7 +85,7 @@ public class ShooterSubsystem extends SubsystemBase{
     
     public Command pass() {
         return Commands.runEnd(() -> {               
-            m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(m_shooterLerpTable.get(m_shooterTargetDistance.getAsDouble())));
+            m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(m_shooterLerpTable.get(m_shooterTargetDistance.getAsDouble()) + shotTrim));
             SalesAssociate.sayByeToFuel();
         }, () -> {
             m_shooterLeader.setParadoxControl(m_coastRequest);
@@ -102,7 +105,7 @@ public class ShooterSubsystem extends SubsystemBase{
     public Command staticShoot(){
         return Commands.runEnd(() -> {
 
-            m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(ShooterConstants.k_staticShotSpeed));
+            m_shooterLeader.setParadoxControl(m_velocityRequest.withVelocity(ShooterConstants.k_staticShotSpeed + shotTrim));
         }, () -> {
             
             m_shooterLeader.setParadoxControl(m_coastRequest);
@@ -118,7 +121,11 @@ public class ShooterSubsystem extends SubsystemBase{
         Telemetry.log("Shooter Speed", (Math.abs(m_shooterLeader.getVelocity().getValueAsDouble()) + Math.abs(m_shooterFollower.getVelocity().getValueAsDouble())) / 2);
         Telemetry.log("Is Shooter At Speed", isAtSpeed());
         Telemetry.log("Shooter Target Speed", m_shooterLerpTable.get(m_shooterTargetDistance.getAsDouble()));
+        Telemetry.log("Shot Trim", shotTrim);
+    }
 
+    public static void trim(double amount){
+        shotTrim += amount;
     }
     @Override
     public void simulationPeriodic() {

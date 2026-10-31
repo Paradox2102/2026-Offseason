@@ -24,6 +24,7 @@ import org.wpilib.system.DataLogManager;
 import org.wpilib.system.Timer;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
+import org.wpilib.command2.Commands;
 
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
@@ -137,7 +138,10 @@ public class Robot extends TimedRobot {
         SignalLogger.writeDoubleArray("PDH/ChannelCurrents", currents, "A");
         SignalLogger.writeDouble("PDH/Voltage", m_pdh.getVoltage(), "V");
     }
-
+    @Override
+    public void teleopInit() {
+        CommandScheduler.getInstance().cancelAll();
+    }
     @Override
     public void disabledInit() {}
 
@@ -161,6 +165,7 @@ public class Robot extends TimedRobot {
     public void autonomousExit() {
         CommandScheduler.getInstance().cancel(m_autonomousCommand);
     }
+    
     
     @Override
     public void simulationPeriodic() {

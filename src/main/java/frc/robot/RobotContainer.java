@@ -30,6 +30,7 @@ import frc.robot.Sales_because_if_6328_does_if_it_must_be_good.SalesAssociate;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.subsystems.shooter.FuelLaunchSim;
+import frc.robot.subsystems.shooter.ShooterSubsystem;
 import frc.robot.subsystems.shooter.TurretAimSubsystem;
 import frc.robot.utils.Autos;
 import frc.robot.utils.FuelSim;
@@ -172,6 +173,9 @@ public class RobotContainer {
         //         ), Commands.none(), () -> Subsystems.m_shooterSubsystem.m_isAtSpeed() && Subsystems.m_hoodSubsystem.m_isOnTarget())
         //     )
         // ));
+
+        m_joystick.getHID().povUp().onTrue(Commands.runOnce(() -> ShooterSubsystem.trim(1)));
+        m_joystick.getHID().povDown().onTrue(Commands.runOnce(() -> ShooterSubsystem.trim(-1)));
     }
 
     private void configureDefaults() {
@@ -211,10 +215,32 @@ public class RobotContainer {
             Subsystems.m_indexerRollerSubsystem.run(true),
             Subsystems.m_kickerSubsystem.run(),
             Subsystems.m_secondaryKicker.run(true),
+            Subsystems.m_indexerConveyor.run(true),
             Commands.run(() -> {
                 Subsystems.m_swerveSubsystem.resetPose(SwerveSubsystem.isRedAlliance() ? new Pose2d() : new Pose2d(3.58, 4.0, new Rotation2d(Units.degreesToRadians(90))));
             })
-        ).withTimeout(8)));
+        ).withTimeout(3),
+        Commands.parallel(
+        Subsystems.m_indexerConveyor.runSlow(false),
+        Subsystems.m_indexerRollerSubsystem.runSlow(false),
+       Subsystems.m_kickerSubsystem.runSlow(),
+        Subsystems.m_secondaryKicker.runSlow(false)
+        ).withTimeout(0.75),
+        Commands.parallel(
+            Subsystems.m_shooterSubsystem.staticShoot(),
+            Subsystems.m_hoodSubsystem.staticPitch(),
+            Subsystems.m_intakeExtension.agitate(),
+            Subsystems.m_intakeRoller.run(true),
+            Subsystems.m_indexerRollerSubsystem.run(true),
+            Subsystems.m_kickerSubsystem.run(),
+            Subsystems.m_secondaryKicker.run(true),
+            Subsystems.m_indexerConveyor.run(true),
+            Commands.run(() -> {
+                Subsystems.m_swerveSubsystem.resetPose(SwerveSubsystem.isRedAlliance() ? new Pose2d() : new Pose2d(3.58, 4.0, new Rotation2d(Units.degreesToRadians(90))));
+            })
+        ).withTimeout(7)
+
+    ));
 
         Tunables.publish("Auto Selection", SelectAuto.m_autoSelection);
     }
