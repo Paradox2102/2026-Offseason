@@ -20,6 +20,7 @@ import org.wpilib.networktables.StructPublisher;
 import org.wpilib.framework.TimedRobot;
 import org.wpilib.hardware.power.PowerDistribution;
 import org.wpilib.hardware.power.PowerDistribution.ModuleType;
+import org.wpilib.system.DataLogManager;
 import org.wpilib.system.Timer;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
@@ -54,6 +55,10 @@ public class Robot extends TimedRobot {
         /* watch CAN buses, devices, battery and cameras; see utils/HealthMonitor.java */
         HealthMonitor.registerDrivetrain(Subsystems.m_swerveSubsystem);
         HealthMonitor.start();
+
+        DataLogManager.start();
+        DataLogManager.logNetworkTables(true);
+        DataLogManager.logConsoleOutput(true);
     }
 
     @Override
