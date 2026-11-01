@@ -242,6 +242,12 @@ public class RobotContainer {
 
     ));
 
+        SelectAuto.addCommand("Drive Forward Right Bump", Autos.driveForwardBump(() -> true));
+        SelectAuto.addCommand("Drive Forward Left Bump", Autos.driveForwardBump(() -> false));
+
+        SelectAuto.addCommand("Drive Forward Right Trench", Autos.driveForwardTrench(() -> true));
+        SelectAuto.addCommand("Drive Forward Left Trench", Autos.driveForwardTrench(() -> false));
+
         Tunables.publish("Auto Selection", SelectAuto.m_autoSelection);
     }
 

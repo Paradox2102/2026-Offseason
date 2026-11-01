@@ -4,7 +4,6 @@ import java.util.function.BooleanSupplier;
 
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
-import org.wpilib.command2.Subsystem;
 import org.wpilib.math.controller.PIDController;
 
 import bline.commands.FollowPathV2;
@@ -30,6 +29,9 @@ public class Autos {
     private static final Path doubleAuto1 = new Path("DoubleSwipe1");
     private static final Path doubleAuto2 = new Path("DoubleSwipe2");
 
+    private static final Path driveForwardBump = new Path("driveForwardBump");
+    private static final Path driveForwardTrench = new Path("driveForwardTrench");
+
     public static Command doubleSwipe(BooleanSupplier isRight){
         return Commands.sequence(
             Commands.race(
@@ -54,6 +56,26 @@ public class Autos {
                 Subsystems.m_hoodSubsystem.pitchHood(),
                 Subsystems.m_shooterSubsystem.score()
             ).withTimeout(6)
+        );
+    }
+
+    public static Command driveForwardBump(BooleanSupplier isRight){
+        return Commands.sequence(
+            Subsystems.m_intakeExtension.extendIntake(),
+            Commands.parallel(
+                Subsystems.m_intakeRoller.run(true),
+                pathBuilder.build(driveForwardBump).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset().withShouldMirror(isRight)
+            )
+        );
+    }
+
+    public static Command driveForwardTrench(BooleanSupplier isRight){
+        return Commands.sequence(
+            Subsystems.m_intakeExtension.extendIntake(),
+            Commands.parallel(
+                Subsystems.m_intakeRoller.run(true),
+                pathBuilder.build(driveForwardTrench).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset().withShouldMirror(isRight)
+            )
         );
     }
 }

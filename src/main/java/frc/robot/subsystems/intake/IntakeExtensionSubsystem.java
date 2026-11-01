@@ -54,6 +54,9 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     private boolean m_expectExtended = false;
 
+    private final Timer m_stallTimer = new Timer();
+    private final double k_maxStallTime = 0.3;
+
     private final ElevatorSim m_motorSimModel = new ElevatorSim(
            Models.elevatorFromPhysicalConstants(
       DCMotor.getKrakenX60Foc(2), k_elevatorMass, k_elevatorDrimRadius, k_gearRatio),
@@ -77,6 +80,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
 
     public IntakeExtensionSubsystem() {
         m_crushTimer.start();
+        m_stallTimer.start();
         m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.setControl(m_followRequest);
@@ -113,8 +117,10 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         return Commands.run(() -> {
             m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(-10));
             SalesAssociate.persuasion();
+             if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
+                m_stallTimer.reset();
         }, this
-        ).until(() -> isIntakeAtTarget(TargetPosition.IN, false)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = false;}).withTimeout(Seconds.of(1.0));
+        ).until(() -> m_stallTimer.get() > k_maxStallTime || isIntakeAtTarget(TargetPosition.IN, false)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = false;}).withTimeout(Seconds.of(1.0));
     }
 
     public Command extendIntakeCrush() {
@@ -122,8 +128,11 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
             m_crushTimer.reset();
         }, () -> {
             m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(6));
-            
-        }, this).until(() -> (isIntakeAtTarget(TargetPosition.OUT, false) || m_crushTimer.get() > k_maxCrushTime)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = true;}).withTimeout(Seconds.of(1.0));
+
+             if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
+                m_stallTimer.reset();
+
+        }, this).until(() -> (m_stallTimer.get() > k_maxStallTime || isIntakeAtTarget(TargetPosition.OUT, false) || m_crushTimer.get() > k_maxCrushTime)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = true;}).withTimeout(Seconds.of(1.0));
     }
 
         public Command retractIntakeCrush() {
@@ -132,14 +141,18 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         }, () -> {
             m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(-10));
             SalesAssociate.persuasion();
+             if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
+                m_stallTimer.reset();
         }, this
-        ).until(() -> isIntakeAtTarget(TargetPosition.CRUSH, true) || m_crushTimer.get() > k_maxCrushTime).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest)).withTimeout(Seconds.of(1.0));
+        ).until(() -> m_stallTimer.get()  > k_maxStallTime || isIntakeAtTarget(TargetPosition.CRUSH, true) || m_crushTimer.get() > k_maxCrushTime).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest)).withTimeout(Seconds.of(1.0));
     }
 
     public Command extendIntake() {
         return Commands.run(() -> {
             m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(10));
-        }, this).until(() -> isIntakeAtTarget(TargetPosition.OUT, false)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = true;});
+             if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
+                m_stallTimer.reset();
+        }, this).until(() -> m_stallTimer.get() > k_maxStallTime || isIntakeAtTarget(TargetPosition.OUT, false)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = true;});
     }
 
     public Command extendIntakeAndReset() {
