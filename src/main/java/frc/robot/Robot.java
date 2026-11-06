@@ -60,6 +60,7 @@ public class Robot extends TimedRobot {
         DataLogManager.start();
         DataLogManager.logNetworkTables(true);
         DataLogManager.logConsoleOutput(true);
+        
     }
 
     @Override

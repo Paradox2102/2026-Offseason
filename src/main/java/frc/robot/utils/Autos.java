@@ -21,9 +21,9 @@ public class Autos {
         Subsystems.m_swerveSubsystem::resetPose,
         Subsystems.m_swerveSubsystem::getChassisVelocities,
         velocities -> Subsystems.m_swerveSubsystem.driveRobotRelative(velocities, false),
-        new PIDController(6.0, 0.0, 0.0),
-        new PIDController(6.0, 0.0, 0.0),
-        new PIDController(6.0, 0.0, 0.0) // cross-track PID. If tuned, set it here.
+        new PIDController(16.0, 0.0, 0.0),
+        new PIDController(16.0, 0.0, 0.0),
+        new PIDController(16.0, 0.0, 0.0) // cross-track PID. If tuned, set it here.
     );
 
     private static final Path doubleAuto1 = new Path("DoubleSwipe1");
@@ -32,32 +32,34 @@ public class Autos {
     private static final Path driveForwardBump = new Path("driveForwardBump");
     private static final Path driveForwardTrench = new Path("driveForwardTrench");
 
-    public static Command doubleSwipe(BooleanSupplier isRight){
-        return Commands.sequence(
-            Commands.race(
-                pathBuilder.build(doubleAuto1).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset().withShouldMirror(isRight),
-                Commands.sequence(
-                    Subsystems.m_intakeExtension.extendIntake(),
-                    Subsystems.m_intakeRoller.run(true) 
-                )
-            ),
-            Commands.parallel(
-                Subsystems.m_hoodSubsystem.pitchHood(),
-                Subsystems.m_shooterSubsystem.score()
-            ).withTimeout(6),
-            Commands.race(
-                pathBuilder.build(doubleAuto2).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset().withShouldMirror(isRight),
-                Commands.sequence(
-                    Subsystems.m_intakeExtension.extendIntake(),
-                    Subsystems.m_intakeRoller.run(true) 
-                )
-            ),
-            Commands.parallel(
-                Subsystems.m_hoodSubsystem.pitchHood(),
-                Subsystems.m_shooterSubsystem.score()
-            ).withTimeout(6)
-        );
-    }
+    private static final Path testBLine = new Path("testbline");
+
+    // public static Command doubleSwipe(BooleanSupplier isRight){
+    //     return Commands.sequence(
+    //         Commands.race(
+    //             pathBuilder.build(doubleAuto1).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset().withShouldMirror(isRight),
+    //             Commands.sequence(
+    //                 Subsystems.m_intakeExtension.extendIntake(),
+    //                 Subsystems.m_intakeRoller.run(true) 
+    //             )
+    //         ),
+    //         Commands.parallel(
+    //             Subsystems.m_hoodSubsystem.pitchHood(),
+    //             Subsystems.m_shooterSubsystem.score()
+    //         ).withTimeout(6),
+    //         Commands.race(
+    //             pathBuilder.build(doubleAuto2).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset().withShouldMirror(isRight),
+    //             Commands.sequence(
+    //                 Subsystems.m_intakeExtension.extendIntake(),
+    //                 Subsystems.m_intakeRoller.run(true) 
+    //             )
+    //         ),
+    //         Commands.parallel(
+    //             Subsystems.m_hoodSubsystem.pitchHood(),
+    //             Subsystems.m_shooterSubsystem.score()
+    //         ).withTimeout(6)
+    //     );
+    // }
 
     public static Command driveForwardBump(BooleanSupplier isRight){
         return Commands.sequence(
@@ -76,6 +78,13 @@ public class Autos {
                 Subsystems.m_intakeRoller.run(true),
                 pathBuilder.build(driveForwardTrench).withShouldFlip(SwerveSubsystem::isRedAlliance).withPoseReset().withShouldMirror(isRight)
             )
+        );
+    }
+
+    public static Command testBlinePath(){
+        return Commands.sequence(
+            Subsystems.m_intakeExtension.extendIntake(),
+            pathBuilder.build(testBLine).withPoseReset()
         );
     }
 }

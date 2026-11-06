@@ -19,6 +19,8 @@ import org.wpilib.math.linalg.VecBuilder;
 import org.wpilib.math.linalg.Vector;
 import org.wpilib.math.numbers.N3;
 import org.wpilib.math.util.Units;
+import org.wpilib.units.measure.Distance;
+import org.wpilib.units.measure.LinearVelocity;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
@@ -86,8 +88,8 @@ public class Constants {
         public static final IntakeExtensionSubsystem m_intakeExtension = new IntakeExtensionSubsystem();
         public static final IntakeRollerSubsystem m_intakeRoller = new IntakeRollerSubsystem();
         public static final ShooterSubsystem m_shooterSubsystem;
-        public static final HoodSubsystem m_hoodSubsystem;
-        public static final TurretAimSubsystem m_turretAimSubsystem = new TurretAimSubsystem();
+        // public static final HoodSubsystem m_hoodSubsystem;
+        // public static final TurretAimSubsystem m_turretAimSubsystem = new TurretAimSubsystem();
         public static final KickerSubsystem m_kickerSubsystem = new KickerSubsystem();
         public static final SecondaryKicker m_secondaryKicker = new SecondaryKicker();
         public static final IndexerConveyorSubsystem m_indexerConveyor = new IndexerConveyorSubsystem();
@@ -95,8 +97,8 @@ public class Constants {
         public static final LightSubsystem m_lightSubsystem = new LightSubsystem();
         static {
             m_swerveSubsystem = TunerConstants.createDrivetrain();
-            m_hoodSubsystem  = new HoodSubsystem(Subsystems.m_turretAimSubsystem::getTargetDistance);
-            m_shooterSubsystem = new ShooterSubsystem(Subsystems.m_turretAimSubsystem::getTargetDistance);
+            // m_hoodSubsystem  = new HoodSubsystem(Subsystems.m_turretAimSubsystem::getTargetDistance);
+            m_shooterSubsystem = new ShooterSubsystem(() -> 0);
         }
     }
 
@@ -501,4 +503,13 @@ public static final double k_secondarySlowKickerInRPS = 20;
         /** A PositionVoltage motor this close to its target is holding, not stalled. */
         public static final double k_atSetpointToleranceRotations = 0.02;
     }
+
+public static class LightConstants {
+    public static final int k_lightPort = 0; // may be different on actual robot
+    public static final int k_lightAmount = 144;
+
+    public static LinearVelocity k_disabledVelocity = MetersPerSecond.of(0.1);
+    public static Distance k_ledSpacing = Meters.of(1 / 120.0);
+    
+  }
 }

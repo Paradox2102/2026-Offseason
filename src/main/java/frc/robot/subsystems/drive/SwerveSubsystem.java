@@ -114,7 +114,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
     );
 
     private final SwerveRequest.RobotCentric m_robotRelativeVelocityDrive = new SwerveRequest.RobotCentric().withDesaturateWheelVelocities(true)
-    .withDriveRequestType(DriveRequestType.Velocity);
+    .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+
 
     /* SysId routine for characterizing steer. This is used to find PID gains for the steer motors. */
     @SuppressWarnings("unused")
@@ -320,10 +321,10 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         }
 
         Telemetry.log("GyroAngle", getState().Pose.getRotation().getDegrees());
-        Telemetry.log("FrontLeftModulePosition", (getModule(0).getEncoder().getAbsolutePosition().getValueAsDouble()));
-        Telemetry.log("frontRightPosition", (getModule(1).getEncoder().getAbsolutePosition().getValueAsDouble()));
-        Telemetry.log("BackLeftModulePosition", (getModule(2).getEncoder().getAbsolutePosition().getValueAsDouble()));
-        Telemetry.log("BackrightModulePosition", (getModule(3).getEncoder().getAbsolutePosition().getValueAsDouble()));
+        Telemetry.log("FrontLeftModulePosition", (-getModule(0).getEncoder().getAbsolutePosition().getValueAsDouble()));
+        Telemetry.log("frontRightPosition", (-getModule(1).getEncoder().getAbsolutePosition().getValueAsDouble()));
+        Telemetry.log("BackLeftModulePosition", (-getModule(2).getEncoder().getAbsolutePosition().getValueAsDouble()));
+        Telemetry.log("BackrightModulePosition", (-getModule(3).getEncoder().getAbsolutePosition().getValueAsDouble()));
 
         vision.updatePoseEstimation(this);
 

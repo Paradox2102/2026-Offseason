@@ -34,8 +34,8 @@ import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.WaitCommand;
 
 public class IntakeExtensionSubsystem extends SubsystemBase {
-    private static final double k_intakeMaxExtension = 3.95;
-    private static final double k_intakeCrushPosition = 3.0;
+    private static final double k_intakeMaxExtension = 4.027587890625;
+    private static final double k_intakeCrushPosition = 2.7;
     private static final double k_elevatorDrimRadius = 0.038091; // If something is wrong then this is the first thing to check. Idk if I did this right
     private static final double k_elevatorMass = 5.401715051809;
     private final CANBus k_CANBus = CANIDConstants.k_canBus4;
@@ -55,7 +55,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
     private boolean m_expectExtended = false;
 
     private final Timer m_stallTimer = new Timer();
-    private final double k_maxStallTime = 0.3;
+    private final double k_maxStallTime = 3.0;
 
     private final ElevatorSim m_motorSimModel = new ElevatorSim(
            Models.elevatorFromPhysicalConstants(
@@ -84,6 +84,9 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
         m_intakeExtensionLeader.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.getConfigurator().apply(IntakeConstants.m_intakeExtensionConfigs);
         m_intakeExtensionFollower.setControl(m_followRequest);
+
+        m_intakeExtensionLeader.setPosition(k_intakeMaxExtension);
+        m_intakeExtensionFollower.setPosition(k_intakeMaxExtension);
 
         // m_intakeExtensionLeader.setPosition(k_intakeMaxExtension);
         // m_intakeExtensionFollower.setPosition(k_intakeMaxExtension);
@@ -120,7 +123,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
              if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
                 m_stallTimer.reset();
         }, this
-        ).until(() -> m_stallTimer.get() > k_maxStallTime || isIntakeAtTarget(TargetPosition.IN, false)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = false;}).withTimeout(Seconds.of(1.0));
+        ).until(() -> m_stallTimer.get() > k_maxStallTime || isIntakeAtTarget(TargetPosition.IN, false)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = false;}).withTimeout(Seconds.of(1.0)).beforeStarting(() -> m_stallTimer.reset());
     }
 
     public Command extendIntakeCrush() {
@@ -132,7 +135,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
              if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
                 m_stallTimer.reset();
 
-        }, this).until(() -> (m_stallTimer.get() > k_maxStallTime || isIntakeAtTarget(TargetPosition.OUT, false) || m_crushTimer.get() > k_maxCrushTime)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = true;}).withTimeout(Seconds.of(1.0));
+        }, this).until(() -> (m_stallTimer.get() > k_maxStallTime || isIntakeAtTarget(TargetPosition.OUT, false) || m_crushTimer.get() > k_maxCrushTime)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = true;}).withTimeout(Seconds.of(1.0)).beforeStarting(() -> m_stallTimer.reset());
     }
 
         public Command retractIntakeCrush() {
@@ -144,7 +147,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
              if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
                 m_stallTimer.reset();
         }, this
-        ).until(() -> m_stallTimer.get()  > k_maxStallTime || isIntakeAtTarget(TargetPosition.CRUSH, true) || m_crushTimer.get() > k_maxCrushTime).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest)).withTimeout(Seconds.of(1.0));
+        ).until(() -> m_stallTimer.get()  > k_maxStallTime || isIntakeAtTarget(TargetPosition.CRUSH, true) || m_crushTimer.get() > k_maxCrushTime).finallyDo(() -> m_intakeExtensionLeader.setControl(m_brakeRequest)).withTimeout(Seconds.of(1.0)).beforeStarting(() -> m_stallTimer.reset());
     }
 
     public Command extendIntake() {
@@ -152,7 +155,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
             m_intakeExtensionLeader.setControl(m_velocityRequest.withVelocity(10));
              if (Math.abs(m_intakeExtensionFollower.getVelocity().getValueAsDouble()) > 0.05)
                 m_stallTimer.reset();
-        }, this).until(() -> m_stallTimer.get() > k_maxStallTime || isIntakeAtTarget(TargetPosition.OUT, false)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = true;});
+        }, this).until(() -> m_stallTimer.get() > k_maxStallTime || isIntakeAtTarget(TargetPosition.OUT, false)).finallyDo(() -> {m_intakeExtensionLeader.setControl(m_brakeRequest); m_expectExtended = true;}).beforeStarting(() -> m_stallTimer.reset());
     }
 
     public Command extendIntakeAndReset() {
@@ -162,7 +165,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
             m_intakeExtensionLeader.setControl(m_brakeRequest);
             m_intakeExtensionLeader.setPosition(k_intakeMaxExtension);
             m_intakeExtensionLeader.setPosition(k_intakeMaxExtension);
-        }, this);
+        }, this).beforeStarting(() -> m_stallTimer.reset());
     }
     
 
@@ -172,7 +175,7 @@ public class IntakeExtensionSubsystem extends SubsystemBase {
             return intakePosition < target.position;
         }
         Telemetry.log("Intake psotion - target", (intakePosition - target.position));
-        return Math.abs(intakePosition - target.position) < 0.1;
+        return Math.abs(intakePosition - target.position) < 0.4;
 
     }
 

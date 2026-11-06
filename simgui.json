@@ -1,4 +1,8 @@
 {
+  "HALProvider": {"Addressable LEDs": {
+    "0": {"columns": 12},
+    "window": {"visible": true}
+  }},
   "NTProvider": {
     "types": {
       "\/DriverStation": "DriverStation",

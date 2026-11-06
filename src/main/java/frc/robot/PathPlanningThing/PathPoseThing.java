@@ -20,13 +20,6 @@ public class PathPoseThing{
      * they will make m_pose = new Pose2d(PositionX, positionY, Rotation)
      */
 
-    public PathPoseThing(){
-        // if (rotation == -1000){ // random value it should never be so this only happens if it isn't set
-        //     m_translation = new Translation2d(xPosition, yPosition);
-        // }else{
-        //     m_pose = new Pose2d(xPosition, yPosition, new Rotation2d(rotation));
-        // }
-    }
 
     public PathPoseThing(Pose2d pose, double deadzone, double maxVelocity, double maxAngularVelocity){
         m_pose = pose;

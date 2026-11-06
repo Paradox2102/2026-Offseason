@@ -17,9 +17,8 @@ import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.util.Units;
 import org.wpilib.telemetry.Telemetry;
-import org.wpilib.driverstation.Alliance;
-import org.wpilib.driverstation.MatchState;
 import org.wpilib.fields.Fields;
 import org.wpilib.command2.Command;
 
@@ -32,24 +31,22 @@ public class DrivePath extends Command{
     private final SwerveSubsystem m_swerveSubsystem = Subsystems.m_swerveSubsystem;
     private int m_point = 0;
     private final double alignDeadzone = 1.1;
-    @SuppressWarnings("unused")
-    private double m_totalPathDistance;
     private int m_rotationIndex = -1;
-    @SuppressWarnings("unused")
-    private final double k_checkEndThreshold = 1.0; 
 
     private ObjectMapper m_jsonMapper = new ObjectMapper();
     
     private Optional<DoubleSupplier> m_commandedRotation = Optional.empty();
 
-    public DrivePath(PathPoseThing[] pose) {
+    private final boolean m_resetPose;
+
+    public DrivePath(PathPoseThing[] pose, boolean resetPose) {
         m_pose = pose;
 
-
-        
+        m_resetPose = resetPose;
         
     }
-    public DrivePath(){
+    public DrivePath(boolean resetPose){
+        m_resetPose = resetPose;
         m_jsonMapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
         Path jsonPath = Paths.get("./src/main/java/frc/robot/PathPlanningThing/Autos/" + SelectAuto.m_autoSelection.getSelected()).toAbsolutePath();
         String json = "smth";
@@ -60,19 +57,15 @@ public class DrivePath extends Command{
         }
         try {
             m_pose = m_jsonMapper.readValue(json, PathPoseThing[].class);
-            System.out.println("AAAAAAAAA" + m_pose.length);
 
             for (int i = 0; i < m_pose.length; i++){
-            System.out.println("pls do i at least see this?");
-            if (m_pose[i].rotation == -1000){ // random value it should never be so this only happens if it isn't set
-                System.out.println("whu duh hecky y don't i see this");
+            if (m_pose[i].rotation == -3000){ // random value it should never be so this only happens if it isn't set
                 m_pose[i].m_translation = new Translation2d(m_pose[i].xPosition, m_pose[i].yPosition);
             }else{
-                System.out.println("whu duh hecky y don't i see this, butt pose");
                 m_pose[i].m_pose = new Pose2d(m_pose[i].xPosition, m_pose[i].yPosition, new Rotation2d(m_pose[i].rotation));
             }
             }
-            // System.out.println("this is a string so i can find this in the console " + m_pose[0].m_pose.getX());
+            
         } catch (JsonMappingException e) {System.err.println("m_pose can't be set, mapping error" + e);}
         catch (JsonProcessingException e) {System.err.println("m_pose can't be set, processing error");}
         
@@ -87,7 +80,8 @@ public class DrivePath extends Command{
      * @param AutoName
      * This is the name of the auto as <b>WITH THE JSON FILE EXTENSION </b> in the PathPlanningThing/Autos folder
      */
-    public DrivePath(String AutoName, boolean mirror){
+    public DrivePath(String AutoName, boolean mirror, boolean resetPose){
+        m_resetPose = resetPose;
         m_jsonMapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
         Path jsonPath = Paths.get("./src/main/java/frc/robot/PathPlanningThing/Autos/" + AutoName).toAbsolutePath();
         String json = "smth";
@@ -98,15 +92,11 @@ public class DrivePath extends Command{
         }
         try {
             m_pose = m_jsonMapper.readValue(json, PathPoseThing[].class);
-            System.out.println("AAAAAAAAA" + m_pose.length);
 
             for (int i = 0; i < m_pose.length; i++){
-            System.out.println("pls do i at least see this?");
             if (m_pose[i].rotation == -1000){ // random value it should never be so this only happens if it isn't set
-                System.out.println("whu duh hecky y don't i see this");
                 m_pose[i].m_translation = new Translation2d(m_pose[i].xPosition, m_pose[i].yPosition);
             }else{
-                System.out.println("whu duh hecky y don't i see this, butt pose");
                 m_pose[i].m_pose = new Pose2d(m_pose[i].xPosition, m_pose[i].yPosition, new Rotation2d(m_pose[i].rotation));
             }
             }
@@ -116,7 +106,6 @@ public class DrivePath extends Command{
                     i.yPosition = Math.abs(i.yPosition - Fields.DEFAULT_FIELD.width);
                 }
             }
-            // System.out.println("this is a string so i can find this in the console " + m_pose[0].m_pose.getX());
         } catch (JsonMappingException e) {System.err.println("m_pose can't be set, mapping error" + e);}
         catch (JsonProcessingException e) {System.err.println("m_pose can't be set, processing error");}
         
@@ -134,8 +123,8 @@ public class DrivePath extends Command{
      * It should be calculated from a PID rotation as it is a <b>rate of change</b> not a <b>target rotation</b>
      * <b>This will override Pose Waypoint's Rotation</b>
      */
-    public DrivePath(String AutoName, DoubleSupplier rotation){
-
+    public DrivePath(String AutoName, DoubleSupplier rotation, boolean resetPose){
+        m_resetPose = resetPose;
         m_commandedRotation = Optional.of(rotation);
 
         m_jsonMapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
@@ -148,19 +137,14 @@ public class DrivePath extends Command{
         }
         try {
             m_pose = m_jsonMapper.readValue(json, PathPoseThing[].class);
-            System.out.println("AAAAAAAAA" + m_pose.length);
 
             for (int i = 0; i < m_pose.length; i++){
-            System.out.println("pls do i at least see this?");
             if (m_pose[i].rotation == -1000){ // random value it should never be so this only happens if it isn't set
-                System.out.println("whu duh hecky y don't i see this");
                 m_pose[i].m_translation = new Translation2d(m_pose[i].xPosition, m_pose[i].yPosition);
             }else{
-                System.out.println("whu duh hecky y don't i see this, butt pose");
                 m_pose[i].m_pose = new Pose2d(m_pose[i].xPosition, m_pose[i].yPosition, new Rotation2d(m_pose[i].rotation));
             }
             }
-            // System.out.println("this is a string so i can find this in the console " + m_pose[0].m_pose.getX());
         } catch (JsonMappingException e) {System.err.println("m_pose can't be set, mapping error" + e);}
         catch (JsonProcessingException e) {System.err.println("m_pose can't be set, processing error");}
         
@@ -175,6 +159,8 @@ public class DrivePath extends Command{
     public void initialize() {
         m_point = 0;
         m_rotationIndex = -1;
+        if (m_resetPose)
+            Subsystems.m_swerveSubsystem.resetPose(m_pose[m_point].m_pose);
         // for (int i = 0; i < m_pose.length; i++){
         //     m_totalPathDistance = m_pose[i].getDistance(m_pose[i + 1]);
         // }
@@ -189,33 +175,23 @@ public class DrivePath extends Command{
     private void checkClosest(){
         var importantPose = nextImportantPose();
         if (m_pose[m_point].m_translation == null){
-            System.out.println("It's a pose!");
             return;
         }
         if (m_pose[m_point].m_isImportant){
-            System.out.println("It's Important!");
             return;
         }
         if (importantPose == -1){
-            System.out.println("Nothing else is important!");
             return;
         }
         if (m_pose[importantPose].m_translation == null){
             if (m_swerveSubsystem.getPose().getTranslation().getDistance(m_pose[m_point].m_translation) > m_swerveSubsystem.getPose().getTranslation().getDistance(m_pose[importantPose].m_pose.getTranslation())){
                 m_point = importantPose;
-                System.out.println("We're closer to the next important pose");
                 return;
-            }else{
-                System.out.println("We're not closer to the next important pose");
             }
         }else{
             if (m_swerveSubsystem.getPose().getTranslation().getDistance(m_pose[m_point].m_translation) > m_swerveSubsystem.getPose().getTranslation().getDistance(m_pose[importantPose].m_translation)){
                 m_point = importantPose;
-                System.out.println("We're closer to the next important translation");
                 return;
-            }else{
-                System.out.println("We're not closer to the next important translation");
-
             }
         }
     }
@@ -243,13 +219,12 @@ public class DrivePath extends Command{
         }
         
         if (m_commandedRotation.isPresent()){
-            // m_swerveSubsystem.drive(new Translation2d(x, y), m_commandedRotation.get().getAsDouble() * (isRedAlliance() ? -1 : 1), true);
+            m_swerveSubsystem.drive(new ChassisVelocities(x, y, m_commandedRotation.get().getAsDouble() * (isRedAlliance() ? -1 : 1)));
             return;
         }
 
         if (m_pose[m_point].m_translation == null){
-            // m_swerveSubsystem.drive(new Translation2d(x, y), orientPID(() -> Units.degreesToRadians(m_pose[m_point].m_pose.getRotation().getDegrees()) * (isRedAlliance() ? -1 : 1)).get().getDegrees(), true);
-            System.out.println("We gettin velocity because of no rotation");
+            m_swerveSubsystem.drive(new ChassisVelocities(x, y, orientPID(() -> Units.degreesToRadians(m_pose[m_point].m_pose.getRotation().getDegrees()) * (isRedAlliance() ? -1 : 1)).get().getDegrees()));
         }else{
         if (m_rotationIndex == -1){
             for (int i = m_point; i > m_pose.length; i++){
@@ -273,11 +248,11 @@ public class DrivePath extends Command{
         }    
           
             if (m_rotationIndex == -1){
-                // m_swerveSubsystem.drive(new Translation2d(x, y), 0, true);
+                m_swerveSubsystem.drive(new ChassisVelocities(x, y, 0));
                 
             }else{
-                // m_swerveSubsystem.drive(new Translation2d(x, y), orientPID(() -> m_pose[m_rotationIndex].m_pose.getRotation().getDegrees() * (isRedAlliance() ? -1 : 1)).get().getDegrees(), true);
-                System.out.println("The rotation index is NOT -1");
+                m_swerveSubsystem.drive(new ChassisVelocities(x, y, orientPID(() -> m_pose[m_rotationIndex].m_pose.getRotation().getDegrees() * (isRedAlliance() ? -1 : 1)).get().getDegrees()));
+                
             }
         }
         
@@ -295,8 +270,7 @@ public class DrivePath extends Command{
     }
 
     private boolean isRedAlliance() {
-        var alliance = MatchState.getAlliance();
-        return alliance.isPresent() ? alliance.get() == Alliance.RED : true;
+        return SwerveSubsystem.isRedAlliance();
     }
 
     @Override
@@ -324,10 +298,8 @@ public class DrivePath extends Command{
                         }else{
                             m_point ++;
                             m_rotationIndex = -1;
-                            System.out.println("AAAAA Why are you increasing the point!!!!!");
                         }   
                     }else {
-                        // System.out.println(m_pose[m_point].m_pose.getRotation().getRadians());
                         return false;
                     }
                 } catch(Exception e){
@@ -357,10 +329,8 @@ public class DrivePath extends Command{
     private int nextImportantPose() {
         for (int i = m_point; i < m_pose.length; i++) {
             if (m_pose[i].m_translation == null){
-                System.out.println(String.format("Returning %d, we're at %d", i, m_point));
                 return i;
             }else if(m_pose[i].m_isImportant){
-                System.out.println(String.format("Returning %d, we're at %d", i, m_point));
                 return i;
             }
         }
